@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suivi CORIFER — Fiches projets</title>
+
+  <!-- API des widgets Grist -->
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+  <style>
+    :root {
+      --navy: #12304a;
+      --blue: #1967a9;
+      --blue-light: #eaf3fa;
+      --green: #198754;
+      --red: #b42318;
+      --orange: #a15c00;
+      --text: #1d2939;
+      --muted: #667085;
+      --line: #d9e1e8;
+      --background: #f4f7fa;
+      --card: #ffffff;
+      --shadow: 0 2px 10px rgba(16, 36, 56, .08);
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background: var(--background);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    .app {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    /* En-tête */
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 4px 0 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(23px, 3vw, 31px);
+      letter-spacing: -.03em;
+    }
+
+    .subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .save-zone {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      min-height: 42px;
+    }
+
+    .save-status {
+      max-width: 300px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .save-status.success {
+      color: var(--green);
+    }
+
+    .save-status.error {
+      color: var(--red);
+    }
+
+    .save-button {
+      min-width: 196px;
+      padding: 11px 16px;
+      border: 1px solid #0f548e;
+      border-radius: 7px;
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .10);
+      cursor: pointer;
+      font-weight: 700;
+      transition: background .15s ease, opacity .15s ease, transform .15s ease;
+    }
+
+    .save-button:hover:not(:disabled) {
+      background: #14598f;
+    }
+
+    .save-button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .save-button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    /* Sélecteur de projet */
+    .selector-card {
+      margin-bottom: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .selector-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(260px, 2.4fr);
+      align-items: end;
+      gap: 14px 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap::before {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 12px;
+      color: #667085;
+      content: "⌕";
+      font-size: 21px;
+      line-height: 1;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .project-search,
+    .project-select,
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      color: var(--text);
+      background: #fff;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .project-search,
+    .project-select {
+      height: 42px;
+      padding: 9px 11px;
+    }
+
+    .project-search {
+      padding-left: 39px;
+    }
+
+    input,
+    textarea {
+      padding: 9px 10px;
+    }
+
+    input {
+      min-height: 39px;
+    }
+
+    textarea {
+      min-height: 108px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(25, 103, 169, .14);
+    }
+
+    .record-counter {
+      grid-column: 1 / -1;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* Bandeau projet */
+    .project-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      padding: 19px 21px;
+      border-radius: var(--radius);
+      color: white;
+      background: linear-gradient(115deg, #12304a, #195d92);
+      box-shadow: var(--shadow);
+    }
+
+    .project-title {
+      margin: 0;
+      color: white;
+      font-size: clamp(22px, 3vw, 29px);
+      letter-spacing: -.02em;
+    }
+
+    .project-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(255, 255, 255, .12);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.pending {
+      border-color: #f3c76a;
+      color: #fff4d6;
+      background: rgba(165, 92, 0, .35);
+    }
+
+    /* Grille et cartes */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .section-card {
+      grid-column: span 12;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section-card.half {
+      grid-column: span 6;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      padding: 13px 17px;
+      border-bottom: 1px solid var(--line);
+      color: var(--navy);
+      background: #f8fafc;
+      font-size: 15px;
+    }
+
+    .section-icon {
+      display: inline-grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border-radius: 5px;
+      color: var(--blue);
+      background: var(--blue-light);
+      font-size: 14px;
+    }
+
+    .section-content {
+      padding: 17px;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px 16px;
+    }
+
+    .fields.one-column {
+      grid-template-columns: 1fr;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field-help {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      min-height: 39px;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .checkbox-field input {
+      width: 18px;
+      min-height: auto;
+      margin: 0 9px 0 0;
+      accent-color: var(--blue);
+    }
+
+    .checkbox-field label {
+      margin: 0;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 39px;
+      padding: 8px 11px;
+      border: 1px solid #9fc3df;
+      border-radius: 6px;
+      color: #125b94;
+      background: #f2f8fc;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .link-button:hover {
+      background: #e6f2fa;
+    }
+
+    .empty-link {
+      display: flex;
+      align-items: center;
+      min-height: 39px;
+      color: var(--muted);
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    /* Etats de l'application */
+    .empty-state,
+    .loading-state {
+      padding: 50px 20px;
+      border: 1px dashed #b9c8d5;
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: #fff;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .dirty-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: #e49b20;
+    }
+
+    @media (max-width: 880px) {
+      .topbar,
+      .project-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .save-zone {
+        justify-content: space-between;
+      }
+
+      .project-meta {
+        justify-content: flex-start;
+      }
+
+      .section-card.half {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        padding: 14px;
+      }
+
+      .selector-grid,
+      .fields {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .save-zone {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .save-status {
+        max-width: none;
+        text-align: left;
+      }
+
+      .save-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">CORIFER</p>
+        <h1>Fiches de suivi des projets</h1>
+        <p class="subtitle">Consultez et mettez à jour les informations directement depuis cette vue.</p>
+      </div>
+
+      <div class="save-zone">
+        <div id="saveStatus" class="save-status">Sélectionnez un projet.</div>
+        <button id="saveButton" class="save-button" type="button" disabled>
+          Enregistrer les modifications
+        </button>
+      </div>
+    </header>
+
+    <section class="selector-card">
+      <div class="selector-grid">
+        <div>
+          <label for="projectSearch">Rechercher un projet</label>
+          <div class="search-wrap">
+            <input id="projectSearch" class="project-search" type="search"
+                   placeholder="Ex. FLEXMOVE, ECOTRAIN…" autocomplete="off">
+          </div>
+        </div>
+
+        <div>
+          <label for="projectSelect">Projet sélectionné</label>
+          <select id="projectSelect" class="project-select" disabled>
+            <option value="">Chargement des projets…</option>
+          </select>
+        </div>
+
+        <p id="recordCounter" class="record-counter"></p>
+      </div>
+    </section>
+
+    <div id="loadingState" class="loading-state">
+      Chargement des données Grist…
+    </div>
+
+    <div id="emptyState" class="empty-state hidden">
+      Aucun projet n’est disponible dans la table configurée.
+    </div>
+
+    <section id="projectForm" class="hidden">
+      <div class="project-header">
+        <div>
+          <p class="eyebrow" style="color:#c7e5fa;">Fiche projet</p>
+          <h2 id="projectTitle" class="project-title">—</h2>
+        </div>
+        <div class="project-meta">
+          <span id="hearingBadge" class="badge">Audition : —</span>
+          <span id="scheduleBadge" class="badge">—</span>
+        </div>
+      </div>
+
+      <div class="form-grid">
+
+        <!-- Identification -->
+        <section class="section-card half">
+          <h3 class="section-heading">
+            <span class="section-icon">⌁</span> Identification et calendrier
+          </h3>
+          <div class="section-content">
+            <div class="fields">
+              <div class="field">
+                <label for="Projet">Nom du projet</label>
+                <input id="Projet" data-col="Projet" type="text">
+              </div>
+
+              <div class="field">
+                <label for="Horaires (affichage)">Horaires affichés</label>
+                <input id="Horaires (affichage)" data-col="Horaires (affichage)" type="text"
+                       placeholder="Ex. 14h–16h">
+              </div>
+
+              <div class="field">
+                <label for="Début">Début</label>
+                <input id="Début" data-col="Début" data-type="datetime-local" type="datetime-local">
+              </div>
+
+              <div class="field">
+                <label for="Fin">Fin</label>
+                <input id="Fin" data-col="Fin" data-type="datetime-local" type="datetime-local">
+              </div>
+
+              <div class="field full">
+                <label>Tenue de l'audition</label>
+                <div class="checkbox-field">
+                  <input id="Tenue de l'audition" data-col="Tenue de l'audition"
+                         data-type="bool" type="checkbox">
+                  <label for="Tenue de l'audition">Audition confirmée / tenue</label>
+                </div>
+              </div>
+
+              <div class="field full">
+                <label for="Lien vers le dossier partagé">Dossier partagé</label>
+                <input id="Lien vers le dossier partagé" data-col="Lien vers le dossier partagé"
+                       type="url" placeholder="https://…">
+                <p class="field-help">
+                  Le lien ci-dessous est mis à jour lorsque vous enregistrez la fiche.
+                </p>
+                <a id="folderLink" class="link-button hidden" href="#" target="_blank"
+                   rel="noopener noreferrer">Ouvrir le dossier partagé ↗</a>
+                <span id="noFolderLink" class="empty-link">Aucun dossier partagé renseigné.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Gouvernance -->
+        <section class="section-card half">
+          <h3 class="section-heading">
+            <span class="section-icon">♙</span> Porteurs et participants
+          </h3>
+          <div class="section-content">
+            <div class="fields">
+              <div class="field">
+                <label for="Opérateur">Opérateur</label>
+                <input id="Opérateur" data-col="Opérateur" type="text">
+              </div>
+
+              <div class="field">
+                <label for="Chef de file">Chef de file</label>
+                <input id="Chef de file" data-col="Chef de file" type="text">
+              </div>
+
+              <div class="field full">
+                <label for="Membres du consortium">Membres du consortium</label>
+                <textarea id="Membres du consortium" data-col="Membres du consortium"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Participants SPIN">Participants SPIN</label>
+                <textarea id="Participants SPIN" data-col="Participants SPIN"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Participation Etat">Participation État</label>
+                <textarea id="Participation Etat" data-col="Participation Etat"></textarea>
+              </div>
+
+              <div class="field full">
+                <label for="Participants hors SPIN">Participants hors SPIN</label>
+                <textarea id="Participants hors SPIN" data-col="Participants hors SPIN"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Financement -->
+        <section class="section-card half">
+          <h3 class="section-heading">
+            <span class="section-icon">€</span> Financement
+          </h3>
+          <div class="section-content">
+            <div class="fields">
+              <div class="field">
+                <label for="Montant total du projet (en €)">Montant total du projet (€)</label>
+                <input id="Montant total du projet (en €)"
+                       data-col="Montant total du projet (en €)"
+                       data-type="number" type="number" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="Montant total d'aide du projet (en €)">Montant total d'aide (€)</label>
+                <input id="Montant total d'aide du projet (en €)"
+                       data-col="Montant total d'aide du projet (en €)"
+                       data-type="number" type="number" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="Subventions">Subventions (€)</label>
+                <input id="Subventions" data-col="Subventions"
+                       data-type="number" type="number" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="AR">AR (€)</label>
+                <input id="AR" data-col="AR"
+                       data-type="number" type="number" min="0" step="0.01">
+              </div>
+
+              <div class="field">
+                <label for="A">A (€)</label>
+                <input id="A" data-col="A"
+                       data-type="number" type="number" min="0" step="0.01">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vue d'ensemble -->
+        <section class="section-card half">
+          <h3 class="section-heading">
+            <span class="section-icon">◈</span> Vue d’ensemble
+          </h3>
+          <div class="section-content">
+            <div class="fields one-column">
+              <div class="field">
+                <label for="Projet_Présentation">Présentation du projet</label>
+                <textarea id="Projet_Présentation" data-col="Projet_Présentation"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Projet_Objectifs">Objectifs</label>
+                <textarea id="Projet_Objectifs" data-col="Projet_Objectifs"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Projet_Avancement">Avancement</label>
+                <textarea id="Projet_Avancement" data-col="Projet_Avancement"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analyse -->
+        <section class="section-card">
+          <h3 class="section-heading">
+            <span class="section-icon">▣</span> Analyse et perspectives
+          </h3>
+          <div class="section-content">
+            <div class="fields">
+              <div class="field">
+                <label for="Projet_Freins rencontrés">Freins rencontrés</label>
+                <textarea id="Projet_Freins rencontrés"
+                          data-col="Projet_Freins rencontrés"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Projet_Potentiel de l'innovation">Potentiel de l'innovation</label>
+                <textarea id="Projet_Potentiel de l'innovation"
+                          data-col="Projet_Potentiel de l'innovation"></textarea>
+              </div>
+
+              <div class="field full">
+                <label for="Projet_Perspectives de développement">Perspectives de développement</label>
+                <textarea id="Projet_Perspectives de développement"
+                          data-col="Projet_Perspectives de développement"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Avis -->
+        <section class="section-card">
+          <h3 class="section-heading">
+            <span class="section-icon">✦</span> Avis
+          </h3>
+          <div class="section-content">
+            <div class="fields">
+              <div class="field">
+                <label for="Avis SPIN">Avis SPIN</label>
+                <textarea id="Avis SPIN" data-col="Avis SPIN"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="Avis SFG">Avis SFG</label>
+                <textarea id="Avis SFG" data-col="Avis SFG"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /*****************************************************************
+     * CONFIGURATION
+     *
+     * Après import de votre Excel, Grist devrait normalement utiliser
+     * "Tableau_de_suivi" comme identifiant technique de table.
+     *
+     * Si votre table Grist a un autre identifiant, remplacez la valeur
+     * ci-dessous. L'identifiant technique est visible dans l'URL
+     * lorsque vous ouvrez la table dans Grist.
+     *****************************************************************/
+    const TABLE_ID = "Tableau_de_suivi";
+
+    /*
+     * Colonnes utilisées par le widget.
+     * Les noms doivent correspondre aux identifiants de colonnes Grist.
+     * Après import Excel, Grist conserve en général ces noms.
+     */
+    const COLUMNS = [
+      "Projet",
+      "Début",
+      "Fin",
+      "Horaires (affichage)",
+      "Tenue de l'audition",
+      "Lien vers le dossier partagé",
+      "Opérateur",
+      "Chef de file",
+      "Membres du consortium",
+      "Participants SPIN",
+      "Participation Etat",
+      "Participants hors SPIN",
+      "Montant total du projet (en €)",
+      "Montant total d'aide du projet (en €)",
+      "Subventions",
+      "AR",
+      "A",
+      "Projet_Présentation",
+      "Projet_Objectifs",
+      "Projet_Avancement",
+      "Projet_Freins rencontrés",
+      "Projet_Potentiel de l'innovation",
+      "Projet_Perspectives de développement",
+      "Avis SPIN",
+      "Avis SFG"
+    ];
+
+    const state = {
+      records: [],
+      currentRecord: null,
+      hasUnsavedChanges: false
+    };
+
+    const ui = {
+      search: document.getElementById("projectSearch"),
+      select: document.getElementById("projectSelect"),
+      form: document.getElementById("projectForm"),
+      loading: document.getElementById("loadingState"),
+      empty: document.getElementById("emptyState"),
+      saveButton: document.getElementById("saveButton"),
+      saveStatus: document.getElementById("saveStatus"),
+      recordCounter: document.getElementById("recordCounter"),
+      title: document.getElementById("projectTitle"),
+      hearingBadge: document.getElementById("hearingBadge"),
+      scheduleBadge: document.getElementById("scheduleBadge"),
+      folderLink: document.getElementById("folderLink"),
+      noFolderLink: document.getElementById("noFolderLink")
+    };
+
+    /*
+     * Le widget demande l'autorisation de lecture et d'écriture.
+     * L'administrateur/utilisateur Grist devra accepter "Full document access".
+     */
+    grist.ready({
+      requiredAccess: "full",
+      columns: COLUMNS.map(name => ({ name }))
+    });
+
+    /*
+     * Récupération des données de la table associée au widget.
+     * Dans la configuration du widget Grist, sélectionnez la table
+     * Tableau_de_suivi comme source de données.
+     */
+    grist.onRecords(function(records) {
+      state.records = (records || []).slice().sort((a, b) => {
+        const projectA = String(a.Projet || "").localeCompare(String(b.Projet || ""), "fr");
+        return projectA;
+      });
+
+      ui.loading.classList.add("hidden");
+      populateSelect();
+
+      if (!state.records.length) {
+        ui.empty.classList.remove("hidden");
+        ui.form.classList.add("hidden");
+        ui.saveButton.disabled = true;
+        setStatus("Aucun projet trouvé.", "");
+        return;
+      }
+
+      ui.empty.classList.add("hidden");
+
+      /* Conserve le projet courant après une mise à jour Grist. */
+      const currentId = state.currentRecord && state.currentRecord.id;
+      const refreshed = state.records.find(record => record.id === currentId);
+
+      if (refreshed && !state.hasUnsavedChanges) {
+        selectRecord(refreshed.id);
+      } else if (!state.currentRecord) {
+        selectRecord(state.records[0].id);
+      }
+    });
+
+    function populateSelect() {
+      const previousValue = ui.select.value;
+      const searchTerm = ui.search.value.trim().toLocaleLowerCase("fr");
+
+      const visibleRecords = state.records.filter(record => {
+        const project = String(record.Projet || "").toLocaleLowerCase("fr");
+        const operator = String(record.Opérateur || "").toLocaleLowerCase("fr");
+        const leader = String(record["Chef de file"] || "").toLocaleLowerCase("fr");
+        return !searchTerm ||
+          project.includes(searchTerm) ||
+          operator.includes(searchTerm) ||
+          leader.includes(searchTerm);
+      });
+
+      ui.select.innerHTML = "";
+
+      if (!visibleRecords.length) {
+        const option = new Option("Aucun projet ne correspond à la recherche", "");
+        ui.select.add(option);
+        ui.select.disabled = true;
+      } else {
+        visibleRecords.forEach(record => {
+          const project = record.Projet || "Projet sans nom";
+          const schedule = record["Horaires (affichage)"] ? ` — ${record["Horaires (affichage)"]}` : "";
+          const option = new Option(`${project}${schedule}`, record.id);
+          ui.select.add(option);
+        });
+
+        ui.select.disabled = false;
+
+        const idStillVisible = visibleRecords.some(record => String(record.id) === previousValue);
+        if (idStillVisible) {
+          ui.select.value = previousValue;
+        } else if (state.currentRecord &&
+                   visibleRecords.some(record => record.id === state.currentRecord.id)) {
+          ui.select.value = state.currentRecord.id;
+        }
+      }
+
+      ui.recordCounter.textContent =
+        `${visibleRecords.length} projet${visibleRecords.length > 1 ? "s" : ""} affiché${visibleRecords.length > 1 ? "s" : ""}` +
+        ` sur ${state.records.length}.`;
+    }
+
+    function selectRecord(id) {
+      const record = state.records.find(item => String(item.id) === String(id));
+      if (!record) return;
+
+      state.currentRecord = record;
+      state.hasUnsavedChanges = false;
+
+      ui.select.value = record.id;
+      ui.form.classList.remove("hidden");
+      ui.saveButton.disabled = false;
+
+      fillForm(record);
+      updateHeader(record);
+      setStatus("Aucune modification à enregistrer.", "");
+    }
+
+    function fillForm(record) {
+      document.querySelectorAll("[data-col]").forEach(element => {
+        const column = element.dataset.col;
+        const type = element.dataset.type;
+        const value = record[column];
+
+        if (type === "bool") {
+          element.checked = Boolean(value);
+        } else if (type === "datetime-local") {
+          element.value = gristDateToInput(value);
+        } else if (type === "number") {
+          element.value = value === null || value === undefined ? "" : value;
+        } else {
+          element.value = value === null || value === undefined ? "" : value;
+        }
+      });
+
+      updateFolderLink(record["Lien vers le dossier partagé"]);
+    }
+
+    function updateHeader(record) {
+      const projectName = record.Projet || "Projet sans nom";
+      const schedule = record["Horaires (affichage)"] || formatSchedule(record);
+
+      ui.title.textContent = projectName;
+      ui.scheduleBadge.textContent = schedule || "Date et horaire non renseignés";
+
+      if (record["Tenue de l'audition"]) {
+        ui.hearingBadge.textContent = "✓ Audition confirmée";
+        ui.hearingBadge.classList.remove("pending");
+      } else {
+        ui.hearingBadge.textContent = "Audition non confirmée";
+        ui.hearingBadge.classList.add("pending");
+      }
+    }
+
+    function updateFolderLink(url) {
+      const validUrl = typeof url === "string" && /^https?:\/\//i.test(url.trim());
+
+      ui.folderLink.classList.toggle("hidden", !validUrl);
+      ui.noFolderLink.classList.toggle("hidden", validUrl);
+
+      if (validUrl) {
+        ui.folderLink.href = url.trim();
+      }
+    }
+
+    function formatSchedule(record) {
+      const start = gristDateToInput(record["Début"]);
+      const end = gristDateToInput(record["Fin"]);
+
+      if (!start && !end) return "";
+      if (start && end) return `${start.replace("T", " ")} → ${end.replace("T", " ")}`;
+      return (start || end).replace("T", " ");
+    }
+
+    /*
+     * Grist stocke DateTime sous forme d'un timestamp Unix en secondes.
+     * Cette fonction transforme cette valeur en format compatible avec
+     * <input type="datetime-local">.
+     */
+    function gristDateToInput(value) {
+      if (value === null || value === undefined || value === "") return "";
+
+      let date;
+      if (typeof value === "number") {
+        date = new Date(value * 1000);
+      } else {
+        date = new Date(value);
+      }
+
+      if (Number.isNaN(date.getTime())) return "";
+
+      const pad = number => String(number).padStart(2, "0");
+      return [
+        date.getFullYear(),
+        pad(date.getMonth() + 1),
+        pad(date.getDate())
+      ].join("-") + "T" + [
+        pad(date.getHours()),
+        pad(date.getMinutes())
+      ].join(":");
+    }
+
+    /*
+     * Conversion du champ datetime-local vers le format Grist :
+     * timestamp Unix en secondes.
+     */
+    function inputToGristDate(value) {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : Math.floor(date.getTime() / 1000);
+    }
+
+    function markDirty() {
+      if (!state.currentRecord) return;
+
+      state.hasUnsavedChanges = true;
+      setStatus("<span class='dirty-dot'></span>Modifications non enregistrées.", "");
+    }
+
+    function setStatus(message, type) {
+      ui.saveStatus.innerHTML = message;
+      ui.saveStatus.className = `save-status ${type || ""}`;
+    }
+
+    /*
+     * Si l'utilisateur veut changer de fiche alors qu'il a modifié
+     * le formulaire, une confirmation est demandée pour éviter une perte.
+     */
+    ui.select.addEventListener("change", function() {
+      const targetId = this.value;
+      if (!targetId) return;
+
+      if (state.hasUnsavedChanges) {
+        const proceed = window.confirm(
+          "Vous avez des modifications non enregistrées. Voulez-vous les abandonner ?"
+        );
+
+        if (!proceed) {
+          ui.select.value = state.currentRecord.id;
+          return;
+        }
+      }
+
+      selectRecord(targetId);
+    });
+
+    ui.search.addEventListener("input", function() {
+      populateSelect();
+    });
+
+    document.querySelectorAll("[data-col]").forEach(element => {
+      element.addEventListener("input", markDirty);
+      element.addEventListener("change", markDirty);
+    });
+
+    /*
+     * Enregistrement explicite : aucune donnée n'est envoyée avant
+     * le clic sur ce bouton.
+     */
+    ui.saveButton.addEventListener("click", async function() {
+      if (!state.currentRecord) return;
+
+      const fields = {};
+
+      document.querySelectorAll("[data-col]").forEach(element => {
+        const column = element.dataset.col;
+        const type = element.dataset.type;
+
+        if (type === "bool") {
+          fields[column] = element.checked;
+        } else if (type === "datetime-local") {
+          fields[column] = inputToGristDate(element.value);
+        } else if (type === "number") {
+          fields[column] = element.value === "" ? null : Number(element.value);
+        } else {
+          fields[column] = element.value.trim();
+        }
+      });
+
+      ui.saveButton.disabled = true;
+      ui.saveButton.textContent = "Enregistrement…";
+      setStatus("Enregistrement des modifications…", "");
+
+      try {
+        /*
+         * Mise à jour de l'enregistrement Grist.
+         * TABLE_ID doit être l'identifiant technique de la table.
+         */
+        await grist.docApi.applyUserActions([
+          ["UpdateRecord", TABLE_ID, state.currentRecord.id, fields]
+        ]);
+
+        state.hasUnsavedChanges = false;
+
+        /* Mise à jour locale immédiate de l'interface. */
+        Object.assign(state.currentRecord, fields);
+        updateHeader(state.currentRecord);
+        updateFolderLink(fields["Lien vers le dossier partagé"]);
+        populateSelect();
+
+        setStatus("✓ Modifications enregistrées dans Grist.", "success");
+      } catch (error) {
+        console.error("Erreur lors de l'enregistrement :", error);
+        setStatus(
+          "Erreur d'enregistrement. Vérifiez l'autorisation « Full document access » et l'identifiant de table.",
+          "error"
+        );
+      } finally {
+        ui.saveButton.disabled = false;
+        ui.saveButton.textContent = "Enregistrer les modifications";
+      }
+    });
+  </script>
+</body>
+</html>
