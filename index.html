@@ -878,11 +878,25 @@ function autoH(el) {
 /* ═══════════════════════════════════════════════════════
    CHOICE LIST
 ═══════════════════════════════════════════════════════ */
+
 function decodeChoiceList(val) {
-  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
-  if (typeof val === 'string' && val.trim()) return val.split(';').map(s => s.trim()).filter(Boolean);
+  if (Array.isArray(val)) {
+    // Format Grist encodé : ["L", "A", "B"]
+    if (val[0] === 'L') return val.slice(1);
+
+    // Format tableau JavaScript classique : ["A", "B"]
+    return val;
+  }
+
+  if (typeof val === 'string' && val.trim()) {
+    return val.split(';')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
   return [];
 }
+
 
 function encodeChoiceList(arr) {
   return ['L', ...arr];
