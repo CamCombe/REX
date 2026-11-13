@@ -7,336 +7,196 @@
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-
-    /* ═══════════════════════════════════════
-       VARIABLES
-    ═══════════════════════════════════════ */
     :root {
-      --bleu:          #1b3f6b;
-      --bleu-mid:      #2563a8;
-      --bleu-light:    #edf3fb;
-      --bleu-border:   rgba(37,99,168,.22);
-      --bg:            #f0f3f8;
-      --surface:       #ffffff;
-      --surface-alt:   #f7f8fc;
-      --border:        #dde2ee;
-      --text:          #1a1e2e;
-      --text-sec:      #4a5270;
-      --text-muted:    #8b93b0;
-      --green:         #177a4e;
-      --green-bg:      #eaf6f0;
-      --red-bg:        #fdf0ef;
-      --red:           #b83030;
-      --tag-bg:        #e8f0fb;
-      --tag-border:    rgba(37,99,168,.18);
-      --tag-text:      #1b4d9a;
-      --shadow-sm:     0 1px 3px rgba(20,30,70,.07);
-      --shadow:        0 2px 12px rgba(20,30,70,.08), 0 1px 3px rgba(20,30,70,.05);
-      --shadow-lg:     0 6px 28px rgba(20,30,70,.11), 0 2px 6px rgba(20,30,70,.06);
-      --r:             10px;
-      --r-sm:          6px;
-      --r-lg:          14px;
-      --ease:          .17s cubic-bezier(.4,0,.2,1);
+      --bleu:        #1b3f6b;
+      --bleu-mid:    #2563a8;
+      --bleu-light:  #edf3fb;
+      --bleu-border: rgba(37,99,168,.2);
+      --bg:          #f0f3f8;
+      --surface:     #ffffff;
+      --surface-alt: #f7f8fc;
+      --border:      #dde2ee;
+      --text:        #1a1e2e;
+      --text-sec:    #4a5270;
+      --text-muted:  #8b93b0;
+      --green:       #177a4e;
+      --green-bg:    #eaf6f0;
+      --red:         #b83030;
+      --tag-bg:      #e8f0fb;
+      --tag-border:  rgba(37,99,168,.18);
+      --tag-text:    #1b4d9a;
+      --shadow-sm:   0 1px 3px rgba(20,30,70,.07);
+      --shadow:      0 2px 12px rgba(20,30,70,.08), 0 1px 3px rgba(20,30,70,.05);
+      --shadow-lg:   0 6px 28px rgba(20,30,70,.11), 0 2px 6px rgba(20,30,70,.06);
+      --r:           10px;
+      --r-sm:        6px;
+      --r-lg:        14px;
+      --ease:        .17s cubic-bezier(.4,0,.2,1);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      line-height: 1.6;
-      height: 100%;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.6; height: 100%;
     }
 
-    /* ═══════════════════════════════════════
-       LAYOUT
-    ═══════════════════════════════════════ */
     .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* ═══════════════════════════════════════
-       TOPBAR
-    ═══════════════════════════════════════ */
+    /* ── TOPBAR ── */
     .topbar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 9px 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
-      box-shadow: var(--shadow-sm);
-      z-index: 50;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 9px 18px; display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0; box-shadow: var(--shadow-sm); z-index: 50;
     }
-
-    /* Logo */
-    .brand {
-      display: flex; align-items: center; gap: 8px;
-      flex-shrink: 0;
-    }
+    .brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .brand-mark {
-      width: 28px; height: 28px;
-      background: var(--bleu);
-      border-radius: var(--r-sm);
-      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; background: var(--bleu);
+      border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
     }
     .brand-mark svg { width: 15px; height: 15px; fill: white; }
     .brand-name { font-size: 13.5px; font-weight: 700; color: var(--bleu); }
-
     .sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
     .gap { flex: 1; }
 
-    /* ═══════════════════════════════════════
-       SÉLECTEUR CUSTOM
-    ═══════════════════════════════════════ */
-    .picker {
-      position: relative;
-      flex: 1;
-      max-width: 400px;
-    }
-
+    /* ── PICKER ── */
+    .picker { position: relative; flex: 1; max-width: 400px; }
     .picker-btn {
-      width: 100%;
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--r);
-      padding: 7px 34px 7px 12px;
-      font-family: inherit;
-      font-size: 13.5px;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-      text-align: left;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      width: 100%; background: var(--surface-alt); border: 1.5px solid var(--border);
+      border-radius: var(--r); padding: 7px 34px 7px 12px; font-family: inherit;
+      font-size: 13.5px; font-weight: 500; color: var(--text); cursor: pointer;
+      text-align: left; display: flex; align-items: center; gap: 8px; outline: none;
       transition: border-color var(--ease), box-shadow var(--ease);
-      outline: none;
     }
     .picker-btn:hover { border-color: var(--bleu-mid); }
     .picker-btn.open {
-      border-color: var(--bleu-mid);
-      box-shadow: 0 0 0 3px rgba(37,99,168,.11);
-      border-radius: var(--r) var(--r) 0 0;
-      border-bottom-color: transparent;
+      border-color: var(--bleu-mid); box-shadow: 0 0 0 3px rgba(37,99,168,.11);
+      border-radius: var(--r) var(--r) 0 0; border-bottom-color: transparent;
     }
-
     .picker-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .picker-count {
-      background: var(--bleu); color: white;
-      font-size: 10px; font-weight: 700;
-      border-radius: 20px; padding: 1px 7px;
-      flex-shrink: 0;
+      background: var(--bleu); color: white; font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 7px; flex-shrink: 0;
     }
     .picker-chevron {
-      position: absolute; right: 10px; top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      pointer-events: none;
-      transition: transform var(--ease);
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--text-muted); pointer-events: none; transition: transform var(--ease);
     }
     .picker-btn.open ~ .picker-chevron { transform: translateY(-50%) rotate(180deg); }
-
     .picker-drop {
-      display: none;
-      position: absolute;
-      top: 100%; left: 0; right: 0;
-      background: var(--surface);
-      border: 1.5px solid var(--bleu-mid);
-      border-top: none;
-      border-radius: 0 0 var(--r) var(--r);
-      box-shadow: var(--shadow-lg);
-      z-index: 999;
-      flex-direction: column;
-      max-height: 320px;
-      overflow: hidden;
+      display: none; position: absolute; top: 100%; left: 0; right: 0;
+      background: var(--surface); border: 1.5px solid var(--bleu-mid);
+      border-top: none; border-radius: 0 0 var(--r) var(--r);
+      box-shadow: var(--shadow-lg); z-index: 999;
+      flex-direction: column; max-height: 320px; overflow: hidden;
     }
     .picker.open .picker-drop { display: flex; }
-
-    .picker-search-wrap {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
+    .picker-search-wrap { padding: 8px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .picker-search {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 6px 10px;
-      font-family: inherit; font-size: 13px;
-      color: var(--text); background: var(--bg);
-      outline: none;
-      transition: border-color var(--ease);
+      width: 100%; border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      padding: 6px 10px; font-family: inherit; font-size: 13px; color: var(--text);
+      background: var(--bg); outline: none; transition: border-color var(--ease);
     }
     .picker-search:focus { border-color: var(--bleu-mid); }
-
     .picker-list { overflow-y: auto; flex: 1; }
-
     .picker-item {
-      padding: 9px 14px;
-      display: flex; align-items: center; gap: 10px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-      transition: background var(--ease);
-      font-size: 13px;
+      padding: 9px 14px; display: flex; align-items: center; gap: 10px;
+      cursor: pointer; border-bottom: 1px solid var(--border);
+      transition: background var(--ease); font-size: 13px;
     }
     .picker-item:last-child { border-bottom: none; }
     .picker-item:hover { background: var(--bleu-light); }
     .picker-item.active { background: var(--bleu-light); font-weight: 600; color: var(--bleu-mid); }
-
-    .picker-item-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--border); flex-shrink: 0;
-    }
+    .picker-item-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
     .picker-item.active .picker-item-dot { background: var(--bleu-mid); }
     .picker-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .picker-item-op { font-size: 11px; color: var(--text-muted); }
 
-    /* ═══════════════════════════════════════
-       SAVE INDICATOR
-    ═══════════════════════════════════════ */
+    /* ── SAVE ── */
     .save-ind {
       display: flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--text-muted);
-      flex-shrink: 0;
+      font-size: 12px; color: var(--text-muted); flex-shrink: 0;
       transition: color var(--ease);
     }
     .save-ind.saving { color: #b07a00; }
     .save-ind.saved  { color: var(--green); }
     .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    /* ═══════════════════════════════════════
-       BOUTONS
-    ═══════════════════════════════════════ */
+    /* ── BUTTONS ── */
     .btn {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 7px 12px;
-      border-radius: var(--r-sm);
-      font-family: inherit; font-size: 12.5px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
+      border-radius: var(--r-sm); font-family: inherit; font-size: 12.5px; font-weight: 500;
       cursor: pointer; border: 1.5px solid transparent;
       transition: all var(--ease); white-space: nowrap; flex-shrink: 0;
     }
     .btn svg { width: 14px; height: 14px; }
-
-    .btn-ghost {
-      background: transparent; border-color: var(--border); color: var(--text-sec);
-    }
+    .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-sec); }
     .btn-ghost:hover { border-color: var(--bleu-mid); color: var(--bleu-mid); background: var(--bleu-light); }
-
-    .btn-solid {
-      background: var(--bleu); color: white; border-color: var(--bleu);
-    }
+    .btn-solid { background: var(--bleu); color: white; border-color: var(--bleu); }
     .btn-solid:hover { background: var(--bleu-mid); border-color: var(--bleu-mid); }
 
-    /* ═══════════════════════════════════════
-       SCROLL ZONE
-    ═══════════════════════════════════════ */
-    .main {
-      flex: 1; overflow-y: auto;
-      padding: 24px 20px 48px;
-    }
-
-    /* ═══════════════════════════════════════
-       EMPTY STATE
-    ═══════════════════════════════════════ */
+    /* ── MAIN ── */
+    .main { flex: 1; overflow-y: auto; padding: 24px 20px 48px; }
     .empty {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; gap: 10px;
-      color: var(--text-muted);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; gap: 10px; color: var(--text-muted);
     }
     .empty svg { width: 46px; height: 46px; opacity: .2; }
     .empty p { font-size: 14px; opacity: .5; }
 
-    /* ═══════════════════════════════════════
-       FICHE CONTAINER
-    ═══════════════════════════════════════ */
+    /* ── FICHE ── */
     .fiche { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 
-    /* ═══════════════════════════════════════
-       BANNIÈRE PROJET
-    ═══════════════════════════════════════ */
+    /* ── BANNIÈRE ── */
     .banner {
       background: linear-gradient(130deg, var(--bleu) 0%, #1f4e8a 100%);
-      border-radius: var(--r-lg);
-      padding: 22px 26px 20px;
-      color: white;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
+      border-radius: var(--r-lg); padding: 22px 26px 20px;
+      color: white; box-shadow: var(--shadow); position: relative; overflow: hidden;
     }
     .banner::before {
-      content: '';
-      position: absolute; top: -50px; right: -40px;
-      width: 180px; height: 180px;
-      background: rgba(255,255,255,.04);
-      border-radius: 50%;
+      content: ''; position: absolute; top: -50px; right: -40px;
+      width: 180px; height: 180px; background: rgba(255,255,255,.04); border-radius: 50%;
     }
     .banner-top {
       display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 12px;
-      margin-bottom: 16px;
+      justify-content: space-between; gap: 12px; margin-bottom: 16px;
     }
     .banner-name { font-size: 21px; font-weight: 700; letter-spacing: -.2px; line-height: 1.25; }
-
     .banner-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
     .banner-op-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .55; font-weight: 500; }
     .banner-op-pill {
-      font-size: 12.5px; font-weight: 600;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.22);
-      border-radius: 20px; padding: 3px 11px;
+      font-size: 12.5px; font-weight: 600; background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22); border-radius: 20px; padding: 3px 11px;
     }
-
     .banner-meta { display: flex; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1; }
     .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
     .banner-meta-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .5; font-weight: 500; }
-    .banner-meta-val {
-      font-size: 13px; font-weight: 500;
-      display: flex; align-items: center; gap: 6px;
-    }
+    .banner-meta-val { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .banner-meta-val svg { width: 12px; height: 12px; opacity: .65; }
-
-    /* Badge tenue */
     .badge-tenue {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 2px 10px; border-radius: 20px;
-      font-size: 11.5px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px;
+      border-radius: 20px; font-size: 11.5px; font-weight: 600;
     }
     .badge-tenue.ok  { background: rgba(23,122,78,.2);  color: #9ff5c8; }
     .badge-tenue.nok { background: rgba(184,48,48,.2);  color: #ffb3b3; }
     .badge-tenue-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-
-    /* Lien dossier */
     .dossier-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 28px; height: 28px;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.22);
-      border-radius: var(--r-sm);
-      color: white; text-decoration: none;
-      transition: background var(--ease);
+      width: 28px; height: 28px; background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22); border-radius: var(--r-sm);
+      color: white; text-decoration: none; transition: background var(--ease);
     }
     .dossier-btn:hover { background: rgba(255,255,255,.26); }
     .dossier-btn svg { width: 13px; height: 13px; }
 
-    /* ═══════════════════════════════════════
-       SECTION CARD
-    ═══════════════════════════════════════ */
+    /* ── SECTION ── */
     .section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden;
     }
-
     .section-head {
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface-alt);
-      display: flex; align-items: center; gap: 9px;
+      padding: 12px 20px; border-bottom: 1px solid var(--border);
+      background: var(--surface-alt); display: flex; align-items: center; gap: 9px;
     }
     .section-icon {
       width: 25px; height: 25px; border-radius: var(--r-sm);
@@ -344,33 +204,23 @@
     }
     .section-icon svg { width: 13px; height: 13px; }
     .section-title { font-size: 12px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .65px; }
+    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 
-    .section-body { padding: 13px 20px; display: flex; flex-direction: column; gap: 10px; }
-
-    /* ═══════════════════════════════════════
-       GRILLE DE CHAMPS
-    ═══════════════════════════════════════ */
+    /* ── GRILLE ── */
     .row   { display: grid; gap: 13px; }
-    .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
-    .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
     .full  { grid-column: 1/-1; }
-
-    .field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
     .field-label {
       font-size: 10.5px; font-weight: 600; text-transform: uppercase;
       letter-spacing: .65px; color: var(--text-muted);
     }
 
-    /* ═══════════════════════════════════════
-       INPUTS
-    ═══════════════════════════════════════ */
+    /* ── INPUTS ── */
     .inp {
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 7px 10px;
-      font-family: inherit; font-size: 13.5px; color: var(--text);
-      width: 100%; outline: none; resize: none;
+      background: var(--surface-alt); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 7px 10px; font-family: inherit;
+      font-size: 13.5px; color: var(--text); width: 100%; outline: none; resize: none;
       transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
     }
     .inp:hover { border-color: #b8c0d8; background: white; }
@@ -378,23 +228,18 @@
     textarea.inp { min-height: 90px; line-height: 1.65; }
     textarea.inp.tall { min-height: 130px; }
 
-    /* ═══════════════════════════════════════
-       MONTANTS
-    ═══════════════════════════════════════ */
+    /* ── MONTANTS ── */
     .montant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
-
     .montant-card {
       background: var(--surface-alt); border: 1px solid var(--border);
       border-radius: var(--r); padding: 12px 14px;
     }
     .montant-card.hi { background: var(--bleu-light); border-color: var(--bleu-border); }
-
     .montant-card-label {
       font-size: 10px; font-weight: 600; text-transform: uppercase;
       letter-spacing: .6px; color: var(--text-muted); margin-bottom: 5px;
     }
     .montant-card.hi .montant-card-label { color: var(--bleu-mid); }
-
     .montant-row { display: flex; align-items: baseline; gap: 4px; }
     .montant-inp {
       flex: 1; border: none; background: transparent; outline: none;
@@ -404,120 +249,72 @@
     .montant-card.hi .montant-inp { color: var(--bleu); }
     .montant-inp:focus { color: var(--bleu-mid); }
     .montant-unit { font-size: 12px; color: var(--text-muted); }
-
     .montant-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-    /* ═══════════════════════════════════════
-       CHOICE LIST — sélecteur de tags
-    ═══════════════════════════════════════ */
-  .cl-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
+    /* ── CHOICE LIST ── */
+    .cl-field { display: flex; flex-direction: column; gap: 6px; }
 
-.cl-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  min-height: 0;
-}
+    .cl-tags {
+      display: flex; flex-wrap: wrap; gap: 5px; min-height: 28px;
+    }
+    .cl-empty-hint { font-size: 12px; color: var(--text-muted); font-style: italic; }
 
     .cl-tag {
-      display: inline-flex; align-items: center; gap: 5px;
+      display: inline-flex; align-items: center; gap: 4px;
       background: var(--tag-bg); border: 1px solid var(--tag-border);
       color: var(--tag-text); border-radius: 20px;
       padding: 2px 10px; font-size: 12px; font-weight: 500;
     }
     .cl-tag-x {
       cursor: pointer; opacity: .45; font-size: 15px; line-height: 1;
-      transition: opacity var(--ease);
+      transition: opacity var(--ease); margin-left: 2px;
     }
     .cl-tag-x:hover { opacity: 1; }
 
-    /* Zone d'ajout */
-    .cl-add { position: relative; }
+    /* Champ de saisie pour ajouter */
+    .cl-input-wrap { position: relative; }
     .cl-inp {
-      width: 100%;
-      background: var(--surface-alt); border: 1.5px solid var(--border);
-      border-radius: var(--r-sm); padding: 7px 10px;
-      font-family: inherit; font-size: 13px; color: var(--text);
-      outline: none;
-      transition: border-color var(--ease), box-shadow var(--ease);
+      width: 100%; background: var(--surface-alt); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 7px 10px; font-family: inherit;
+      font-size: 13px; color: var(--text); outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
     }
     .cl-inp:focus { border-color: var(--bleu-mid); box-shadow: 0 0 0 3px rgba(37,99,168,.09); background: white; }
+    .cl-inp::placeholder { color: var(--text-muted); }
 
-    .cl-dropdown {
-      display: none;
-      position: absolute; top: calc(100% + 3px); left: 0; right: 0;
-      background: var(--surface);
-      border: 1.5px solid var(--bleu-mid);
-      border-radius: var(--r-sm);
-      box-shadow: var(--shadow-lg);
-      z-index: 200;
-      max-height: 180px; overflow-y: auto;
+    /* Dropdown suggestions */
+    .cl-drop {
+      display: none; position: absolute; top: calc(100% + 3px); left: 0; right: 0;
+      background: var(--surface); border: 1.5px solid var(--bleu-mid);
+      border-radius: var(--r-sm); box-shadow: var(--shadow-lg);
+      z-index: 300; max-height: 200px; overflow-y: auto;
     }
-    .cl-dropdown.show { display: block; }
-
-    .cl-opt {
-      padding: 8px 12px; cursor: pointer;
-      font-size: 13px; color: var(--text);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 8px;
+    .cl-drop.show { display: block; }
+    .cl-drop-item {
+      padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--text);
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
       transition: background var(--ease);
     }
-    .cl-opt:last-child { border-bottom: none; }
-    .cl-opt:hover { background: var(--bleu-light); }
-    .cl-opt.selected { opacity: .4; cursor: default; }
-    .cl-opt-check { width: 14px; height: 14px; color: var(--bleu-mid); flex-shrink: 0; }
-
-    .cl-empty {
-      padding: 10px 12px; font-size: 12px;
-      color: var(--text-muted); text-align: center;
+    .cl-drop-item:last-child { border-bottom: none; }
+    .cl-drop-item:hover { background: var(--bleu-light); }
+    .cl-drop-item.already { opacity: .4; cursor: default; pointer-events: none; }
+    .cl-drop-item-new {
+      font-style: italic; color: var(--bleu-mid);
     }
+    .cl-drop-empty { padding: 10px 12px; font-size: 12px; color: var(--text-muted); text-align: center; }
 
-    /* Saisie libre (si colonne n'a pas de choix prédéfinis) */
-    .cl-free-hint { font-size: 11px; color: var(--text-muted); padding: 2px 0; }
-
-    /* ═══════════════════════════════════════
-       TOGGLE
-    ═══════════════════════════════════════ */
-    .tgl-row { display: flex; align-items: center; gap: 9px; }
-    .tgl { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
-    .tgl input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .tgl-track {
-      position: absolute; inset: 0; border-radius: 10px;
-      background: var(--border); cursor: pointer;
-      transition: background var(--ease);
-    }
-    .tgl input:checked + .tgl-track { background: var(--bleu-mid); }
-    .tgl-thumb {
-      position: absolute; top: 2px; left: 2px;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: white; box-shadow: 0 1px 3px rgba(0,0,0,.18);
-      transition: transform var(--ease); pointer-events: none;
-    }
-    .tgl input:checked ~ .tgl-thumb { transform: translateX(16px); }
-    .tgl-lbl { font-size: 13.5px; }
-
-    /* ═══════════════════════════════════════
-       TOAST
-    ═══════════════════════════════════════ */
+    /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 16px; right: 16px;
-      padding: 9px 15px; border-radius: var(--r);
-      font-size: 13px; font-weight: 500; color: white;
-      background: var(--bleu); box-shadow: var(--shadow-lg);
-      z-index: 9999; opacity: 0; transform: translateY(8px);
-      transition: all var(--ease); pointer-events: none;
+      position: fixed; bottom: 16px; right: 16px; padding: 9px 15px;
+      border-radius: var(--r); font-size: 13px; font-weight: 500; color: white;
+      background: var(--bleu); box-shadow: var(--shadow-lg); z-index: 9999;
+      opacity: 0; transform: translateY(8px); transition: all var(--ease); pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.ok  { background: var(--green); }
     .toast.err { background: var(--red); }
 
-    /* ═══════════════════════════════════════
-       IMPRESSION
-    ═══════════════════════════════════════ */
+    /* ── PRINT ── */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { background: white; font-size: 10.5pt; }
@@ -530,11 +327,10 @@
       .section-head { background: #f7f8fc !important; }
       .inp { border: none; background: transparent; padding: 0; resize: none; overflow: visible; height: auto; }
       textarea.inp { min-height: 0; }
+      .cl-input-wrap { display: none; }
       .cl-tags { flex-wrap: wrap; }
-      .cl-add { display: none; }
       .montant-inp { font-size: 14pt; }
       .montant-card { border: .75pt solid #d0d4e4; }
-      .tgl-track, .tgl-thumb { display: none; }
     }
 
     ::-webkit-scrollbar { width: 5px; }
@@ -553,10 +349,9 @@
       </div>
       <span class="brand-name">CORIFER</span>
     </div>
-
     <div class="sep"></div>
 
-    <!-- Sélecteur de fiche -->
+    <!-- Sélecteur -->
     <div class="picker no-print" id="picker">
       <button class="picker-btn" id="pickerBtn" onclick="togglePicker()">
         <span class="picker-label" id="pickerLabel">Sélectionner un projet…</span>
@@ -577,13 +372,11 @@
 
     <div class="gap"></div>
 
-    <!-- Statut sauvegarde -->
     <div class="save-ind no-print" id="saveInd">
       <span class="save-dot"></span>
       <span id="saveTxt">Synchronisé</span>
     </div>
 
-    <!-- Export PDF -->
     <button class="btn btn-ghost no-print" onclick="window.print()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 6 2 18 2 18 9"/>
@@ -592,8 +385,6 @@
       </svg>
       PDF
     </button>
-
-    <!-- Export DOCX -->
     <button class="btn btn-solid no-print" onclick="exportDocx()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -617,7 +408,7 @@
 
     <div class="fiche" id="fiche" style="display:none;">
 
-      <!-- ══ BANNIÈRE ══ -->
+      <!-- BANNIÈRE -->
       <div class="banner">
         <div class="banner-top">
           <div class="banner-name" id="bName">—</div>
@@ -627,26 +418,22 @@
           </div>
         </div>
         <div class="banner-meta">
-          <!-- Date -->
           <div class="banner-meta-item">
             <span class="banner-meta-hint">Audition</span>
             <span class="banner-meta-val" id="bDate">—</span>
           </div>
-          <!-- Horaires -->
           <div class="banner-meta-item">
             <span class="banner-meta-hint">Horaires</span>
             <span class="banner-meta-val" id="bHoraires">—</span>
           </div>
-          <!-- Tenue -->
           <div class="banner-meta-item">
             <span class="banner-meta-hint">Tenue</span>
             <span class="banner-meta-val" id="bTenue">—</span>
           </div>
-          <!-- Dossier partagé -->
           <div class="banner-meta-item">
             <span class="banner-meta-hint">Dossier partagé</span>
             <span class="banner-meta-val">
-              <a id="bLien" href="#" target="_blank" class="dossier-btn" title="Ouvrir le dossier">
+              <a id="bLien" href="#" target="_blank" class="dossier-btn" title="Ouvrir">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>
@@ -656,7 +443,7 @@
         </div>
       </div>
 
-      <!-- ══ SECTION 1 — Généralités ══ -->
+      <!-- SECTION 1 — Généralités -->
       <div class="section">
         <div class="section-head">
           <div class="section-icon" style="background:#edf3fb;">
@@ -677,13 +464,13 @@
             </div>
             <div class="field">
               <label class="field-label">Membres du consortium</label>
-              <div class="cl-wrap" id="cl_consortium" data-col="Consortium"></div>
+              <div class="cl-field" id="cl_consortium" data-col="Consortium"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ══ SECTION 2 — Participants ══ -->
+      <!-- SECTION 2 — Participants -->
       <div class="section">
         <div class="section-head">
           <div class="section-icon" style="background:#fef5e7;">
@@ -698,22 +485,22 @@
         <div class="section-body">
           <div class="field">
             <label class="field-label">Participants SPIN</label>
-            <div class="cl-wrap" id="cl_spin" data-col="ParticipantsSPIN"></div>
+            <div class="cl-field" id="cl_spin" data-col="ParticipantsSPIN"></div>
           </div>
           <div class="row row-2">
             <div class="field">
               <label class="field-label">Participation État</label>
-              <div class="cl-wrap" id="cl_etat" data-col="ParticipationEtat"></div>
+              <div class="cl-field" id="cl_etat" data-col="ParticipationEtat"></div>
             </div>
             <div class="field">
               <label class="field-label">Participants hors SPIN</label>
-              <div class="cl-wrap" id="cl_horsspin" data-col="HorsSPIN"></div>
+              <div class="cl-field" id="cl_horsspin" data-col="HorsSPIN"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ══ SECTION 3 — Financements ══ -->
+      <!-- SECTION 3 — Financements -->
       <div class="section">
         <div class="section-head">
           <div class="section-icon" style="background:#eaf6f0;">
@@ -726,52 +513,40 @@
         </div>
         <div class="section-body">
           <div class="montant-grid">
-            <!-- Montant projet -->
             <div class="montant-card hi">
               <div class="montant-card-label">Montant total du projet</div>
               <div class="montant-row">
                 <input class="montant-inp" id="f_mProjet" type="text" inputmode="numeric"
                        placeholder="0" data-col="MontantProjet"
-                       oninput="onMontant(this)"
-                       onblur="fmtMontant(this)"
-                       onfocus="unfmtMontant(this)"/>
+                       oninput="onMontant(this)" onblur="fmtMontant(this)" onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
             </div>
-            <!-- Montant aide -->
             <div class="montant-card hi">
               <div class="montant-card-label">Montant total d'aide</div>
               <div class="montant-row">
                 <input class="montant-inp" id="f_mAide" type="text" inputmode="numeric"
                        placeholder="0" data-col="MontantAide"
-                       oninput="onMontant(this)"
-                       onblur="fmtMontant(this)"
-                       onfocus="unfmtMontant(this)"/>
+                       oninput="onMontant(this)" onblur="fmtMontant(this)" onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
-              <div class="montant-sub">Subventions + AR</div>
+              <div class="montant-sub">= Subventions + AR</div>
             </div>
-            <!-- Subventions -->
             <div class="montant-card">
               <div class="montant-card-label">dont Subventions</div>
               <div class="montant-row">
                 <input class="montant-inp" id="f_subv" type="text" inputmode="numeric"
                        placeholder="0" data-col="Subventions"
-                       oninput="onMontant(this)"
-                       onblur="fmtMontant(this)"
-                       onfocus="unfmtMontant(this)"/>
+                       oninput="onMontant(this)" onblur="fmtMontant(this)" onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
             </div>
-            <!-- AR -->
             <div class="montant-card">
               <div class="montant-card-label">dont AR</div>
               <div class="montant-row">
                 <input class="montant-inp" id="f_ar" type="text" inputmode="numeric"
                        placeholder="0" data-col="AR"
-                       oninput="onMontant(this)"
-                       onblur="fmtMontant(this)"
-                       onfocus="unfmtMontant(this)"/>
+                       oninput="onMontant(this)" onblur="fmtMontant(this)" onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
             </div>
@@ -779,7 +554,7 @@
         </div>
       </div>
 
-      <!-- ══ SECTION 4 — Fiche projet ══ -->
+      <!-- SECTION 4 — Fiche projet -->
       <div class="section">
         <div class="section-head">
           <div class="section-icon" style="background:#edf3fb;">
@@ -826,7 +601,7 @@
         </div>
       </div>
 
-      <!-- ══ SECTION 5 — Avis ══ -->
+      <!-- SECTION 5 — Avis -->
       <div class="section">
         <div class="section-head">
           <div class="section-icon" style="background:#f3f0fb;">
@@ -860,49 +635,53 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════
-   GRIST — COLUMN MAPPING
-   Chaque { name } est le nom interne du widget.
-   L'utilisateur fait l'association dans le panneau Grist.
+   COLUMN MAPPING — Grist affiche un panneau de
+   configuration où l'utilisateur associe chaque champ
+   du widget à la vraie colonne de sa table.
 ═══════════════════════════════════════════════════════ */
 grist.ready({
   requiredAccess: 'full',
   columns: [
-    { name: 'Projet',           title: 'Titre du projet',               type: 'Text',     optional: false },
-    { name: 'Operateur',        title: 'Opérateur',                     type: 'Text',     optional: true  },
-    { name: 'ChefDeFile',       title: 'Chef de file',                  type: 'Text',     optional: true  },
-    { name: 'Consortium',       title: 'Membres du consortium',         type: 'ChoiceList', optional: true },
-    { name: 'Lien',             title: 'Lien vers le dossier partagé',  type: 'Text',     optional: true  },
-    { name: 'Debut',            title: 'Date de début',                 type: 'DateTime', optional: true  },
-    { name: 'Fin',              title: 'Date de fin',                   type: 'DateTime', optional: true  },
-    { name: 'Horaires',         title: 'Horaires (affichage)',          type: 'Text',     optional: true  },
-    { name: 'Tenue',            title: "Tenue de l'audition",           type: 'Bool',     optional: true  },
-    { name: 'ParticipantsSPIN', title: 'Participants SPIN',             type: 'ChoiceList', optional: true },
-    { name: 'ParticipationEtat',title: 'Participation État',            type: 'ChoiceList', optional: true },
-    { name: 'HorsSPIN',         title: 'Participants hors SPIN',        type: 'ChoiceList', optional: true },
-    { name: 'MontantProjet',    title: 'Montant total du projet (€)',   type: 'Numeric',  optional: true  },
-    { name: 'MontantAide',      title: "Montant total d'aide (€)",      type: 'Numeric',  optional: true  },
-    { name: 'Subventions',      title: 'Subventions (€)',               type: 'Numeric',  optional: true  },
-    { name: 'AR',               title: 'AR (€)',                        type: 'Numeric',  optional: true  },
-    { name: 'Presentation',     title: 'Présentation du projet',        type: 'Text',     optional: true  },
-    { name: 'Objectifs',        title: 'Objectifs du projet',           type: 'Text',     optional: true  },
-    { name: 'Avancement',       title: 'Avancement du projet',          type: 'Text',     optional: true  },
-    { name: 'Freins',           title: 'Freins rencontrés',             type: 'Text',     optional: true  },
-    { name: 'Potentiel',        title: "Potentiel de l'innovation",     type: 'Text',     optional: true  },
-    { name: 'Perspectives',     title: 'Perspectives de développement', type: 'Text',     optional: true  },
-    { name: 'AvisSPIN',         title: 'Avis SPIN',                     type: 'Text',     optional: true  },
-    { name: 'AvisSFG',          title: 'Avis SFG',                      type: 'Text',     optional: true  },
+    { name: 'Projet',           title: 'Titre du projet',               type: 'Text',       optional: false },
+    { name: 'Operateur',        title: 'Opérateur',                     type: 'Text',       optional: true  },
+    { name: 'ChefDeFile',       title: 'Chef de file',                  type: 'Text',       optional: true  },
+    { name: 'Consortium',       title: 'Membres du consortium',         type: 'ChoiceList', optional: true  },
+    { name: 'Lien',             title: 'Lien vers le dossier partagé',  type: 'Text',       optional: true  },
+    { name: 'Debut',            title: 'Date de début',                 type: 'DateTime',   optional: true  },
+    { name: 'Horaires',         title: 'Horaires (affichage)',          type: 'Text',       optional: true  },
+    { name: 'Tenue',            title: "Tenue de l'audition",           type: 'Bool',       optional: true  },
+    { name: 'ParticipantsSPIN', title: 'Participants SPIN',             type: 'ChoiceList', optional: true  },
+    { name: 'ParticipationEtat',title: 'Participation État',            type: 'ChoiceList', optional: true  },
+    { name: 'HorsSPIN',         title: 'Participants hors SPIN',        type: 'ChoiceList', optional: true  },
+    { name: 'MontantProjet',    title: 'Montant total du projet (€)',   type: 'Numeric',    optional: true  },
+    { name: 'MontantAide',      title: "Montant total d'aide (€)",      type: 'Numeric',    optional: true  },
+    { name: 'Subventions',      title: 'Subventions (€)',               type: 'Numeric',    optional: true  },
+    { name: 'AR',               title: 'AR (€)',                        type: 'Numeric',    optional: true  },
+    { name: 'Presentation',     title: 'Présentation du projet',        type: 'Text',       optional: true  },
+    { name: 'Objectifs',        title: 'Objectifs du projet',           type: 'Text',       optional: true  },
+    { name: 'Avancement',       title: 'Avancement du projet',          type: 'Text',       optional: true  },
+    { name: 'Freins',           title: 'Freins rencontrés',             type: 'Text',       optional: true  },
+    { name: 'Potentiel',        title: "Potentiel de l'innovation",     type: 'Text',       optional: true  },
+    { name: 'Perspectives',     title: 'Perspectives de développement', type: 'Text',       optional: true  },
+    { name: 'AvisSPIN',         title: 'Avis SPIN',                     type: 'Text',       optional: true  },
+    { name: 'AvisSFG',          title: 'Avis SFG',                      type: 'Text',       optional: true  },
   ]
 });
 
 /* ═══════════════════════════════════════════════════════
-   ÉTAT
+   ÉTAT GLOBAL
 ═══════════════════════════════════════════════════════ */
-let allRecords   = [];
-let currentRowId = null;
-let currentMaps  = null;
-let pending      = {};
-let saveTimer    = null;
-let isSaving     = false;
+let allRecords    = [];   // tous les enregistrements mappés
+let currentRowId  = null; // id de la ligne sélectionnée
+let currentMaps   = null; // mappings widgetCol → realCol
+let tableId       = null; // id de la table pour l'API metadata
+let pending       = {};   // modifications en attente
+let saveTimer     = null;
+let isSaving      = false;
+
+// Cache des choix existants par colonne widgetName
+// { Consortium: Set(['val1','val2',...]), ... }
+const choiceCache = {};
 
 /* ═══════════════════════════════════════════════════════
    RÉCEPTION DES DONNÉES
@@ -910,14 +689,25 @@ let isSaving     = false;
 grist.onRecords(function(records, mappings) {
   currentMaps = mappings;
   allRecords  = records.map(r => {
-    const m  = grist.mapColumnNames(r, mappings) || {};
-    m.__id   = r.id;
-    m.__raw  = r; // garde les données brutes pour les ChoiceList
+    const m = grist.mapColumnNames(r, mappings) || {};
+    m.__id  = r.id;
+    m.__raw = r;
     return m;
   });
+
+  // Récupère l'id de la table pour l'API metadata
+  if (records.length && !tableId) {
+    grist.selectedTable.getTableId().then(id => {
+      tableId = id;
+      // Précharge les choix existants pour toutes les ChoiceList
+      preloadAllChoices();
+    }).catch(() => {});
+  }
+
   document.getElementById('pickerCount').textContent =
     allRecords.filter(r => r && r.Projet).length;
   buildPicker();
+
   if (currentRowId !== null) {
     const rec = allRecords.find(r => r.__id === currentRowId);
     if (rec) fillFiche(rec);
@@ -937,7 +727,128 @@ grist.onRecord(function(record, mappings) {
 });
 
 /* ═══════════════════════════════════════════════════════
-   SÉLECTEUR
+   PRÉCHARGEMENT DES CHOIX EXISTANTS
+   Lit les métadonnées Grist pour récupérer la liste
+   officielle des choix de chaque colonne ChoiceList,
+   et les enrichit avec les valeurs déjà présentes
+   dans les enregistrements.
+═══════════════════════════════════════════════════════ */
+const CL_COLS = ['Consortium','ParticipantsSPIN','ParticipationEtat','HorsSPIN'];
+
+async function preloadAllChoices() {
+  for (const widgetCol of CL_COLS) {
+    if (!choiceCache[widgetCol]) choiceCache[widgetCol] = new Set();
+
+    // 1. Extrait les valeurs déjà présentes dans les enregistrements
+    allRecords.forEach(r => {
+      const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetCol]] : null;
+      decodeChoiceList(rawVal).forEach(v => choiceCache[widgetCol].add(v));
+    });
+
+    // 2. Tente de lire la liste officielle via les métadonnées Grist
+    try {
+      const realCol = currentMaps?.[widgetCol];
+      if (realCol && tableId) {
+        const colsMeta = await grist.docApi.fetchTable('_grist_Tables_column');
+        // Trouve la colonne par tableRef et colId
+        const tablesMeta = await grist.docApi.fetchTable('_grist_Tables');
+        const tIdx = tablesMeta.tableId.findIndex(t => t === tableId);
+        if (tIdx !== -1) {
+          const tableRef = tablesMeta.id[tIdx];
+          const colIdx   = colsMeta.colId.findIndex(
+            (c, i) => c === realCol && colsMeta.parentId[i] === tableRef
+          );
+          if (colIdx !== -1) {
+            const widgetOpts = colsMeta.widgetOptions[colIdx];
+            if (widgetOpts) {
+              try {
+                const opts = JSON.parse(widgetOpts);
+                if (opts.choices && Array.isArray(opts.choices)) {
+                  opts.choices.forEach(c => choiceCache[widgetCol].add(c));
+                }
+              } catch(e) {}
+            }
+          }
+        }
+      }
+    } catch(e) {
+      // Silencieux : on travaille avec les valeurs extraites des enregistrements
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   AJOUT D'UN CHOIX À LA LISTE OFFICIELLE GRIST
+   Évite le surlignage rouge dans le tableau.
+═══════════════════════════════════════════════════════ */
+async function addChoiceToColumn(widgetCol, newValue) {
+  // Déjà dans le cache → rien à faire
+  if (choiceCache[widgetCol]?.has(newValue)) return;
+
+  try {
+    const realCol = currentMaps?.[widgetCol];
+    if (!realCol || !tableId) return;
+
+    // Récupère les métadonnées de la colonne
+    const colsMeta   = await grist.docApi.fetchTable('_grist_Tables_column');
+    const tablesMeta = await grist.docApi.fetchTable('_grist_Tables');
+    const tIdx = tablesMeta.tableId.findIndex(t => t === tableId);
+    if (tIdx === -1) return;
+
+    const tableRef = tablesMeta.id[tIdx];
+    const colIdx   = colsMeta.colId.findIndex(
+      (c, i) => c === realCol && colsMeta.parentId[i] === tableRef
+    );
+    if (colIdx === -1) return;
+
+    const colRef    = colsMeta.id[colIdx];
+    const widgetOpts = colsMeta.widgetOptions[colIdx];
+    let opts = {};
+    try { opts = JSON.parse(widgetOpts || '{}'); } catch(e) {}
+
+    const existingChoices = Array.isArray(opts.choices) ? opts.choices : [];
+    if (existingChoices.includes(newValue)) {
+      choiceCache[widgetCol].add(newValue);
+      return;
+    }
+
+    // Ajoute le nouveau choix
+    const newChoices = [...existingChoices, newValue];
+    opts.choices = newChoices;
+
+    // Met à jour les métadonnées via l'API Grist
+    await grist.docApi.applyUserActions([
+      ['UpdateRecord', '_grist_Tables_column', colRef, {
+        widgetOptions: JSON.stringify(opts)
+      }]
+    ]);
+
+    // Met à jour le cache local
+    if (!choiceCache[widgetCol]) choiceCache[widgetCol] = new Set();
+    choiceCache[widgetCol].add(newValue);
+
+  } catch(e) {
+    console.warn('Impossible d\'ajouter le choix à la liste officielle :', e);
+    // On continue quand même — la valeur sera sauvegardée, juste en rouge dans Grist
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ENCODE / DÉCODE CHOICELIST
+═══════════════════════════════════════════════════════ */
+function decodeChoiceList(val) {
+  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
+  if (typeof val === 'string' && val.trim())
+    return val.split(';').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+function encodeChoiceList(arr) {
+  return ['L', ...arr];
+}
+
+/* ═══════════════════════════════════════════════════════
+   SÉLECTEUR DE FICHE
 ═══════════════════════════════════════════════════════ */
 function buildPicker() {
   const list  = document.getElementById('pickerList');
@@ -1032,14 +943,14 @@ function fillFiche(r) {
   lienEl.style.opacity       = lien ? '1' : '.3';
   lienEl.style.pointerEvents = lien ? '' : 'none';
 
-  // Champ texte
+  // Texte simple
   sv('f_chef', r.ChefDeFile);
 
-  // Choice lists
-  buildCL('cl_consortium', r.__raw, 'Consortium');
-  buildCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
-  buildCL('cl_etat',       r.__raw, 'ParticipationEtat');
-  buildCL('cl_horsspin',   r.__raw, 'HorsSPIN');
+  // Choice lists — on passe la valeur brute de l'enregistrement
+  renderCL('cl_consortium', r.__raw, 'Consortium');
+  renderCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
+  renderCL('cl_etat',       r.__raw, 'ParticipationEtat');
+  renderCL('cl_horsspin',   r.__raw, 'HorsSPIN');
 
   // Montants
   setMontant('f_mProjet', r.MontantProjet);
@@ -1048,333 +959,162 @@ function fillFiche(r) {
   setMontant('f_ar',      r.AR);
 
   // Textareas
-  sta('f_pres',          r.Presentation);
-  sta('f_obj',           r.Objectifs);
-  sta('f_av',            r.Avancement);
-  sta('f_freins',        r.Freins);
-  sta('f_potentiel',     r.Potentiel);
-  sta('f_perspectives',  r.Perspectives);
-  sta('f_avisSpin',      r.AvisSPIN);
-  sta('f_avisSfg',       r.AvisSFG);
+  sta('f_pres',         r.Presentation);
+  sta('f_obj',          r.Objectifs);
+  sta('f_av',           r.Avancement);
+  sta('f_freins',       r.Freins);
+  sta('f_potentiel',    r.Potentiel);
+  sta('f_perspectives', r.Perspectives);
+  sta('f_avisSpin',     r.AvisSPIN);
+  sta('f_avisSfg',      r.AvisSFG);
 
   pending = {};
 }
 
 /* ═══════════════════════════════════════════════════════
-   CHOICE LIST — décodage / encodage / UI
+   CHOICE LIST — RENDU
 ═══════════════════════════════════════════════════════ */
-
-/*
-  Grist envoie les ChoiceList sous forme : ["L", "val1", "val2", ...]
-  On decode vers un tableau JS simple, et on rencode avant sauvegarde.
-*/
-function decodeChoiceList(val) {
-  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
-  if (typeof val === 'string' && val.trim()) return val.split(';').map(s => s.trim()).filter(Boolean);
-  return [];
-}
-
-function encodeChoiceList(arr) {
-  // Format attendu par Grist pour une ChoiceList
-  return ['L', ...arr];
-}
-
-/*
-  Construit l'interface choice list pour un conteneur donné.
-  widgetColName : nom interne du widget (ex: 'Consortium')
-  On retrouve la vraie colonne via currentMaps pour lire les choix disponibles.
-*/
-function buildCL(containerId, rawRecord, widgetColName) {
+function renderCL(containerId, rawRecord, widgetCol) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Récupère la vraie colonne mappée
-  const realCol = currentMaps ? currentMaps[widgetColName] : null;
-
-  // Valeur actuelle (depuis l'enregistrement brut)
-  const rawVal   = realCol && rawRecord ? rawRecord[realCol] : null;
+  const realCol = currentMaps?.[widgetCol];
+  const rawVal  = realCol && rawRecord ? rawRecord[realCol] : null;
   const selected = decodeChoiceList(rawVal);
 
-  // Récupère les options disponibles via les métadonnées Grist
-  // (on les cherche dans grist.getTableMeta si dispo, sinon on affiche saisie libre)
   container.innerHTML = '';
-  container.dataset.widgetCol = widgetColName;
+  container.dataset.widgetCol = widgetCol;
   container.dataset.selected  = JSON.stringify(selected);
 
-  // Zone de tags sélectionnés
+  // ── Zone de tags ──
   const tagsDiv = document.createElement('div');
   tagsDiv.className = 'cl-tags';
   tagsDiv.id = containerId + '_tags';
   container.appendChild(tagsDiv);
+  renderCLTags(containerId, selected);
 
-  // Zone d'ajout
-  const addDiv = document.createElement('div');
-  addDiv.className = 'cl-add';
+  // ── Zone de saisie ──
+  const wrap = document.createElement('div');
+  wrap.className = 'cl-input-wrap';
 
   const inp = document.createElement('input');
   inp.className   = 'cl-inp';
   inp.type        = 'text';
-  inp.placeholder = 'Ajouter un membre…';
+  inp.placeholder = 'Ajouter…';
   inp.setAttribute('autocomplete', 'off');
 
   const drop = document.createElement('div');
-  drop.className = 'cl-dropdown';
-  drop.id        = containerId + '_drop';
+  drop.className = 'cl-drop';
 
-  addDiv.appendChild(inp);
-  addDiv.appendChild(drop);
-  container.appendChild(addDiv);
+  wrap.appendChild(inp);
+  wrap.appendChild(drop);
+  container.appendChild(wrap);
 
-  // Rendu des tags déjà sélectionnés
-  renderTags(containerId, selected);
-
-  // Récupère les choix disponibles depuis Grist
-  loadChoices(containerId, widgetColName, selected, inp, drop);
-}
-
-function renderTags(containerId, selected) {
-  const tagsDiv = document.getElementById(containerId + '_tags');
-  if (!tagsDiv) return;
-  tagsDiv.innerHTML = '';
-  selected.forEach(val => {
-    const tag = document.createElement('span');
-    tag.className = 'cl-tag';
-    tag.innerHTML = `${esc(val)}<span class="cl-tag-x" title="Retirer">×</span>`;
-    tag.querySelector('.cl-tag-x').onclick = () => removeChoice(containerId, val);
-    tagsDiv.appendChild(tag);
-  });
-}
-
-// Cache les métadonnées Grist pour éviter de relire les tables système
-// à chaque ouverture d'une fiche.
-let gristChoiceMetadataPromise = null;
-
-async function getGristChoiceOptions(widgetColName) {
-  const realCol = currentMaps?.[widgetColName];
-  if (!realCol) return [];
-
-  try {
-    if (!gristChoiceMetadataPromise) {
-      gristChoiceMetadataPromise = Promise.all([
-        grist.docApi.fetchTable('_grist_Tables'),
-        grist.docApi.fetchTable('_grist_Tables_column')
-      ]).catch(error => {
-        gristChoiceMetadataPromise = null;
-        throw error;
-      });
-    }
-
-    const [tables, columns] = await gristChoiceMetadataPromise;
-
-    // Identifie la table utilisée par le widget en comparant les colonnes
-    // mappées du widget avec les colonnes de chaque table Grist.
-    const mappedColIds = new Set(
-      Object.values(currentMaps || {}).filter(v => typeof v === 'string' && v)
-    );
-
-    let targetTable = null;
-    let bestScore = 0;
-
-    for (const table of tables || []) {
-      const tableColumns = (columns || []).filter(col => col.parentId === table.id);
-      const score = tableColumns.reduce(
-        (count, col) => count + (mappedColIds.has(col.colId) ? 1 : 0),
-        0
-      );
-
-      if (score > bestScore) {
-        bestScore = score;
-        targetTable = table;
-      }
-    }
-
-    // On privilégie la colonne de la table source du widget.
-    // Le repli sur colId seul permet de rester compatible si Grist ne renvoie
-    // pas les métadonnées de table attendues.
-    let columnMeta = targetTable
-      ? (columns || []).find(col =>
-          col.parentId === targetTable.id && col.colId === realCol
-        )
-      : null;
-
-    if (!columnMeta) {
-      const candidates = (columns || []).filter(col => col.colId === realCol);
-      if (candidates.length === 1) columnMeta = candidates[0];
-    }
-
-    if (!columnMeta?.widgetOptions) return [];
-
-    let widgetOptions = columnMeta.widgetOptions;
-    if (typeof widgetOptions === 'string') {
-      try {
-        widgetOptions = JSON.parse(widgetOptions);
-      } catch (error) {
-        console.warn('Configuration widgetOptions illisible pour', realCol, error);
-        return [];
-      }
-    }
-
-    const configuredChoices = Array.isArray(widgetOptions?.choices)
-      ? widgetOptions.choices
-      : [];
-
-    return configuredChoices
-      .filter(choice => choice !== null && choice !== undefined && String(choice).trim() !== '')
-      .map(choice => String(choice));
-  } catch (error) {
-    console.error('Impossible de récupérer les choix prédéfinis de Grist :', error);
-    return [];
-  }
-}
-
-async function loadChoices(containerId, widgetColName, selected, inp, drop) {
-  // Options prédéfinies dans les paramètres de la colonne Grist.
-  const configuredChoices = await getGristChoiceOptions(widgetColName);
-
-  // Complète avec les valeurs existantes et celles déjà sélectionnées :
-  // une ancienne valeur ne disparaît donc jamais de la liste.
-  const choices = [...new Set([
-    ...configuredChoices,
-    ...extractChoicesFromRecords(widgetColName),
-    ...(selected || [])
-  ])].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-
-  // Garde les options disponibles sur l'élément pour pouvoir les réafficher
-  // après chaque modification de la sélection.
-  const container = document.getElementById(containerId);
-  if (container) container._choiceOptions = choices;
-
-  inp.addEventListener('input', () => {
-    const q = inp.value.toLowerCase().trim();
-    renderDrop(containerId, choices, selected, q, drop, inp);
-    drop.classList.toggle('show', true);
-  });
-
-  inp.addEventListener('focus', () => {
-    renderDrop(containerId, choices, selected, inp.value.toLowerCase().trim(), drop, inp);
-    drop.classList.add('show');
-  });
+  // Événements
+  inp.addEventListener('focus', () => refreshDrop(containerId, widgetCol, inp, drop));
+  inp.addEventListener('input', () => refreshDrop(containerId, widgetCol, inp, drop));
 
   inp.addEventListener('keydown', e => {
     if (e.key === 'Enter' && inp.value.trim()) {
       e.preventDefault();
-      const match = choices.find(
-        choice => choice.toLowerCase() === inp.value.trim().toLowerCase()
-      );
-      addChoice(containerId, match || inp.value.trim());
-      inp.value = '';
-      drop.classList.remove('show');
+      confirmAdd(containerId, widgetCol, inp.value.trim(), inp, drop);
     }
-
-    if (e.key === 'Escape') {
-      drop.classList.remove('show');
-      inp.blur();
-    }
+    if (e.key === 'Escape') { drop.classList.remove('show'); inp.blur(); }
   });
 
-  // Ferme la liste si l'utilisateur clique en dehors du sélecteur.
+  // Ferme le dropdown si clic ailleurs
   document.addEventListener('click', e => {
-    if (!inp.contains(e.target) && !drop.contains(e.target)) {
-      drop.classList.remove('show');
-    }
-  });
+    if (!wrap.contains(e.target)) drop.classList.remove('show');
+  }, true);
 }
 
-function renderDrop(containerId, choices, selected, q, drop, inp) {
-  const container = document.getElementById(containerId);
-  const current = JSON.parse(container?.dataset.selected || '[]');
-
-  let filtered = choices || [];
-  if (q) {
-    filtered = filtered.filter(choice =>
-      String(choice).toLowerCase().includes(q)
-    );
-  }
-
-  // Propose une saisie libre si elle ne correspond à aucune option existante.
-  if (q && !choices.some(choice =>
-    String(choice).toLowerCase() === q
-  )) {
-    filtered = [inp.value.trim(), ...filtered];
-  }
-
-  if (filtered.length === 0) {
-    drop.innerHTML = '<div class="cl-empty">Aucun choix disponible</div>';
+function renderCLTags(containerId, selected) {
+  const tagsDiv = document.getElementById(containerId + '_tags');
+  if (!tagsDiv) return;
+  tagsDiv.innerHTML = '';
+  if (selected.length === 0) {
+    const hint = document.createElement('span');
+    hint.className = 'cl-empty-hint';
+    hint.textContent = 'Aucun élément';
+    tagsDiv.appendChild(hint);
     return;
   }
+  selected.forEach(val => {
+    const tag = document.createElement('span');
+    tag.className = 'cl-tag';
+    tag.innerHTML = `${esc(val)}<span class="cl-tag-x">×</span>`;
+    tag.querySelector('.cl-tag-x').onclick = () => removeCLItem(containerId, val);
+    tagsDiv.appendChild(tag);
+  });
+}
+
+function refreshDrop(containerId, widgetCol, inp, drop) {
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  const q         = inp.value.trim().toLowerCase();
+
+  // Suggestions : toutes les valeurs du cache, filtrées
+  const cache    = choiceCache[widgetCol] || new Set();
+  let suggestions = [...cache].filter(v => !current.includes(v));
+  if (q) suggestions = suggestions.filter(v => v.toLowerCase().includes(q));
 
   drop.innerHTML = '';
-  filtered.forEach(choice => {
-    const value = String(choice);
-    const isSelected = current.includes(value);
 
-    const option = document.createElement('div');
-    option.className = `cl-opt ${isSelected ? 'selected' : ''}`;
+  // Option "Ajouter X" si valeur tapée et pas déjà dans le cache
+  if (q && ![...cache].some(v => v.toLowerCase() === q)) {
+    const item = document.createElement('div');
+    item.className = 'cl-drop-item cl-drop-item-new';
+    item.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter « ${esc(inp.value.trim())} »`;
+    item.onclick = () => confirmAdd(containerId, widgetCol, inp.value.trim(), inp, drop);
+    drop.appendChild(item);
+  }
 
-    if (isSelected) {
-      option.innerHTML =
-        '<svg class="cl-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
-    } else {
-      const spacer = document.createElement('span');
-      spacer.style.width = '14px';
-      spacer.style.flexShrink = '0';
-      option.appendChild(spacer);
-    }
+  if (suggestions.length === 0 && !q) {
+    const empty = document.createElement('div');
+    empty.className = 'cl-drop-empty';
+    empty.textContent = 'Tapez pour ajouter un élément…';
+    drop.appendChild(empty);
+  } else {
+    suggestions.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'cl-drop-item';
+      item.textContent = v;
+      item.onclick = () => confirmAdd(containerId, widgetCol, v, inp, drop);
+      drop.appendChild(item);
+    });
+  }
 
-    const label = document.createElement('span');
-    label.textContent = value;
-    option.appendChild(label);
-
-    if (!isSelected) {
-      option.addEventListener('click', () => pickChoice(containerId, value));
-    }
-
-    drop.appendChild(option);
-  });
+  drop.classList.toggle('show', drop.children.length > 0);
 }
 
-// Extrait les valeurs uniques existantes dans tous les enregistrements pour cette colonne
-function extractChoicesFromRecords(widgetColName) {
-  const all = new Set();
-  allRecords.forEach(r => {
-    const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetColName]] : null;
-    decodeChoiceList(rawVal).forEach(v => all.add(v));
-  });
-  return [...all].sort();
-}
+async function confirmAdd(containerId, widgetCol, value, inp, drop) {
+  if (!value) return;
 
-function pickChoice(containerId, val) {
-  addChoice(containerId, val);
-  const inp  = document.querySelector(`#${containerId} .cl-inp`);
-  const drop = document.getElementById(containerId + '_drop');
-  if (inp) inp.value = '';
-  if (drop) drop.classList.remove('show');
-}
-
-function addChoice(containerId, val) {
   const container = document.getElementById(containerId);
   const current   = JSON.parse(container.dataset.selected || '[]');
-  if (current.includes(val)) return;
-  const next = [...current, val];
+  if (current.includes(value)) { inp.value = ''; drop.classList.remove('show'); return; }
+
+  const next = [...current, value];
   container.dataset.selected = JSON.stringify(next);
-  renderTags(containerId, next);
-  saveCL(containerId);
+  renderCLTags(containerId, next);
+  inp.value = '';
+  drop.classList.remove('show');
+
+  // Ajoute à la liste officielle Grist (évite le rouge)
+  await addChoiceToColumn(widgetCol, value);
+
+  // Sauvegarde la valeur dans l'enregistrement
+  queueUpdate(widgetCol, encodeChoiceList(next));
 }
 
-function removeChoice(containerId, val) {
+function removeCLItem(containerId, value) {
   const container = document.getElementById(containerId);
+  const widgetCol = container.dataset.widgetCol;
   const current   = JSON.parse(container.dataset.selected || '[]');
-  const next      = current.filter(v => v !== val);
+  const next      = current.filter(v => v !== value);
   container.dataset.selected = JSON.stringify(next);
-  renderTags(containerId, next);
-  saveCL(containerId);
-}
-
-function saveCL(containerId) {
-  const container  = document.getElementById(containerId);
-  const widgetCol  = container.dataset.widgetCol;
-  const current    = JSON.parse(container.dataset.selected || '[]');
-  queueUpdate(widgetCol, encodeChoiceList(current));
+  renderCLTags(containerId, next);
+  queueUpdate(widgetCol, encodeChoiceList(next));
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1421,26 +1161,14 @@ function parseNum(s) {
   return isNaN(n) ? null : n;
 }
 
-function fmtMontant(el) {
-  const n = parseNum(el.value);
-  el.value = n != null ? fmtNum(n) : '';
-}
-
-function unfmtMontant(el) {
-  const n = parseNum(el.value);
-  el.value = n != null ? String(n) : '';
-}
-
-function onMontant(el) {
-  queueUpdate(el.dataset.col, parseNum(el.value));
-}
+function fmtMontant(el)   { const n = parseNum(el.value); el.value = n != null ? fmtNum(n) : ''; }
+function unfmtMontant(el) { const n = parseNum(el.value); el.value = n != null ? String(n) : ''; }
+function onMontant(el)    { queueUpdate(el.dataset.col, parseNum(el.value)); }
 
 /* ═══════════════════════════════════════════════════════
    SAUVEGARDE AUTO
 ═══════════════════════════════════════════════════════ */
-function onChange(el) {
-  queueUpdate(el.dataset.col, el.value);
-}
+function onChange(el) { queueUpdate(el.dataset.col, el.value); }
 
 function queueUpdate(col, val) {
   if (!col) return;
@@ -1468,7 +1196,7 @@ async function flush() {
     await grist.selectedTable.update({ id: currentRowId, fields });
     setSave('saved');
     setTimeout(() => setSave('idle'), 2500);
-  } catch (e) {
+  } catch(e) {
     console.error('Erreur sauvegarde', e);
     setSave('idle');
     toast('Erreur lors de la sauvegarde', 'err');
@@ -1481,8 +1209,8 @@ function setSave(state) {
   const el  = document.getElementById('saveInd');
   const lbl = document.getElementById('saveTxt');
   el.className = 'save-ind no-print';
-  if (state === 'saving') { el.classList.add('saving'); lbl.textContent = 'Enregistrement…'; }
-  else if (state === 'saved') { el.classList.add('saved');  lbl.textContent = 'Enregistré ✓'; }
+  if      (state === 'saving') { el.classList.add('saving'); lbl.textContent = 'Enregistrement…'; }
+  else if (state === 'saved')  { el.classList.add('saved');  lbl.textContent = 'Enregistré ✓'; }
   else lbl.textContent = 'Synchronisé';
 }
 
@@ -1494,10 +1222,19 @@ function exportDocx() {
   const r = allRecords.find(r => r.__id === currentRowId);
   if (!r) return;
 
-  const fmt  = v => (v != null && v !== '') ? fmtNum(parseFloat(v)) + ' €' : '—';
-  const t    = v => esc(v ? String(v) : '—');
-  const pre  = v => v ? `<div style="white-space:pre-wrap;">${esc(String(v))}</div>` : '<em>—</em>';
-  const cl   = v => Array.isArray(v) ? v.filter((_,i)=>i>0).join(', ') : (v||'—');
+  const fmt = v => (v != null && v !== '') ? fmtNum(parseFloat(v)) + ' €' : '—';
+  const t   = v => esc(v ? String(v) : '—');
+  const pre = v => v
+    ? `<div style="white-space:pre-wrap;font-size:10.5pt;line-height:1.65;">${esc(String(v))}</div>`
+    : '<em style="color:#aaa;">—</em>';
+
+  // Décode les ChoiceList depuis les données brutes
+  const getCL = widgetCol => {
+    const realCol = currentMaps?.[widgetCol];
+    const rawVal  = realCol && r.__raw ? r.__raw[realCol] : null;
+    const vals    = decodeChoiceList(rawVal);
+    return vals.length ? esc(vals.join(', ')) : '—';
+  };
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
@@ -1505,32 +1242,32 @@ function exportDocx() {
   h1{font-size:19pt;color:#1b3f6b;margin:0 0 4pt;}
   h2{font-size:12pt;color:#1b3f6b;border-bottom:1pt solid #1b3f6b;margin:14pt 0 7pt;padding-bottom:3pt;}
   .meta{color:#8b93b0;font-size:9.5pt;margin-bottom:14pt;}
-  .lbl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#8b93b0;letter-spacing:.4pt;}
-  .val{font-size:10.5pt;margin:2pt 0 9pt;}
-  .pre{font-size:10.5pt;background:#f7f8fc;padding:8pt;border-left:3pt solid #2563a8;
+  .lbl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#8b93b0;letter-spacing:.4pt;margin:6pt 0 2pt;}
+  .val{font-size:10.5pt;margin:0 0 9pt;}
+  .pre{font-size:10.5pt;background:#f7f8fc;padding:8pt 10pt;border-left:3pt solid #2563a8;
        white-space:pre-wrap;margin:3pt 0 12pt;line-height:1.6;}
-  .g2{display:table;width:100%;} .c{display:table-cell;width:50%;vertical-align:top;padding-right:12pt;}
-  .amt{background:#edf3fb;border:1pt solid rgba(37,99,168,.2);border-radius:5pt;
-       padding:8pt 12pt;margin-bottom:8pt;}
+  .g2{display:table;width:100%;}
+  .c{display:table-cell;width:50%;vertical-align:top;padding-right:12pt;}
+  .amt{background:#edf3fb;border:1pt solid rgba(37,99,168,.2);border-radius:5pt;padding:8pt 12pt;margin-bottom:8pt;}
   .amt-l{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#2563a8;margin-bottom:3pt;}
   .amt-v{font-size:16pt;font-weight:bold;color:#1b3f6b;}
 </style></head><body>
 <h1>${t(r.Projet)}</h1>
-<p class="meta">${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · Audition : ${r.Tenue ? '✓ tenue' : '✗ non tenue'}</p>
+<p class="meta">${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · ${r.Tenue ? '✓ Audition tenue' : '✗ Audition non tenue'}</p>
 <hr style="border:none;border-top:1.5pt solid #1b3f6b;margin-bottom:14pt;"/>
 
 <h2>Informations générales</h2>
 <p class="lbl">Chef de file</p><p class="val">${t(r.ChefDeFile)}</p>
-<p class="lbl">Membres du consortium</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.Consortium]))}</p>
+<p class="lbl">Membres du consortium</p><p class="val">${getCL('Consortium')}</p>
 
 <h2>Participants</h2>
 <div class="g2">
   <div class="c">
-    <p class="lbl">Participants SPIN</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.ParticipantsSPIN]))}</p>
-    <p class="lbl">Participation État</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.ParticipationEtat]))}</p>
+    <p class="lbl">Participants SPIN</p><p class="val">${getCL('ParticipantsSPIN')}</p>
+    <p class="lbl">Participation État</p><p class="val">${getCL('ParticipationEtat')}</p>
   </div>
   <div class="c">
-    <p class="lbl">Participants hors SPIN</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.HorsSPIN]))}</p>
+    <p class="lbl">Participants hors SPIN</p><p class="val">${getCL('HorsSPIN')}</p>
   </div>
 </div>
 
@@ -1558,9 +1295,9 @@ function exportDocx() {
 </body></html>`;
 
   const blob = new Blob([html], { type: 'application/msword' });
-  const a = document.createElement('a');
-  a.href  = URL.createObjectURL(blob);
-  a.download = `Fiche_${(r.Projet||'projet').replace(/[^a-zA-Z0-9]/g,'_')}.doc`;
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `Fiche_${(r.Projet || 'projet').replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
   a.click();
   URL.revokeObjectURL(a.href);
   toast('Export lancé ✓', 'ok');
@@ -1583,7 +1320,7 @@ function esc(s) {
 function toast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className   = `toast ${type||''}`;
+  t.className   = `toast ${type || ''}`;
   void t.offsetWidth;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
