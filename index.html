@@ -345,17 +345,17 @@
     .section-icon svg { width: 13px; height: 13px; }
     .section-title { font-size: 12px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .65px; }
 
-    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .section-body { padding: 13px 20px; display: flex; flex-direction: column; gap: 10px; }
 
     /* ═══════════════════════════════════════
        GRILLE DE CHAMPS
     ═══════════════════════════════════════ */
     .row   { display: grid; gap: 13px; }
-    .row-2 { grid-template-columns: 1fr 1fr; }
+    .row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
     .row-3 { grid-template-columns: 1fr 1fr 1fr; }
     .full  { grid-column: 1/-1; }
 
-    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .field-label {
       font-size: 10.5px; font-weight: 600; text-transform: uppercase;
       letter-spacing: .65px; color: var(--text-muted);
@@ -410,13 +410,19 @@
     /* ═══════════════════════════════════════
        CHOICE LIST — sélecteur de tags
     ═══════════════════════════════════════ */
-    .cl-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .cl-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 
-    /* Tags sélectionnés */
-    .cl-tags {
-      display: flex; flex-wrap: wrap; gap: 5px;
-      min-height: 32px;
-    }
+.cl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 0;
+}
+
     .cl-tag {
       display: inline-flex; align-items: center; gap: 5px;
       background: var(--tag-bg); border: 1px solid var(--tag-border);
@@ -1139,81 +1145,192 @@ function renderTags(containerId, selected) {
   });
 }
 
-async function loadChoices(containerId, widgetColName, selected, inp, drop) {
-  // Tente de récupérer les métadonnées de la colonne pour avoir la liste des choix
-  let choices = [];
-  try {
-    const realCol = currentMaps ? currentMaps[widgetColName] : null;
-    if (realCol) {
-      // On récupère les choix via fetchSelectedTable pour en extraire les valeurs uniques
-      const tableData = await grist.docApi.fetchTable('_grist_Tables_column');
-      // Si pas dispo, on part en mode saisie libre avec auto-complétion depuis les enregistrements
-      choices = extractChoicesFromRecords(widgetColName);
-    }
-  } catch (e) {
-    choices = extractChoicesFromRecords(widgetColName);
-  }
+// Cache les métadonnées Grist pour éviter de relire les tables système
+// à chaque ouverture d'une fiche.
+let gristChoiceMetadataPromise = null;
 
-  // Filtre et affichage du dropdown
+async function getGristChoiceOptions(widgetColName) {
+  const realCol = currentMaps?.[widgetColName];
+  if (!realCol) return [];
+
+  try {
+    if (!gristChoiceMetadataPromise) {
+      gristChoiceMetadataPromise = Promise.all([
+        grist.docApi.fetchTable('_grist_Tables'),
+        grist.docApi.fetchTable('_grist_Tables_column')
+      ]).catch(error => {
+        gristChoiceMetadataPromise = null;
+        throw error;
+      });
+    }
+
+    const [tables, columns] = await gristChoiceMetadataPromise;
+
+    // Identifie la table utilisée par le widget en comparant les colonnes
+    // mappées du widget avec les colonnes de chaque table Grist.
+    const mappedColIds = new Set(
+      Object.values(currentMaps || {}).filter(v => typeof v === 'string' && v)
+    );
+
+    let targetTable = null;
+    let bestScore = 0;
+
+    for (const table of tables || []) {
+      const tableColumns = (columns || []).filter(col => col.parentId === table.id);
+      const score = tableColumns.reduce(
+        (count, col) => count + (mappedColIds.has(col.colId) ? 1 : 0),
+        0
+      );
+
+      if (score > bestScore) {
+        bestScore = score;
+        targetTable = table;
+      }
+    }
+
+    // On privilégie la colonne de la table source du widget.
+    // Le repli sur colId seul permet de rester compatible si Grist ne renvoie
+    // pas les métadonnées de table attendues.
+    let columnMeta = targetTable
+      ? (columns || []).find(col =>
+          col.parentId === targetTable.id && col.colId === realCol
+        )
+      : null;
+
+    if (!columnMeta) {
+      const candidates = (columns || []).filter(col => col.colId === realCol);
+      if (candidates.length === 1) columnMeta = candidates[0];
+    }
+
+    if (!columnMeta?.widgetOptions) return [];
+
+    let widgetOptions = columnMeta.widgetOptions;
+    if (typeof widgetOptions === 'string') {
+      try {
+        widgetOptions = JSON.parse(widgetOptions);
+      } catch (error) {
+        console.warn('Configuration widgetOptions illisible pour', realCol, error);
+        return [];
+      }
+    }
+
+    const configuredChoices = Array.isArray(widgetOptions?.choices)
+      ? widgetOptions.choices
+      : [];
+
+    return configuredChoices
+      .filter(choice => choice !== null && choice !== undefined && String(choice).trim() !== '')
+      .map(choice => String(choice));
+  } catch (error) {
+    console.error('Impossible de récupérer les choix prédéfinis de Grist :', error);
+    return [];
+  }
+}
+
+async function loadChoices(containerId, widgetColName, selected, inp, drop) {
+  // Options prédéfinies dans les paramètres de la colonne Grist.
+  const configuredChoices = await getGristChoiceOptions(widgetColName);
+
+  // Complète avec les valeurs existantes et celles déjà sélectionnées :
+  // une ancienne valeur ne disparaît donc jamais de la liste.
+  const choices = [...new Set([
+    ...configuredChoices,
+    ...extractChoicesFromRecords(widgetColName),
+    ...(selected || [])
+  ])].sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+
+  // Garde les options disponibles sur l'élément pour pouvoir les réafficher
+  // après chaque modification de la sélection.
+  const container = document.getElementById(containerId);
+  if (container) container._choiceOptions = choices;
+
   inp.addEventListener('input', () => {
     const q = inp.value.toLowerCase().trim();
     renderDrop(containerId, choices, selected, q, drop, inp);
-    drop.classList.toggle('show', inp.value.length > 0 || choices.length > 0);
+    drop.classList.toggle('show', true);
   });
 
   inp.addEventListener('focus', () => {
-    renderDrop(containerId, choices, selected, inp.value.toLowerCase(), drop, inp);
+    renderDrop(containerId, choices, selected, inp.value.toLowerCase().trim(), drop, inp);
     drop.classList.add('show');
   });
 
-  // Validation à l'appui sur Entrée (saisie libre si pas dans la liste)
   inp.addEventListener('keydown', e => {
     if (e.key === 'Enter' && inp.value.trim()) {
       e.preventDefault();
-      addChoice(containerId, inp.value.trim());
+      const match = choices.find(
+        choice => choice.toLowerCase() === inp.value.trim().toLowerCase()
+      );
+      addChoice(containerId, match || inp.value.trim());
       inp.value = '';
       drop.classList.remove('show');
     }
+
     if (e.key === 'Escape') {
       drop.classList.remove('show');
       inp.blur();
     }
   });
 
+  // Ferme la liste si l'utilisateur clique en dehors du sélecteur.
   document.addEventListener('click', e => {
     if (!inp.contains(e.target) && !drop.contains(e.target)) {
       drop.classList.remove('show');
     }
-  }, true);
+  });
 }
 
 function renderDrop(containerId, choices, selected, q, drop, inp) {
   const container = document.getElementById(containerId);
-  const current   = JSON.parse(container.dataset.selected || '[]');
+  const current = JSON.parse(container?.dataset.selected || '[]');
 
-  let filtered = choices;
-  if (q) filtered = choices.filter(c => c.toLowerCase().includes(q));
+  let filtered = choices || [];
+  if (q) {
+    filtered = filtered.filter(choice =>
+      String(choice).toLowerCase().includes(q)
+    );
+  }
 
-  // Ajoute la saisie libre si pas dans la liste
-  if (q && !choices.some(c => c.toLowerCase() === q)) {
+  // Propose une saisie libre si elle ne correspond à aucune option existante.
+  if (q && !choices.some(choice =>
+    String(choice).toLowerCase() === q
+  )) {
     filtered = [inp.value.trim(), ...filtered];
   }
 
   if (filtered.length === 0) {
-    drop.innerHTML = '<div class="cl-empty">Aucun résultat — appuyez sur Entrée pour ajouter</div>';
+    drop.innerHTML = '<div class="cl-empty">Aucun choix disponible</div>';
     return;
   }
 
-  drop.innerHTML = filtered.map(c => {
-    const isSelected = current.includes(c);
-    return `<div class="cl-opt ${isSelected ? 'selected' : ''}"
-                 onclick="${isSelected ? '' : `pickChoice('${containerId}', '${esc(c)}')`}">
-              ${isSelected
-                ? `<svg class="cl-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
-                : `<span style="width:14px;flex-shrink:0;"></span>`}
-              ${esc(c)}
-            </div>`;
-  }).join('');
+  drop.innerHTML = '';
+  filtered.forEach(choice => {
+    const value = String(choice);
+    const isSelected = current.includes(value);
+
+    const option = document.createElement('div');
+    option.className = `cl-opt ${isSelected ? 'selected' : ''}`;
+
+    if (isSelected) {
+      option.innerHTML =
+        '<svg class="cl-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    } else {
+      const spacer = document.createElement('span');
+      spacer.style.width = '14px';
+      spacer.style.flexShrink = '0';
+      option.appendChild(spacer);
+    }
+
+    const label = document.createElement('span');
+    label.textContent = value;
+    option.appendChild(label);
+
+    if (!isSelected) {
+      option.addEventListener('click', () => pickChoice(containerId, value));
+    }
+
+    drop.appendChild(option);
+  });
 }
 
 // Extrait les valeurs uniques existantes dans tous les enregistrements pour cette colonne
