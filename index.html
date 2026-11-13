@@ -323,7 +323,16 @@
       .main { overflow: visible; padding: 0; }
       .fiche { max-width: 100%; gap: 12pt; }
       .banner { background: var(--bleu) !important; border-radius: 7pt; padding: 14pt 18pt; }
-      .section { break-inside: avoid; box-shadow: none; border: .75pt solid #d0d4e4; }
+      .section {
+  break-inside: auto;
+  overflow: visible !important;
+  box-shadow: none;
+  border: .75pt solid #d0d4e4;
+}
+
+.field {
+  break-inside: avoid;
+}
       .section-head { background: #f7f8fc !important; }
 
       /* Textareas en impression : affichage plat, tout le texte visible */
@@ -332,7 +341,6 @@
         background: transparent !important;
         padding: 0 !important;
         overflow: visible !important;
-        height: auto !important;
         min-height: 0 !important;
         resize: none !important;
         /* Transforme la textarea en bloc de texte pour l'impression */
