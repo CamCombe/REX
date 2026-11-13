@@ -8,85 +8,104 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bleu:        #1b3f6b;
-      --bleu-mid:    #2563a8;
-      --bleu-light:  #edf3fb;
-      --bleu-border: rgba(37,99,168,.2);
-      --bg:          #f0f3f8;
-      --surface:     #ffffff;
-      --surface-alt: #f7f8fc;
-      --border:      #dde2ee;
-      --text:        #1a1e2e;
-      --text-sec:    #4a5270;
-      --text-muted:  #8b93b0;
-      --green:       #177a4e;
-      --green-bg:    #eaf6f0;
-      --red:         #b83030;
-      --tag-bg:      #e8f0fb;
-      --tag-border:  rgba(37,99,168,.18);
-      --tag-text:    #1b4d9a;
-      --shadow-sm:   0 1px 3px rgba(20,30,70,.07);
-      --shadow:      0 2px 12px rgba(20,30,70,.08), 0 1px 3px rgba(20,30,70,.05);
-      --shadow-lg:   0 6px 28px rgba(20,30,70,.11), 0 2px 6px rgba(20,30,70,.06);
-      --r:           10px;
-      --r-sm:        6px;
-      --r-lg:        14px;
-      --ease:        .17s cubic-bezier(.4,0,.2,1);
+      --bleu:          #1b3f6b;
+      --bleu-mid:      #2563a8;
+      --bleu-light:    #edf3fb;
+      --bleu-border:   rgba(37,99,168,.22);
+      --bg:            #f0f3f8;
+      --surface:       #ffffff;
+      --surface-alt:   #f7f8fc;
+      --border:        #dde2ee;
+      --text:          #1a1e2e;
+      --text-sec:      #4a5270;
+      --text-muted:    #8b93b0;
+      --green:         #177a4e;
+      --green-bg:      #eaf6f0;
+      --red-bg:        #fdf0ef;
+      --red:           #b83030;
+      --tag-bg:        #e8f0fb;
+      --tag-border:    rgba(37,99,168,.18);
+      --tag-text:      #1b4d9a;
+      --shadow-sm:     0 1px 3px rgba(20,30,70,.07);
+      --shadow:        0 2px 12px rgba(20,30,70,.08), 0 1px 3px rgba(20,30,70,.05);
+      --shadow-lg:     0 6px 28px rgba(20,30,70,.11), 0 2px 6px rgba(20,30,70,.06);
+      --r:             10px;
+      --r-sm:          6px;
+      --r-lg:          14px;
+      --ease:          .17s cubic-bezier(.4,0,.2,1);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg); color: var(--text);
-      font-size: 14px; line-height: 1.6; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+      height: 100%;
     }
 
     .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* ── TOPBAR ── */
+    /* TOPBAR */
     .topbar {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 9px 18px; display: flex; align-items: center; gap: 10px;
-      flex-shrink: 0; box-shadow: var(--shadow-sm); z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 18px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+      z-index: 50;
     }
     .brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .brand-mark {
       width: 28px; height: 28px; background: var(--bleu);
-      border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
     }
     .brand-mark svg { width: 15px; height: 15px; fill: white; }
     .brand-name { font-size: 13.5px; font-weight: 700; color: var(--bleu); }
     .sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
     .gap { flex: 1; }
 
-    /* ── PICKER ── */
+    /* PICKER */
     .picker { position: relative; flex: 1; max-width: 400px; }
     .picker-btn {
-      width: 100%; background: var(--surface-alt); border: 1.5px solid var(--border);
-      border-radius: var(--r); padding: 7px 34px 7px 12px; font-family: inherit;
-      font-size: 13.5px; font-weight: 500; color: var(--text); cursor: pointer;
-      text-align: left; display: flex; align-items: center; gap: 8px; outline: none;
+      width: 100%; background: var(--surface-alt);
+      border: 1.5px solid var(--border); border-radius: var(--r);
+      padding: 7px 34px 7px 12px;
+      font-family: inherit; font-size: 13.5px; font-weight: 500;
+      color: var(--text); cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 8px;
       transition: border-color var(--ease), box-shadow var(--ease);
+      outline: none;
     }
     .picker-btn:hover { border-color: var(--bleu-mid); }
     .picker-btn.open {
-      border-color: var(--bleu-mid); box-shadow: 0 0 0 3px rgba(37,99,168,.11);
-      border-radius: var(--r) var(--r) 0 0; border-bottom-color: transparent;
+      border-color: var(--bleu-mid);
+      box-shadow: 0 0 0 3px rgba(37,99,168,.11);
+      border-radius: var(--r) var(--r) 0 0;
+      border-bottom-color: transparent;
     }
     .picker-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .picker-count {
-      background: var(--bleu); color: white; font-size: 10px; font-weight: 700;
+      background: var(--bleu); color: white;
+      font-size: 10px; font-weight: 700;
       border-radius: 20px; padding: 1px 7px; flex-shrink: 0;
     }
     .picker-chevron {
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-      color: var(--text-muted); pointer-events: none; transition: transform var(--ease);
+      position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted); pointer-events: none;
+      transition: transform var(--ease);
     }
     .picker-btn.open ~ .picker-chevron { transform: translateY(-50%) rotate(180deg); }
     .picker-drop {
-      display: none; position: absolute; top: 100%; left: 0; right: 0;
-      background: var(--surface); border: 1.5px solid var(--bleu-mid);
-      border-top: none; border-radius: 0 0 var(--r) var(--r);
+      display: none; position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--bleu-mid); border-top: none;
+      border-radius: 0 0 var(--r) var(--r);
       box-shadow: var(--shadow-lg); z-index: 999;
       flex-direction: column; max-height: 320px; overflow: hidden;
     }
@@ -94,8 +113,9 @@
     .picker-search-wrap { padding: 8px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .picker-search {
       width: 100%; border: 1.5px solid var(--border); border-radius: var(--r-sm);
-      padding: 6px 10px; font-family: inherit; font-size: 13px; color: var(--text);
-      background: var(--bg); outline: none; transition: border-color var(--ease);
+      padding: 6px 10px; font-family: inherit; font-size: 13px;
+      color: var(--text); background: var(--bg); outline: none;
+      transition: border-color var(--ease);
     }
     .picker-search:focus { border-color: var(--bleu-mid); }
     .picker-list { overflow-y: auto; flex: 1; }
@@ -112,7 +132,7 @@
     .picker-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .picker-item-op { font-size: 11px; color: var(--text-muted); }
 
-    /* ── SAVE ── */
+    /* SAVE */
     .save-ind {
       display: flex; align-items: center; gap: 5px;
       font-size: 12px; color: var(--text-muted); flex-shrink: 0;
@@ -122,10 +142,11 @@
     .save-ind.saved  { color: var(--green); }
     .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    /* ── BUTTONS ── */
+    /* BUTTONS */
     .btn {
-      display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
-      border-radius: var(--r-sm); font-family: inherit; font-size: 12.5px; font-weight: 500;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 12px; border-radius: var(--r-sm);
+      font-family: inherit; font-size: 12.5px; font-weight: 500;
       cursor: pointer; border: 1.5px solid transparent;
       transition: all var(--ease); white-space: nowrap; flex-shrink: 0;
     }
@@ -135,48 +156,43 @@
     .btn-solid { background: var(--bleu); color: white; border-color: var(--bleu); }
     .btn-solid:hover { background: var(--bleu-mid); border-color: var(--bleu-mid); }
 
-    /* ── MAIN ── */
+    /* MAIN */
     .main { flex: 1; overflow-y: auto; padding: 24px 20px 48px; }
-    .empty {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 100%; gap: 10px; color: var(--text-muted);
-    }
+
+    /* EMPTY */
+    .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; color: var(--text-muted); }
     .empty svg { width: 46px; height: 46px; opacity: .2; }
     .empty p { font-size: 14px; opacity: .5; }
 
-    /* ── FICHE ── */
+    /* FICHE */
     .fiche { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 
-    /* ── BANNIÈRE ── */
+    /* BANNIÈRE */
     .banner {
       background: linear-gradient(130deg, var(--bleu) 0%, #1f4e8a 100%);
       border-radius: var(--r-lg); padding: 22px 26px 20px;
-      color: white; box-shadow: var(--shadow); position: relative; overflow: hidden;
+      color: white; box-shadow: var(--shadow);
+      position: relative; overflow: hidden;
     }
     .banner::before {
       content: ''; position: absolute; top: -50px; right: -40px;
       width: 180px; height: 180px; background: rgba(255,255,255,.04); border-radius: 50%;
     }
-    .banner-top {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 12px; margin-bottom: 16px;
-    }
+    .banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .banner-name { font-size: 21px; font-weight: 700; letter-spacing: -.2px; line-height: 1.25; }
     .banner-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
     .banner-op-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .55; font-weight: 500; }
     .banner-op-pill {
-      font-size: 12.5px; font-weight: 600; background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.22); border-radius: 20px; padding: 3px 11px;
+      font-size: 12.5px; font-weight: 600;
+      background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 20px; padding: 3px 11px;
     }
     .banner-meta { display: flex; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1; }
     .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
     .banner-meta-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .5; font-weight: 500; }
     .banner-meta-val { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .banner-meta-val svg { width: 12px; height: 12px; opacity: .65; }
-    .badge-tenue {
-      display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px;
-      border-radius: 20px; font-size: 11.5px; font-weight: 600;
-    }
+    .badge-tenue { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
     .badge-tenue.ok  { background: rgba(23,122,78,.2);  color: #9ff5c8; }
     .badge-tenue.nok { background: rgba(184,48,48,.2);  color: #ffb3b3; }
     .badge-tenue-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
@@ -189,7 +205,7 @@
     .dossier-btn:hover { background: rgba(255,255,255,.26); }
     .dossier-btn svg { width: 13px; height: 13px; }
 
-    /* ── SECTION ── */
+    /* SECTION */
     .section {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden;
@@ -198,47 +214,43 @@
       padding: 12px 20px; border-bottom: 1px solid var(--border);
       background: var(--surface-alt); display: flex; align-items: center; gap: 9px;
     }
-    .section-icon {
-      width: 25px; height: 25px; border-radius: var(--r-sm);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
+    .section-icon { width: 25px; height: 25px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .section-icon svg { width: 13px; height: 13px; }
     .section-title { font-size: 12px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .65px; }
     .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
 
-    /* ── GRILLE ── */
+    /* GRILLE */
     .row   { display: grid; gap: 13px; }
     .row-2 { grid-template-columns: 1fr 1fr; }
     .full  { grid-column: 1/-1; }
     .field { display: flex; flex-direction: column; gap: 4px; }
-    .field-label {
-      font-size: 10.5px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .65px; color: var(--text-muted);
-    }
+    .field-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .65px; color: var(--text-muted); }
 
-    /* ── INPUTS ── */
+    /* INPUTS */
     .inp {
       background: var(--surface-alt); border: 1.5px solid var(--border);
-      border-radius: var(--r-sm); padding: 7px 10px; font-family: inherit;
-      font-size: 13.5px; color: var(--text); width: 100%; outline: none; resize: none;
+      border-radius: var(--r-sm); padding: 7px 10px;
+      font-family: inherit; font-size: 13.5px; color: var(--text);
+      width: 100%; outline: none;
       transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
     }
     .inp:hover { border-color: #b8c0d8; background: white; }
     .inp:focus { border-color: var(--bleu-mid); background: white; box-shadow: 0 0 0 3px rgba(37,99,168,.1); }
-    textarea.inp { min-height: 90px; line-height: 1.65; }
-    textarea.inp.tall { min-height: 130px; }
 
-    /* ── MONTANTS ── */
+    /* ═══ TEXTAREA — auto-hauteur, jamais de scrollbar ═══ */
+    textarea.inp {
+      resize: none;
+      overflow: hidden;      /* jamais de scrollbar interne */
+      min-height: 0;         /* pas de hauteur forcée */
+      line-height: 1.65;
+      display: block;
+    }
+
+    /* MONTANTS */
     .montant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
-    .montant-card {
-      background: var(--surface-alt); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 12px 14px;
-    }
+    .montant-card { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; }
     .montant-card.hi { background: var(--bleu-light); border-color: var(--bleu-border); }
-    .montant-card-label {
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .6px; color: var(--text-muted); margin-bottom: 5px;
-    }
+    .montant-card-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: 5px; }
     .montant-card.hi .montant-card-label { color: var(--bleu-mid); }
     .montant-row { display: flex; align-items: baseline; gap: 4px; }
     .montant-inp {
@@ -251,70 +263,58 @@
     .montant-unit { font-size: 12px; color: var(--text-muted); }
     .montant-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-    /* ── CHOICE LIST ── */
-    .cl-field { display: flex; flex-direction: column; gap: 6px; }
-
-    .cl-tags {
-      display: flex; flex-wrap: wrap; gap: 5px; min-height: 28px;
-    }
-    .cl-empty-hint { font-size: 12px; color: var(--text-muted); font-style: italic; }
-
+    /* CHOICE LIST */
+    .cl-wrap { display: flex; flex-direction: column; gap: 4px; } /* ← gap réduit */
+    .cl-tags { display: flex; flex-wrap: wrap; gap: 5px; min-height: 0; } /* ← min-height: 0 */
     .cl-tag {
-      display: inline-flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; gap: 5px;
       background: var(--tag-bg); border: 1px solid var(--tag-border);
       color: var(--tag-text); border-radius: 20px;
       padding: 2px 10px; font-size: 12px; font-weight: 500;
     }
-    .cl-tag-x {
-      cursor: pointer; opacity: .45; font-size: 15px; line-height: 1;
-      transition: opacity var(--ease); margin-left: 2px;
-    }
+    .cl-tag-x { cursor: pointer; opacity: .45; font-size: 15px; line-height: 1; transition: opacity var(--ease); }
     .cl-tag-x:hover { opacity: 1; }
-
-    /* Champ de saisie pour ajouter */
-    .cl-input-wrap { position: relative; }
+    .cl-add { position: relative; }
     .cl-inp {
       width: 100%; background: var(--surface-alt); border: 1.5px solid var(--border);
-      border-radius: var(--r-sm); padding: 7px 10px; font-family: inherit;
-      font-size: 13px; color: var(--text); outline: none;
-      transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
+      border-radius: var(--r-sm); padding: 7px 10px;
+      font-family: inherit; font-size: 13px; color: var(--text); outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease);
     }
     .cl-inp:focus { border-color: var(--bleu-mid); box-shadow: 0 0 0 3px rgba(37,99,168,.09); background: white; }
-    .cl-inp::placeholder { color: var(--text-muted); }
-
-    /* Dropdown suggestions */
-    .cl-drop {
+    .cl-dropdown {
       display: none; position: absolute; top: calc(100% + 3px); left: 0; right: 0;
       background: var(--surface); border: 1.5px solid var(--bleu-mid);
       border-radius: var(--r-sm); box-shadow: var(--shadow-lg);
-      z-index: 300; max-height: 200px; overflow-y: auto;
+      z-index: 200; max-height: 180px; overflow-y: auto;
     }
-    .cl-drop.show { display: block; }
-    .cl-drop-item {
+    .cl-dropdown.show { display: block; }
+    .cl-opt {
       padding: 8px 12px; cursor: pointer; font-size: 13px; color: var(--text);
-      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
       transition: background var(--ease);
     }
-    .cl-drop-item:last-child { border-bottom: none; }
-    .cl-drop-item:hover { background: var(--bleu-light); }
-    .cl-drop-item.already { opacity: .4; cursor: default; pointer-events: none; }
-    .cl-drop-item-new {
-      font-style: italic; color: var(--bleu-mid);
-    }
-    .cl-drop-empty { padding: 10px 12px; font-size: 12px; color: var(--text-muted); text-align: center; }
+    .cl-opt:last-child { border-bottom: none; }
+    .cl-opt:hover { background: var(--bleu-light); }
+    .cl-opt.selected { opacity: .4; cursor: default; }
+    .cl-opt-check { width: 14px; height: 14px; color: var(--bleu-mid); flex-shrink: 0; }
+    .cl-empty { padding: 10px 12px; font-size: 12px; color: var(--text-muted); text-align: center; }
 
-    /* ── TOAST ── */
+    /* TOAST */
     .toast {
-      position: fixed; bottom: 16px; right: 16px; padding: 9px 15px;
-      border-radius: var(--r); font-size: 13px; font-weight: 500; color: white;
-      background: var(--bleu); box-shadow: var(--shadow-lg); z-index: 9999;
-      opacity: 0; transform: translateY(8px); transition: all var(--ease); pointer-events: none;
+      position: fixed; bottom: 16px; right: 16px;
+      padding: 9px 15px; border-radius: var(--r);
+      font-size: 13px; font-weight: 500; color: white;
+      background: var(--bleu); box-shadow: var(--shadow-lg);
+      z-index: 9999; opacity: 0; transform: translateY(8px);
+      transition: all var(--ease); pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.ok  { background: var(--green); }
     .toast.err { background: var(--red); }
 
-    /* ── PRINT ── */
+    /* ═══ IMPRESSION ═══ */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { background: white; font-size: 10.5pt; }
@@ -325,10 +325,23 @@
       .banner { background: var(--bleu) !important; border-radius: 7pt; padding: 14pt 18pt; }
       .section { break-inside: avoid; box-shadow: none; border: .75pt solid #d0d4e4; }
       .section-head { background: #f7f8fc !important; }
-      .inp { border: none; background: transparent; padding: 0; resize: none; overflow: visible; height: auto; }
-      textarea.inp { min-height: 0; }
-      .cl-input-wrap { display: none; }
+
+      /* Textareas en impression : affichage plat, tout le texte visible */
+      textarea.inp {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        resize: none !important;
+        /* Transforme la textarea en bloc de texte pour l'impression */
+        display: block;
+        white-space: pre-wrap;
+      }
+
       .cl-tags { flex-wrap: wrap; }
+      .cl-add { display: none; }
       .montant-inp { font-size: 14pt; }
       .montant-card { border: .75pt solid #d0d4e4; }
     }
@@ -341,7 +354,7 @@
 <body>
 <div class="app">
 
-  <!-- ══ TOPBAR ══ -->
+  <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">
@@ -350,33 +363,26 @@
       <span class="brand-name">CORIFER</span>
     </div>
     <div class="sep"></div>
-
-    <!-- Sélecteur -->
     <div class="picker no-print" id="picker">
       <button class="picker-btn" id="pickerBtn" onclick="togglePicker()">
         <span class="picker-label" id="pickerLabel">Sélectionner un projet…</span>
         <span class="picker-count" id="pickerCount">0</span>
       </button>
-      <svg class="picker-chevron" viewBox="0 0 24 24" width="16" height="16"
-           fill="none" stroke="currentColor" stroke-width="2.2">
+      <svg class="picker-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
       <div class="picker-drop" id="pickerDrop">
         <div class="picker-search-wrap">
-          <input class="picker-search" id="pickerSearch" type="text"
-                 placeholder="Rechercher…" oninput="filterPicker(this.value)"/>
+          <input class="picker-search" id="pickerSearch" type="text" placeholder="Rechercher…" oninput="filterPicker(this.value)"/>
         </div>
         <div class="picker-list" id="pickerList"></div>
       </div>
     </div>
-
     <div class="gap"></div>
-
     <div class="save-ind no-print" id="saveInd">
       <span class="save-dot"></span>
       <span id="saveTxt">Synchronisé</span>
     </div>
-
     <button class="btn btn-ghost no-print" onclick="window.print()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 6 2 18 2 18 9"/>
@@ -396,7 +402,7 @@
     </button>
   </header>
 
-  <!-- ══ MAIN ══ -->
+  <!-- MAIN -->
   <main class="main">
     <div class="empty" id="emptyState">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
@@ -433,7 +439,7 @@
           <div class="banner-meta-item">
             <span class="banner-meta-hint">Dossier partagé</span>
             <span class="banner-meta-val">
-              <a id="bLien" href="#" target="_blank" class="dossier-btn" title="Ouvrir">
+              <a id="bLien" href="#" target="_blank" class="dossier-btn" title="Ouvrir le dossier">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>
@@ -459,12 +465,11 @@
           <div class="row row-2">
             <div class="field">
               <label class="field-label">Chef de file</label>
-              <input class="inp" id="f_chef" type="text"
-                     data-col="ChefDeFile" oninput="onChange(this)"/>
+              <input class="inp" id="f_chef" type="text" data-col="ChefDeFile" oninput="onChange(this)"/>
             </div>
             <div class="field">
               <label class="field-label">Membres du consortium</label>
-              <div class="cl-field" id="cl_consortium" data-col="Consortium"></div>
+              <div class="cl-wrap" id="cl_consortium" data-col="Consortium"></div>
             </div>
           </div>
         </div>
@@ -485,16 +490,16 @@
         <div class="section-body">
           <div class="field">
             <label class="field-label">Participants SPIN</label>
-            <div class="cl-field" id="cl_spin" data-col="ParticipantsSPIN"></div>
+            <div class="cl-wrap" id="cl_spin" data-col="ParticipantsSPIN"></div>
           </div>
           <div class="row row-2">
             <div class="field">
               <label class="field-label">Participation État</label>
-              <div class="cl-field" id="cl_etat" data-col="ParticipationEtat"></div>
+              <div class="cl-wrap" id="cl_etat" data-col="ParticipationEtat"></div>
             </div>
             <div class="field">
               <label class="field-label">Participants hors SPIN</label>
-              <div class="cl-field" id="cl_horsspin" data-col="HorsSPIN"></div>
+              <div class="cl-wrap" id="cl_horsspin" data-col="HorsSPIN"></div>
             </div>
           </div>
         </div>
@@ -570,33 +575,27 @@
         <div class="section-body">
           <div class="field">
             <label class="field-label">Présentation</label>
-            <textarea class="inp" id="f_pres" data-col="Presentation"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_pres" data-col="Presentation" oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Objectifs</label>
-            <textarea class="inp tall" id="f_obj" data-col="Objectifs"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_obj" data-col="Objectifs" oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Avancement</label>
-            <textarea class="inp tall" id="f_av" data-col="Avancement"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_av" data-col="Avancement" oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Freins rencontrés</label>
-            <textarea class="inp tall" id="f_freins" data-col="Freins"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_freins" data-col="Freins" oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Potentiel de l'innovation</label>
-            <textarea class="inp tall" id="f_potentiel" data-col="Potentiel"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_potentiel" data-col="Potentiel" oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Perspectives de développement</label>
-            <textarea class="inp tall" id="f_perspectives" data-col="Perspectives"
-                      oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_perspectives" data-col="Perspectives" oninput="autoH(this);onChange(this)"></textarea>
           </div>
         </div>
       </div>
@@ -615,19 +614,17 @@
           <div class="row row-2">
             <div class="field">
               <label class="field-label">Avis SPIN</label>
-              <textarea class="inp tall" id="f_avisSpin" data-col="AvisSPIN"
-                        oninput="autoH(this);onChange(this)"></textarea>
+              <textarea class="inp" id="f_avisSpin" data-col="AvisSPIN" oninput="autoH(this);onChange(this)"></textarea>
             </div>
             <div class="field">
               <label class="field-label">Avis SFG</label>
-              <textarea class="inp tall" id="f_avisSfg" data-col="AvisSFG"
-                        oninput="autoH(this);onChange(this)"></textarea>
+              <textarea class="inp" id="f_avisSfg" data-col="AvisSFG" oninput="autoH(this);onChange(this)"></textarea>
             </div>
           </div>
         </div>
       </div>
 
-    </div><!-- /fiche -->
+    </div>
   </main>
 </div>
 
@@ -635,9 +632,7 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════
-   COLUMN MAPPING — Grist affiche un panneau de
-   configuration où l'utilisateur associe chaque champ
-   du widget à la vraie colonne de sa table.
+   GRIST — COLUMN MAPPING
 ═══════════════════════════════════════════════════════ */
 grist.ready({
   requiredAccess: 'full',
@@ -669,22 +664,17 @@ grist.ready({
 });
 
 /* ═══════════════════════════════════════════════════════
-   ÉTAT GLOBAL
+   ÉTAT
 ═══════════════════════════════════════════════════════ */
-let allRecords    = [];   // tous les enregistrements mappés
-let currentRowId  = null; // id de la ligne sélectionnée
-let currentMaps   = null; // mappings widgetCol → realCol
-let tableId       = null; // id de la table pour l'API metadata
-let pending       = {};   // modifications en attente
-let saveTimer     = null;
-let isSaving      = false;
-
-// Cache des choix existants par colonne widgetName
-// { Consortium: Set(['val1','val2',...]), ... }
-const choiceCache = {};
+let allRecords   = [];
+let currentRowId = null;
+let currentMaps  = null;
+let pending      = {};
+let saveTimer    = null;
+let isSaving     = false;
 
 /* ═══════════════════════════════════════════════════════
-   RÉCEPTION DES DONNÉES
+   GRIST EVENTS
 ═══════════════════════════════════════════════════════ */
 grist.onRecords(function(records, mappings) {
   currentMaps = mappings;
@@ -694,20 +684,9 @@ grist.onRecords(function(records, mappings) {
     m.__raw = r;
     return m;
   });
-
-  // Récupère l'id de la table pour l'API metadata
-  if (records.length && !tableId) {
-    grist.selectedTable.getTableId().then(id => {
-      tableId = id;
-      // Précharge les choix existants pour toutes les ChoiceList
-      preloadAllChoices();
-    }).catch(() => {});
-  }
-
   document.getElementById('pickerCount').textContent =
     allRecords.filter(r => r && r.Projet).length;
   buildPicker();
-
   if (currentRowId !== null) {
     const rec = allRecords.find(r => r.__id === currentRowId);
     if (rec) fillFiche(rec);
@@ -727,128 +706,7 @@ grist.onRecord(function(record, mappings) {
 });
 
 /* ═══════════════════════════════════════════════════════
-   PRÉCHARGEMENT DES CHOIX EXISTANTS
-   Lit les métadonnées Grist pour récupérer la liste
-   officielle des choix de chaque colonne ChoiceList,
-   et les enrichit avec les valeurs déjà présentes
-   dans les enregistrements.
-═══════════════════════════════════════════════════════ */
-const CL_COLS = ['Consortium','ParticipantsSPIN','ParticipationEtat','HorsSPIN'];
-
-async function preloadAllChoices() {
-  for (const widgetCol of CL_COLS) {
-    if (!choiceCache[widgetCol]) choiceCache[widgetCol] = new Set();
-
-    // 1. Extrait les valeurs déjà présentes dans les enregistrements
-    allRecords.forEach(r => {
-      const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetCol]] : null;
-      decodeChoiceList(rawVal).forEach(v => choiceCache[widgetCol].add(v));
-    });
-
-    // 2. Tente de lire la liste officielle via les métadonnées Grist
-    try {
-      const realCol = currentMaps?.[widgetCol];
-      if (realCol && tableId) {
-        const colsMeta = await grist.docApi.fetchTable('_grist_Tables_column');
-        // Trouve la colonne par tableRef et colId
-        const tablesMeta = await grist.docApi.fetchTable('_grist_Tables');
-        const tIdx = tablesMeta.tableId.findIndex(t => t === tableId);
-        if (tIdx !== -1) {
-          const tableRef = tablesMeta.id[tIdx];
-          const colIdx   = colsMeta.colId.findIndex(
-            (c, i) => c === realCol && colsMeta.parentId[i] === tableRef
-          );
-          if (colIdx !== -1) {
-            const widgetOpts = colsMeta.widgetOptions[colIdx];
-            if (widgetOpts) {
-              try {
-                const opts = JSON.parse(widgetOpts);
-                if (opts.choices && Array.isArray(opts.choices)) {
-                  opts.choices.forEach(c => choiceCache[widgetCol].add(c));
-                }
-              } catch(e) {}
-            }
-          }
-        }
-      }
-    } catch(e) {
-      // Silencieux : on travaille avec les valeurs extraites des enregistrements
-    }
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   AJOUT D'UN CHOIX À LA LISTE OFFICIELLE GRIST
-   Évite le surlignage rouge dans le tableau.
-═══════════════════════════════════════════════════════ */
-async function addChoiceToColumn(widgetCol, newValue) {
-  // Déjà dans le cache → rien à faire
-  if (choiceCache[widgetCol]?.has(newValue)) return;
-
-  try {
-    const realCol = currentMaps?.[widgetCol];
-    if (!realCol || !tableId) return;
-
-    // Récupère les métadonnées de la colonne
-    const colsMeta   = await grist.docApi.fetchTable('_grist_Tables_column');
-    const tablesMeta = await grist.docApi.fetchTable('_grist_Tables');
-    const tIdx = tablesMeta.tableId.findIndex(t => t === tableId);
-    if (tIdx === -1) return;
-
-    const tableRef = tablesMeta.id[tIdx];
-    const colIdx   = colsMeta.colId.findIndex(
-      (c, i) => c === realCol && colsMeta.parentId[i] === tableRef
-    );
-    if (colIdx === -1) return;
-
-    const colRef    = colsMeta.id[colIdx];
-    const widgetOpts = colsMeta.widgetOptions[colIdx];
-    let opts = {};
-    try { opts = JSON.parse(widgetOpts || '{}'); } catch(e) {}
-
-    const existingChoices = Array.isArray(opts.choices) ? opts.choices : [];
-    if (existingChoices.includes(newValue)) {
-      choiceCache[widgetCol].add(newValue);
-      return;
-    }
-
-    // Ajoute le nouveau choix
-    const newChoices = [...existingChoices, newValue];
-    opts.choices = newChoices;
-
-    // Met à jour les métadonnées via l'API Grist
-    await grist.docApi.applyUserActions([
-      ['UpdateRecord', '_grist_Tables_column', colRef, {
-        widgetOptions: JSON.stringify(opts)
-      }]
-    ]);
-
-    // Met à jour le cache local
-    if (!choiceCache[widgetCol]) choiceCache[widgetCol] = new Set();
-    choiceCache[widgetCol].add(newValue);
-
-  } catch(e) {
-    console.warn('Impossible d\'ajouter le choix à la liste officielle :', e);
-    // On continue quand même — la valeur sera sauvegardée, juste en rouge dans Grist
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
-   ENCODE / DÉCODE CHOICELIST
-═══════════════════════════════════════════════════════ */
-function decodeChoiceList(val) {
-  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
-  if (typeof val === 'string' && val.trim())
-    return val.split(';').map(s => s.trim()).filter(Boolean);
-  return [];
-}
-
-function encodeChoiceList(arr) {
-  return ['L', ...arr];
-}
-
-/* ═══════════════════════════════════════════════════════
-   SÉLECTEUR DE FICHE
+   PICKER
 ═══════════════════════════════════════════════════════ */
 function buildPicker() {
   const list  = document.getElementById('pickerList');
@@ -907,7 +765,7 @@ function highlightPicker(rowId) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   REMPLISSAGE DE LA FICHE
+   REMPLISSAGE
 ═══════════════════════════════════════════════════════ */
 function fillFiche(r) {
   document.getElementById('emptyState').style.display = 'none';
@@ -946,11 +804,11 @@ function fillFiche(r) {
   // Texte simple
   sv('f_chef', r.ChefDeFile);
 
-  // Choice lists — on passe la valeur brute de l'enregistrement
-  renderCL('cl_consortium', r.__raw, 'Consortium');
-  renderCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
-  renderCL('cl_etat',       r.__raw, 'ParticipationEtat');
-  renderCL('cl_horsspin',   r.__raw, 'HorsSPIN');
+  // Choice lists
+  buildCL('cl_consortium', r.__raw, 'Consortium');
+  buildCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
+  buildCL('cl_etat',       r.__raw, 'ParticipationEtat');
+  buildCL('cl_horsspin',   r.__raw, 'HorsSPIN');
 
   // Montants
   setMontant('f_mProjet', r.MontantProjet);
@@ -958,178 +816,39 @@ function fillFiche(r) {
   setMontant('f_subv',    r.Subventions);
   setMontant('f_ar',      r.AR);
 
-  // Textareas
-  sta('f_pres',         r.Presentation);
-  sta('f_obj',          r.Objectifs);
-  sta('f_av',           r.Avancement);
-  sta('f_freins',       r.Freins);
-  sta('f_potentiel',    r.Potentiel);
-  sta('f_perspectives', r.Perspectives);
-  sta('f_avisSpin',     r.AvisSPIN);
-  sta('f_avisSfg',      r.AvisSFG);
+  // ══ Textareas — rempli + auto-hauteur immédiate ══
+  sta('f_pres',          r.Presentation);
+  sta('f_obj',           r.Objectifs);
+  sta('f_av',            r.Avancement);
+  sta('f_freins',        r.Freins);
+  sta('f_potentiel',     r.Potentiel);
+  sta('f_perspectives',  r.Perspectives);
+  sta('f_avisSpin',      r.AvisSPIN);
+  sta('f_avisSfg',       r.AvisSFG);
 
   pending = {};
 }
 
 /* ═══════════════════════════════════════════════════════
-   CHOICE LIST — RENDU
-═══════════════════════════════════════════════════════ */
-function renderCL(containerId, rawRecord, widgetCol) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const realCol = currentMaps?.[widgetCol];
-  const rawVal  = realCol && rawRecord ? rawRecord[realCol] : null;
-  const selected = decodeChoiceList(rawVal);
-
-  container.innerHTML = '';
-  container.dataset.widgetCol = widgetCol;
-  container.dataset.selected  = JSON.stringify(selected);
-
-  // ── Zone de tags ──
-  const tagsDiv = document.createElement('div');
-  tagsDiv.className = 'cl-tags';
-  tagsDiv.id = containerId + '_tags';
-  container.appendChild(tagsDiv);
-  renderCLTags(containerId, selected);
-
-  // ── Zone de saisie ──
-  const wrap = document.createElement('div');
-  wrap.className = 'cl-input-wrap';
-
-  const inp = document.createElement('input');
-  inp.className   = 'cl-inp';
-  inp.type        = 'text';
-  inp.placeholder = 'Ajouter…';
-  inp.setAttribute('autocomplete', 'off');
-
-  const drop = document.createElement('div');
-  drop.className = 'cl-drop';
-
-  wrap.appendChild(inp);
-  wrap.appendChild(drop);
-  container.appendChild(wrap);
-
-  // Événements
-  inp.addEventListener('focus', () => refreshDrop(containerId, widgetCol, inp, drop));
-  inp.addEventListener('input', () => refreshDrop(containerId, widgetCol, inp, drop));
-
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && inp.value.trim()) {
-      e.preventDefault();
-      confirmAdd(containerId, widgetCol, inp.value.trim(), inp, drop);
-    }
-    if (e.key === 'Escape') { drop.classList.remove('show'); inp.blur(); }
-  });
-
-  // Ferme le dropdown si clic ailleurs
-  document.addEventListener('click', e => {
-    if (!wrap.contains(e.target)) drop.classList.remove('show');
-  }, true);
-}
-
-function renderCLTags(containerId, selected) {
-  const tagsDiv = document.getElementById(containerId + '_tags');
-  if (!tagsDiv) return;
-  tagsDiv.innerHTML = '';
-  if (selected.length === 0) {
-    const hint = document.createElement('span');
-    hint.className = 'cl-empty-hint';
-    hint.textContent = 'Aucun élément';
-    tagsDiv.appendChild(hint);
-    return;
-  }
-  selected.forEach(val => {
-    const tag = document.createElement('span');
-    tag.className = 'cl-tag';
-    tag.innerHTML = `${esc(val)}<span class="cl-tag-x">×</span>`;
-    tag.querySelector('.cl-tag-x').onclick = () => removeCLItem(containerId, val);
-    tagsDiv.appendChild(tag);
-  });
-}
-
-function refreshDrop(containerId, widgetCol, inp, drop) {
-  const container = document.getElementById(containerId);
-  const current   = JSON.parse(container.dataset.selected || '[]');
-  const q         = inp.value.trim().toLowerCase();
-
-  // Suggestions : toutes les valeurs du cache, filtrées
-  const cache    = choiceCache[widgetCol] || new Set();
-  let suggestions = [...cache].filter(v => !current.includes(v));
-  if (q) suggestions = suggestions.filter(v => v.toLowerCase().includes(q));
-
-  drop.innerHTML = '';
-
-  // Option "Ajouter X" si valeur tapée et pas déjà dans le cache
-  if (q && ![...cache].some(v => v.toLowerCase() === q)) {
-    const item = document.createElement('div');
-    item.className = 'cl-drop-item cl-drop-item-new';
-    item.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ajouter « ${esc(inp.value.trim())} »`;
-    item.onclick = () => confirmAdd(containerId, widgetCol, inp.value.trim(), inp, drop);
-    drop.appendChild(item);
-  }
-
-  if (suggestions.length === 0 && !q) {
-    const empty = document.createElement('div');
-    empty.className = 'cl-drop-empty';
-    empty.textContent = 'Tapez pour ajouter un élément…';
-    drop.appendChild(empty);
-  } else {
-    suggestions.forEach(v => {
-      const item = document.createElement('div');
-      item.className = 'cl-drop-item';
-      item.textContent = v;
-      item.onclick = () => confirmAdd(containerId, widgetCol, v, inp, drop);
-      drop.appendChild(item);
-    });
-  }
-
-  drop.classList.toggle('show', drop.children.length > 0);
-}
-
-async function confirmAdd(containerId, widgetCol, value, inp, drop) {
-  if (!value) return;
-
-  const container = document.getElementById(containerId);
-  const current   = JSON.parse(container.dataset.selected || '[]');
-  if (current.includes(value)) { inp.value = ''; drop.classList.remove('show'); return; }
-
-  const next = [...current, value];
-  container.dataset.selected = JSON.stringify(next);
-  renderCLTags(containerId, next);
-  inp.value = '';
-  drop.classList.remove('show');
-
-  // Ajoute à la liste officielle Grist (évite le rouge)
-  await addChoiceToColumn(widgetCol, value);
-
-  // Sauvegarde la valeur dans l'enregistrement
-  queueUpdate(widgetCol, encodeChoiceList(next));
-}
-
-function removeCLItem(containerId, value) {
-  const container = document.getElementById(containerId);
-  const widgetCol = container.dataset.widgetCol;
-  const current   = JSON.parse(container.dataset.selected || '[]');
-  const next      = current.filter(v => v !== value);
-  container.dataset.selected = JSON.stringify(next);
-  renderCLTags(containerId, next);
-  queueUpdate(widgetCol, encodeChoiceList(next));
-}
-
-/* ═══════════════════════════════════════════════════════
-   HELPERS CHAMPS
+   HELPERS
 ═══════════════════════════════════════════════════════ */
 function sv(id, val) {
   const el = document.getElementById(id);
   if (el) el.value = val != null ? val : '';
 }
 
+/*
+  sta = set textarea
+  Remplit le texte ET ajuste la hauteur immédiatement,
+  ce qui évite toute scrollbar dès l'affichage.
+*/
 function sta(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
   el.value = val != null ? val : '';
-  autoH(el);
+  // Forcer un reflow pour que scrollHeight soit correct
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
 
 function setMontant(id, val) {
@@ -1147,26 +866,179 @@ function fmtDate(val) {
   });
 }
 
+/*
+  autoH — appelée à chaque frappe dans une textarea
+  Recalcule la hauteur pour coller exactement au contenu.
+*/
+function autoH(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 /* ═══════════════════════════════════════════════════════
-   FORMATAGE MONTANTS
+   CHOICE LIST
+═══════════════════════════════════════════════════════ */
+function decodeChoiceList(val) {
+  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
+  if (typeof val === 'string' && val.trim()) return val.split(';').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+function encodeChoiceList(arr) {
+  return ['L', ...arr];
+}
+
+function buildCL(containerId, rawRecord, widgetColName) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const realCol  = currentMaps ? currentMaps[widgetColName] : null;
+  const rawVal   = realCol && rawRecord ? rawRecord[realCol] : null;
+  const selected = decodeChoiceList(rawVal);
+
+  container.innerHTML = '';
+  container.dataset.widgetCol = widgetColName;
+  container.dataset.selected  = JSON.stringify(selected);
+
+  // Tags sélectionnés
+  const tagsDiv = document.createElement('div');
+  tagsDiv.className = 'cl-tags';
+  tagsDiv.id = containerId + '_tags';
+  container.appendChild(tagsDiv);
+  renderCLTags(containerId, selected);
+
+  // Zone de saisie
+  const addDiv  = document.createElement('div');
+  addDiv.className = 'cl-add';
+
+  const inp  = document.createElement('input');
+  inp.className   = 'cl-inp';
+  inp.type        = 'text';
+  inp.placeholder = 'Ajouter…';
+  inp.setAttribute('autocomplete', 'off');
+
+  const drop = document.createElement('div');
+  drop.className = 'cl-dropdown';
+
+  addDiv.appendChild(inp);
+  addDiv.appendChild(drop);
+  container.appendChild(addDiv);
+
+  // Événements
+  inp.addEventListener('focus', () => refreshDrop(containerId, widgetColName, inp, drop));
+  inp.addEventListener('input', () => refreshDrop(containerId, widgetColName, inp, drop));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && inp.value.trim()) {
+      e.preventDefault();
+      confirmAdd(containerId, widgetColName, inp.value.trim(), inp, drop);
+    }
+    if (e.key === 'Escape') { drop.classList.remove('show'); inp.blur(); }
+  });
+  document.addEventListener('click', e => {
+    if (!addDiv.contains(e.target)) drop.classList.remove('show');
+  }, true);
+}
+
+function renderCLTags(containerId, selected) {
+  const tagsDiv = document.getElementById(containerId + '_tags');
+  if (!tagsDiv) return;
+  tagsDiv.innerHTML = '';
+  selected.forEach(val => {
+    const tag = document.createElement('span');
+    tag.className = 'cl-tag';
+    tag.innerHTML = `${esc(val)}<span class="cl-tag-x">×</span>`;
+    tag.querySelector('.cl-tag-x').onclick = () => removeCLItem(containerId, val);
+    tagsDiv.appendChild(tag);
+  });
+}
+
+function refreshDrop(containerId, widgetColName, inp, drop) {
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  const q         = inp.value.trim().toLowerCase();
+  const existing  = extractChoicesFromRecords(widgetColName);
+  let   options   = existing.filter(v => !current.includes(v));
+  if (q) options  = options.filter(v => v.toLowerCase().includes(q));
+
+  drop.innerHTML = '';
+
+  // Option "Ajouter X" si valeur inconnue
+  if (q && !existing.some(v => v.toLowerCase() === q)) {
+    const item = document.createElement('div');
+    item.className = 'cl-opt';
+    item.innerHTML = `<svg class="cl-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>Ajouter « ${esc(inp.value.trim())} »`;
+    item.style.fontStyle = 'italic';
+    item.onclick = () => confirmAdd(containerId, widgetColName, inp.value.trim(), inp, drop);
+    drop.appendChild(item);
+  }
+
+  options.forEach(v => {
+    const item = document.createElement('div');
+    item.className = 'cl-opt';
+    item.textContent = v;
+    item.onclick = () => confirmAdd(containerId, widgetColName, v, inp, drop);
+    drop.appendChild(item);
+  });
+
+  if (drop.children.length === 0) {
+    drop.innerHTML = '<div class="cl-empty">Tapez pour ajouter un élément</div>';
+  }
+
+  drop.classList.toggle('show', true);
+}
+
+function extractChoicesFromRecords(widgetColName) {
+  const all = new Set();
+  allRecords.forEach(r => {
+    const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetColName]] : null;
+    decodeChoiceList(rawVal).forEach(v => all.add(v));
+  });
+  return [...all].sort();
+}
+
+function confirmAdd(containerId, widgetColName, value, inp, drop) {
+  if (!value) return;
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  if (current.includes(value)) { inp.value = ''; drop.classList.remove('show'); return; }
+  const next = [...current, value];
+  container.dataset.selected = JSON.stringify(next);
+  renderCLTags(containerId, next);
+  inp.value = '';
+  drop.classList.remove('show');
+  queueUpdate(widgetColName, encodeChoiceList(next));
+}
+
+function removeCLItem(containerId, value) {
+  const container = document.getElementById(containerId);
+  const widgetCol = container.dataset.widgetCol;
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  const next      = current.filter(v => v !== value);
+  container.dataset.selected = JSON.stringify(next);
+  renderCLTags(containerId, next);
+  queueUpdate(widgetCol, encodeChoiceList(next));
+}
+
+/* ═══════════════════════════════════════════════════════
+   MONTANTS
 ═══════════════════════════════════════════════════════ */
 function fmtNum(n) {
   if (n == null || isNaN(n)) return '';
   return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(n);
 }
-
 function parseNum(s) {
   if (!s && s !== 0) return null;
   const n = parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
   return isNaN(n) ? null : n;
 }
-
 function fmtMontant(el)   { const n = parseNum(el.value); el.value = n != null ? fmtNum(n) : ''; }
 function unfmtMontant(el) { const n = parseNum(el.value); el.value = n != null ? String(n) : ''; }
 function onMontant(el)    { queueUpdate(el.dataset.col, parseNum(el.value)); }
 
 /* ═══════════════════════════════════════════════════════
-   SAUVEGARDE AUTO
+   SAUVEGARDE
 ═══════════════════════════════════════════════════════ */
 function onChange(el) { queueUpdate(el.dataset.col, el.value); }
 
@@ -1182,16 +1054,13 @@ async function flush() {
   if (!currentRowId || !Object.keys(pending).length || isSaving) return;
   isSaving = true;
   const data = { ...pending };
-  pending    = {};
-
-  // Remapping noms internes → noms réels Grist
+  pending = {};
   const fields = {};
   for (const [k, v] of Object.entries(data)) {
     const real = currentMaps?.[k];
     if (real) fields[real] = v;
     else      fields[k]    = v;
   }
-
   try {
     await grist.selectedTable.update({ id: currentRowId, fields });
     setSave('saved');
@@ -1224,12 +1093,8 @@ function exportDocx() {
 
   const fmt = v => (v != null && v !== '') ? fmtNum(parseFloat(v)) + ' €' : '—';
   const t   = v => esc(v ? String(v) : '—');
-  const pre = v => v
-    ? `<div style="white-space:pre-wrap;font-size:10.5pt;line-height:1.65;">${esc(String(v))}</div>`
-    : '<em style="color:#aaa;">—</em>';
-
-  // Décode les ChoiceList depuis les données brutes
-  const getCL = widgetCol => {
+  const pre = v => v ? `<div style="white-space:pre-wrap;">${esc(String(v))}</div>` : '<em>—</em>';
+  const cl  = widgetCol => {
     const realCol = currentMaps?.[widgetCol];
     const rawVal  = realCol && r.__raw ? r.__raw[realCol] : null;
     const vals    = decodeChoiceList(rawVal);
@@ -1244,7 +1109,7 @@ function exportDocx() {
   .meta{color:#8b93b0;font-size:9.5pt;margin-bottom:14pt;}
   .lbl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#8b93b0;letter-spacing:.4pt;margin:6pt 0 2pt;}
   .val{font-size:10.5pt;margin:0 0 9pt;}
-  .pre{font-size:10.5pt;background:#f7f8fc;padding:8pt 10pt;border-left:3pt solid #2563a8;
+  .pre{font-size:10.5pt;background:#f7f8fc;padding:8pt;border-left:3pt solid #2563a8;
        white-space:pre-wrap;margin:3pt 0 12pt;line-height:1.6;}
   .g2{display:table;width:100%;}
   .c{display:table-cell;width:50%;vertical-align:top;padding-right:12pt;}
@@ -1255,22 +1120,19 @@ function exportDocx() {
 <h1>${t(r.Projet)}</h1>
 <p class="meta">${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · ${r.Tenue ? '✓ Audition tenue' : '✗ Audition non tenue'}</p>
 <hr style="border:none;border-top:1.5pt solid #1b3f6b;margin-bottom:14pt;"/>
-
 <h2>Informations générales</h2>
 <p class="lbl">Chef de file</p><p class="val">${t(r.ChefDeFile)}</p>
-<p class="lbl">Membres du consortium</p><p class="val">${getCL('Consortium')}</p>
-
+<p class="lbl">Membres du consortium</p><p class="val">${cl('Consortium')}</p>
 <h2>Participants</h2>
 <div class="g2">
   <div class="c">
-    <p class="lbl">Participants SPIN</p><p class="val">${getCL('ParticipantsSPIN')}</p>
-    <p class="lbl">Participation État</p><p class="val">${getCL('ParticipationEtat')}</p>
+    <p class="lbl">Participants SPIN</p><p class="val">${cl('ParticipantsSPIN')}</p>
+    <p class="lbl">Participation État</p><p class="val">${cl('ParticipationEtat')}</p>
   </div>
   <div class="c">
-    <p class="lbl">Participants hors SPIN</p><p class="val">${getCL('HorsSPIN')}</p>
+    <p class="lbl">Participants hors SPIN</p><p class="val">${cl('HorsSPIN')}</p>
   </div>
 </div>
-
 <h2>Financements</h2>
 <div class="g2">
   <div class="c"><div class="amt"><div class="amt-l">Montant total du projet</div><div class="amt-v">${fmt(r.MontantProjet)}</div></div></div>
@@ -1278,7 +1140,6 @@ function exportDocx() {
 </div>
 <p class="lbl">dont Subventions</p><p class="val">${fmt(r.Subventions)}</p>
 <p class="lbl">dont AR</p><p class="val">${fmt(r.AR)}</p>
-
 <h2>Fiche projet</h2>
 <p class="lbl">Présentation</p><div class="pre">${pre(r.Presentation)}</div>
 <p class="lbl">Objectifs</p><div class="pre">${pre(r.Objectifs)}</div>
@@ -1286,7 +1147,6 @@ function exportDocx() {
 <p class="lbl">Freins rencontrés</p><div class="pre">${pre(r.Freins)}</div>
 <p class="lbl">Potentiel de l'innovation</p><div class="pre">${pre(r.Potentiel)}</div>
 <p class="lbl">Perspectives de développement</p><div class="pre">${pre(r.Perspectives)}</div>
-
 <h2>Avis</h2>
 <div class="g2">
   <div class="c"><p class="lbl">Avis SPIN</p><div class="pre">${pre(r.AvisSPIN)}</div></div>
@@ -1297,30 +1157,23 @@ function exportDocx() {
   const blob = new Blob([html], { type: 'application/msword' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
-  a.download = `Fiche_${(r.Projet || 'projet').replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+  a.download = `Fiche_${(r.Projet||'projet').replace(/[^a-zA-Z0-9]/g,'_')}.doc`;
   a.click();
   URL.revokeObjectURL(a.href);
   toast('Export lancé ✓', 'ok');
 }
 
 /* ═══════════════════════════════════════════════════════
-   UTILITAIRES
+   UTILS
 ═══════════════════════════════════════════════════════ */
-function autoH(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.max(el.scrollHeight, 90) + 'px';
-}
-
 function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function toast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className   = `toast ${type || ''}`;
+  t.className   = `toast ${type||''}`;
   void t.offsetWidth;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
