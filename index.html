@@ -349,12 +349,50 @@
     .toast.ok  { background: var(--green); }
     .toast.err { background: var(--red); }
 
+    /* NAVIGATION ET DASHBOARD REX */
+    .nav-dashboard { display:inline-flex; align-items:center; gap:6px; }
+    .nav-dashboard.active { background:var(--bleu-light); border-color:var(--bleu-border); color:var(--bleu); }
+    .dashboard { max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+    .dash-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; }
+    .dash-eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; letter-spacing:.9px; text-transform:uppercase; }
+    .dash-title { color:var(--bleu); font-size:25px; line-height:1.25; font-weight:700; margin-top:3px; }
+    .dash-subtitle { color:var(--text-sec); font-size:12.5px; margin-top:5px; }
+    .dash-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .dash-card { background:white; border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; box-shadow:var(--shadow-sm); min-width:0; }
+    .dash-card-label { color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:.65px; font-weight:700; }
+    .dash-card-value { color:var(--bleu); font-size:25px; font-weight:700; line-height:1.25; margin-top:7px; }
+    .dash-card-note { color:var(--text-sec); font-size:11px; margin-top:3px; }
+    .dash-columns { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:14px; }
+    .dash-panel { background:white; border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow-sm); overflow:hidden; min-width:0; }
+    .dash-panel-head { padding:14px 17px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .dash-panel-title { color:var(--bleu); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.55px; }
+    .dash-panel-body { padding:15px 17px; }
+    .dash-bar-row { display:grid; grid-template-columns:minmax(90px,130px) 1fr 30px; align-items:center; gap:10px; margin:10px 0; font-size:11.5px; }
+    .dash-bar-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-sec); }
+    .dash-bar-track { height:9px; background:#eef1f6; border-radius:20px; overflow:hidden; }
+    .dash-bar-fill { height:100%; border-radius:20px; }
+    .dash-bar-count { text-align:right; color:var(--text-sec); font-weight:700; font-variant-numeric:tabular-nums; }
+    .dash-list { display:flex; flex-direction:column; }
+    .dash-project { width:100%; border:0; border-bottom:1px solid #edf0f5; background:white; padding:11px 15px; display:flex; align-items:center; gap:10px; text-align:left; cursor:pointer; font:inherit; }
+    .dash-project:last-child { border-bottom:0; }
+    .dash-project:hover { background:var(--surface-alt); }
+    .dash-project-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .dash-project-main { min-width:0; flex:1; }
+    .dash-project-name { display:block; color:var(--text); font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .dash-project-meta { display:block; color:var(--text-muted); font-size:10.5px; margin-top:2px; }
+    .dash-project-status { flex-shrink:0; border-radius:20px; padding:3px 8px; font-size:10px; font-weight:700; background:#f1f3f7; color:#687386; }
+    .dash-project-status.ok { background:var(--green-bg); color:var(--green); }
+    .dash-empty { padding:22px 15px; color:var(--text-muted); font-size:12px; text-align:center; }
+    .dash-action { color:var(--bleu-mid); font-size:11px; font-weight:600; white-space:nowrap; }
+    @media(max-width:850px) { .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.dash-columns{grid-template-columns:1fr}.dash-heading{align-items:flex-start;flex-direction:column}.topbar{flex-wrap:wrap}.picker{max-width:none;min-width:180px} }
+    @media(max-width:520px) { .dash-title{font-size:21px}.dash-grid{gap:8px}.dash-card{padding:12px}.dash-card-value{font-size:21px}.dash-bar-row{grid-template-columns:90px 1fr 22px;gap:6px} }
+
     /* ═══ IMPRESSION ═══ */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { background: white; font-size: 10.5pt; }
       .app { height: auto; overflow: visible; }
-      .topbar, .no-print { display: none !important; }
+      .topbar, .no-print, .dashboard { display: none !important; }
       .main { overflow: visible; padding: 0; }
       .fiche { max-width: 100%; gap: 12pt; }
       .banner { background: linear-gradient(130deg, var(--dmarche-color, var(--bleu)) 0%, var(--dmarche-dark, #1f4e8a) 100%) !important; border-radius: 7pt; padding: 14pt 18pt; }
@@ -419,6 +457,7 @@
       </div>
     </div>
     <div class="sep"></div>
+    <button class="btn btn-ghost no-print nav-dashboard" id="dashboardBtn" type="button" onclick="showDashboard()">▦ Synthèse</button>
     <div class="picker no-print" id="picker">
       <button class="picker-btn" id="pickerBtn" onclick="togglePicker()">
         <span class="picker-label" id="pickerLabel">Sélectionner un projet…</span>
@@ -460,6 +499,7 @@
 
   <!-- MAIN -->
   <main class="main">
+    <div class="dashboard" id="dashboard" style="display:none;"></div>
     <div class="empty" id="emptyState">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -724,7 +764,10 @@ grist.ready({
    ÉTAT ET DÉMARCHES
 ═══════════════════════════════════════════════════════ */
 let allRecords   = [];
-let currentRowId = null;
+const ROW_STORAGE_KEY = 'rex-last-row-v1:' + (location.pathname || 'default');
+function loadRow() { try { const n = Number(localStorage.getItem(ROW_STORAGE_KEY)); return Number.isFinite(n) && n > 0 ? n : null; } catch (e) { return null; } }
+function storeRow(id) { try { if (id == null) localStorage.removeItem(ROW_STORAGE_KEY); else localStorage.setItem(ROW_STORAGE_KEY, String(id)); } catch (e) {} }
+let currentRowId = loadRow();
 let currentMaps  = null;
 let pending      = {};
 let saveTimer    = null;
@@ -738,6 +781,47 @@ const DEMARCHES = {
 };
 const SCOPE_STORAGE_KEY = 'rex-demarche-selection-v1:' + (location.pathname || 'default');
 let selectedScope = loadScope();
+const PAGE_STORAGE_KEY = 'rex-page-selection-v1:' + (location.pathname || 'default');
+let currentPage = loadPage();
+function loadPage() {
+  try { return localStorage.getItem(PAGE_STORAGE_KEY) === 'fiche' ? 'fiche' : 'dashboard'; }
+  catch (e) { return 'dashboard'; }
+}
+function savePage(page) {
+  currentPage = page;
+  try { localStorage.setItem(PAGE_STORAGE_KEY, page); } catch (e) {}
+  updatePageVisibility();
+}
+function updatePageVisibility() {
+  const dashboard = document.getElementById('dashboard');
+  const fiche = document.getElementById('fiche');
+  const empty = document.getElementById('emptyState');
+  const picker = document.getElementById('picker');
+  const btn = document.getElementById('dashboardBtn');
+  if (!dashboard || !fiche || !empty) return;
+  dashboard.style.display = currentPage === 'dashboard' ? 'flex' : 'none';
+  fiche.style.display = currentPage === 'fiche' && currentRowId !== null ? 'flex' : 'none';
+  empty.style.display = currentPage === 'fiche' && currentRowId === null ? 'flex' : 'none';
+  if (picker) picker.style.display = currentPage === 'dashboard' ? 'none' : '';
+  if (btn) btn.classList.toggle('active', currentPage === 'dashboard');
+}
+function showDashboard() {
+  if (Object.keys(pending).length && currentRowId !== null) flush();
+  savePage('dashboard');
+  renderDashboard();
+}
+function showFiche(rowId) {
+  const rec = allRecords.find(r => r.__id === rowId && isInSelectedScope(r));
+  if (!rec) return;
+  currentRowId = rowId;
+  storeRow(rowId);
+  savePage('fiche');
+  buildPicker();
+  highlightPicker(rowId);
+  fillFiche(rec);
+  grist.setCursorPos({ rowId }).catch(() => {});
+}
+
 
 function loadScope() {
   try {
@@ -813,14 +897,19 @@ async function setScope(scope) {
   closeScopeMenu();
 
   const current = allRecords.find(r => r.__id === currentRowId);
-  if (current && isInSelectedScope(current)) {
-    buildPicker();
+  buildPicker();
+  if (currentPage === 'dashboard') {
+    renderDashboard();
+    updatePageVisibility();
+  } else if (current && isInSelectedScope(current)) {
     highlightPicker(currentRowId);
     fillFiche(current);
+    updatePageVisibility();
   } else {
     currentRowId = null;
-    buildPicker();
+    storeRow(null);
     clearFiche();
+    updatePageVisibility();
   }
 }
 
@@ -844,6 +933,8 @@ function clearFiche() {
 }
 
 updateScopeMenu();
+renderDashboard();
+updatePageVisibility();
 
 /* ═══════════════════════════════════════════════════════
    GRIST EVENTS
@@ -864,9 +955,13 @@ grist.onRecords(function(records, mappings) {
       highlightPicker(currentRowId);
     } else {
       currentRowId = null;
+      storeRow(null);
       clearFiche();
     }
   }
+  renderDashboard();
+  if (currentPage === 'fiche' && currentRowId === null) currentPage = 'dashboard';
+  updatePageVisibility();
 });
 
 grist.onRecord(function(record, mappings) {
@@ -878,13 +973,69 @@ grist.onRecord(function(record, mappings) {
   mapped.__raw = record;
   if (!isInSelectedScope(mapped)) {
     currentRowId = null;
+    storeRow(null);
     clearFiche();
     return;
   }
   currentRowId = record.id;
+  storeRow(record.id);
   highlightPicker(record.id);
-  fillFiche(mapped);
+  if (currentPage === 'fiche') fillFiche(mapped);
+  renderDashboard();
+  updatePageVisibility();
 });
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD — SYNTHÈSE PAR DÉMARCHE / TRANSVERSALE
+═══════════════════════════════════════════════════════ */
+function dashboardRecords() {
+  return allRecords.filter(r => r && r.Projet && isInSelectedScope(r));
+}
+function numericValue(v) {
+  if (v == null || v === '') return 0;
+  const n = Number(String(v).replace(/\s/g,'').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
+function euroShort(v) {
+  if (!v) return '0 €';
+  return new Intl.NumberFormat('fr-FR', {maximumFractionDigits:1, notation: Math.abs(v) >= 1000000 ? 'compact' : 'standard'}).format(v) + ' €';
+}
+function renderDashboard() {
+  const root = document.getElementById('dashboard');
+  if (!root) return;
+  const rows = dashboardRecords();
+  const totalProject = rows.reduce((a,r) => a + numericValue(r.MontantProjet), 0);
+  const totalAid = rows.reduce((a,r) => a + numericValue(r.MontantAide), 0);
+  const held = rows.filter(r => r.Tenue === true || r.Tenue === 1 || r.Tenue === 'Oui').length;
+  const scheduled = rows.filter(r => r.Debut != null && r.Debut !== '').length;
+  const scopeTitle = getScopeLabel(selectedScope);
+  const byScope = ['CORIFER','VA','PROPULSE','OTHER'].map(key => ({key, rows:rows.filter(r => getDemarcheKey(r) === key)})).filter(x => x.rows.length);
+  const maxCount = Math.max(1, ...byScope.map(x => x.rows.length));
+  const bars = byScope.map(x => {
+    const c = DEMARCHES[x.key] || DEMARCHES.OTHER;
+    return `<div class="dash-bar-row"><span class="dash-bar-label" title="${esc(c.label)}">${esc(c.label)}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${Math.round(x.rows.length/maxCount*100)}%;background:${c.color}"></div></div><span class="dash-bar-count">${x.rows.length}</span></div>`;
+  }).join('') || '<div class="dash-empty">Aucun projet dans cette sélection.</div>';
+  const projects = [...rows].sort((a,b) => String(a.Projet).localeCompare(String(b.Projet),'fr',{sensitivity:'base',numeric:true}));
+  const projectList = projects.slice(0,12).map(r => {
+    const key = getDemarcheKey(r), c = DEMARCHES[key] || DEMARCHES.OTHER;
+    const done = r.Tenue === true || r.Tenue === 1 || r.Tenue === 'Oui';
+    const date = r.Debut ? fmtDate(r.Debut) : 'Date non renseignée';
+    return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur || 'Opérateur non renseigné')} · ${esc(date)}</span></span><span class="dash-project-status ${done?'ok':''}">${done?'Tenue':'À suivre'}</span></button>`;
+  }).join('') || '<div class="dash-empty">Aucun projet à afficher pour cette démarche.</div>';
+  root.innerHTML = `
+    <div class="dash-heading"><div><div class="dash-eyebrow">Retour d’expérience · Tableau de bord</div><div class="dash-title">${esc(scopeTitle)}</div><div class="dash-subtitle">Vue de synthèse des projets et des auditions recensés dans Grist.</div></div><div class="dash-action">${rows.length} projet${rows.length>1?'s':''} recensé${rows.length>1?'s':''}</div></div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-card-label">Projets recensés</div><div class="dash-card-value">${rows.length}</div><div class="dash-card-note">Dans le périmètre sélectionné</div></div>
+      <div class="dash-card"><div class="dash-card-label">Auditions tenues</div><div class="dash-card-value">${held}</div><div class="dash-card-note">${rows.length ? Math.round(held/rows.length*100) : 0} % des projets</div></div>
+      <div class="dash-card"><div class="dash-card-label">Montant total des projets</div><div class="dash-card-value">${esc(euroShort(totalProject))}</div><div class="dash-card-note">Somme des montants renseignés</div></div>
+      <div class="dash-card"><div class="dash-card-label">Aides recensées</div><div class="dash-card-value">${esc(euroShort(totalAid))}</div><div class="dash-card-note">Somme des aides renseignées</div></div>
+    </div>
+    <div class="dash-columns">
+      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Répartition des projets</span></div><div class="dash-panel-body">${selectedScope==='ALL' ? bars : `<div class="dash-bar-row"><span class="dash-bar-label">${esc(scopeTitle)}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:100%;background:${(DEMARCHES[selectedScope]||DEMARCHES.OTHER).color}"></div></div><span class="dash-bar-count">${rows.length}</span></div>`}<div style="margin-top:14px;padding-top:12px;border-top:1px solid #edf0f5;color:var(--text-muted);font-size:10.5px;">${scheduled} projet${scheduled>1?'s':''} avec une date d’audition renseignée.</div></div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Projets</span><span class="dash-action">${projects.length>12?'12 premiers':'Tous les projets'}</span></div><div class="dash-list">${projectList}</div></section>
+    </div>
+    ${projects.length>12?`<div class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Autres projets</span></div><div class="dash-list">${projects.slice(12).map(r=>`<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-main"><span class="dash-project-name">${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur||'Opérateur non renseigné')}</span></span><span class="dash-action">Ouvrir la fiche →</span></button>`).join('')}</div></div>`:''}`;
+}
 
 /* ═══════════════════════════════════════════════════════
    PICKER DES PROJETS
@@ -944,13 +1095,10 @@ document.addEventListener('click', e => {
 function selectRow(rowId) {
   const rec = allRecords.find(r => r.__id === rowId && isInSelectedScope(r));
   if (!rec) return;
-  currentRowId = rowId;
   document.getElementById('picker').classList.remove('open');
   document.getElementById('pickerBtn').classList.remove('open');
-  highlightPicker(rowId);
   document.getElementById('pickerLabel').textContent = rec.Projet || '—';
-  fillFiche(rec);
-  grist.setCursorPos({ rowId }).catch(() => {});
+  showFiche(rowId);
 }
 
 function highlightPicker(rowId) {
