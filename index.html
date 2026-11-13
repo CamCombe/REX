@@ -805,10 +805,10 @@ function fillFiche(r) {
   sv('f_chef', r.ChefDeFile);
 
   // Choice lists
-  buildCL('cl_consortium', r.__raw, 'Consortium');
-  buildCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
-  buildCL('cl_etat',       r.__raw, 'ParticipationEtat');
-  buildCL('cl_horsspin',   r.__raw, 'HorsSPIN');
+  buildCL('cl_consortium', r, 'Consortium');
+  buildCL('cl_spin',       r, 'ParticipantsSPIN');
+  buildCL('cl_etat',       r, 'ParticipationEtat');
+  buildCL('cl_horsspin',   r, 'HorsSPIN');
 
   // Montants
   setMontant('f_mProjet', r.MontantProjet);
@@ -888,13 +888,12 @@ function encodeChoiceList(arr) {
   return ['L', ...arr];
 }
 
-function buildCL(containerId, rawRecord, widgetColName) {
+function buildCL(containerId, mappedRecord, widgetColName) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const realCol  = currentMaps ? currentMaps[widgetColName] : null;
-  const rawVal   = realCol && rawRecord ? rawRecord[realCol] : null;
-  const selected = decodeChoiceList(rawVal);
+  // mapColumnNames() fournit déjà les valeurs sous les noms de colonnes du widget.
+  const selected = decodeChoiceList(mappedRecord?.[widgetColName]);
 
   container.innerHTML = '';
   container.dataset.widgetCol = widgetColName;
@@ -992,8 +991,7 @@ function refreshDrop(containerId, widgetColName, inp, drop) {
 function extractChoicesFromRecords(widgetColName) {
   const all = new Set();
   allRecords.forEach(r => {
-    const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetColName]] : null;
-    decodeChoiceList(rawVal).forEach(v => all.add(v));
+    decodeChoiceList(r?.[widgetColName]).forEach(v => all.add(v));
   });
   return [...all].sort();
 }
@@ -1094,10 +1092,8 @@ function exportDocx() {
   const fmt = v => (v != null && v !== '') ? fmtNum(parseFloat(v)) + ' €' : '—';
   const t   = v => esc(v ? String(v) : '—');
   const pre = v => v ? `<div style="white-space:pre-wrap;">${esc(String(v))}</div>` : '<em>—</em>';
-  const cl  = widgetCol => {
-    const realCol = currentMaps?.[widgetCol];
-    const rawVal  = realCol && r.__raw ? r.__raw[realCol] : null;
-    const vals    = decodeChoiceList(rawVal);
+  const cl = widgetCol => {
+    const vals = decodeChoiceList(r?.[widgetCol]);
     return vals.length ? esc(vals.join(', ')) : '—';
   };
 
