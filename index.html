@@ -209,6 +209,7 @@
     }
     .banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .banner-name { font-size: 21px; font-weight: 700; letter-spacing: -.2px; line-height: 1.25; }
+    .banner-last-update { margin-top: 5px; font-size: 10.5px; font-weight: 400; opacity: .72; letter-spacing: .1px; }
     .banner-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
     .banner-op-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .55; font-weight: 500; }
     .banner-op-pill {
@@ -357,7 +358,7 @@
     .dash-eyebrow { color:var(--text-muted); font-size:10px; font-weight:700; letter-spacing:.9px; text-transform:uppercase; }
     .dash-title { color:var(--bleu); font-size:25px; line-height:1.25; font-weight:700; margin-top:3px; }
     .dash-subtitle { color:var(--text-sec); font-size:12.5px; margin-top:5px; }
-    .dash-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .dash-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
     .dash-card { background:white; border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; box-shadow:var(--shadow-sm); min-width:0; }
     .dash-card-label { color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:.65px; font-weight:700; }
     .dash-card-value { color:var(--bleu); font-size:25px; font-weight:700; line-height:1.25; margin-top:7px; }
@@ -513,7 +514,10 @@
       <!-- BANNIÈRE -->
       <div class="banner">
         <div class="banner-top">
-          <div class="banner-name" id="bName">—</div>
+          <div>
+            <div class="banner-name" id="bName">—</div>
+            <div class="banner-last-update" id="bLastUpdate" style="display:none;"></div>
+          </div>
           <div class="banner-right">
             <span class="banner-op-hint">Opérateur</span>
             <span class="banner-op-pill" id="bOp">—</span>
@@ -735,6 +739,7 @@ grist.ready({
   columns: [
     { name: 'Projet',           title: 'Titre du projet',               type: 'Text',       optional: false },
     { name: 'DemarcheEvaluation',title: 'Démarche d\'évaluation',          optional: true  },
+    { name: 'DerniereModification', title: 'Dernière modification', type: 'DateTime', optional: true },
     { name: 'Operateur',        title: 'Opérateur',                     type: 'Text',       optional: true  },
     { name: 'ChefDeFile',       title: 'Chef de file',                  type: 'Text',       optional: true  },
     { name: 'Consortium',       title: 'Membres du consortium',         type: 'ChoiceList', optional: true  },
@@ -802,7 +807,8 @@ function updatePageVisibility() {
   dashboard.style.display = currentPage === 'dashboard' ? 'flex' : 'none';
   fiche.style.display = currentPage === 'fiche' && currentRowId !== null ? 'flex' : 'none';
   empty.style.display = currentPage === 'fiche' && currentRowId === null ? 'flex' : 'none';
-  if (picker) picker.style.display = currentPage === 'dashboard' ? 'none' : '';
+  // Le sélecteur reste accessible depuis la synthèse comme depuis une fiche.
+  if (picker) picker.style.display = '';
   if (btn) btn.classList.toggle('active', currentPage === 'dashboard');
 }
 function showDashboard() {
@@ -1004,7 +1010,8 @@ function renderDashboard() {
   const root = document.getElementById('dashboard');
   if (!root) return;
   const rows = dashboardRecords();
-  const totalProject = rows.reduce((a,r) => a + numericValue(r.MontantProjet), 0);
+  // Le total des aides repose exclusivement sur le champ « MontantAide ».
+  // Ne pas y ajouter Subventions ou AR : ils sont déjà compris dans ce total.
   const totalAid = rows.reduce((a,r) => a + numericValue(r.MontantAide), 0);
   const held = rows.filter(r => r.Tenue === true || r.Tenue === 1 || r.Tenue === 'Oui').length;
   const scheduled = rows.filter(r => r.Debut != null && r.Debut !== '').length;
@@ -1015,26 +1022,29 @@ function renderDashboard() {
     const c = DEMARCHES[x.key] || DEMARCHES.OTHER;
     return `<div class="dash-bar-row"><span class="dash-bar-label" title="${esc(c.label)}">${esc(c.label)}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:${Math.round(x.rows.length/maxCount*100)}%;background:${c.color}"></div></div><span class="dash-bar-count">${x.rows.length}</span></div>`;
   }).join('') || '<div class="dash-empty">Aucun projet dans cette sélection.</div>';
-  const projects = [...rows].sort((a,b) => String(a.Projet).localeCompare(String(b.Projet),'fr',{sensitivity:'base',numeric:true}));
-  const projectList = projects.slice(0,12).map(r => {
+  // Classement décroissant selon le total d'aide ; les montants absents sont placés en fin de liste.
+  const projects = [...rows].sort((a,b) => {
+    const delta = numericValue(b.MontantAide) - numericValue(a.MontantAide);
+    return delta || String(a.Projet).localeCompare(String(b.Projet),'fr',{sensitivity:'base',numeric:true});
+  });
+  const projectList = projects.map((r, index) => {
     const key = getDemarcheKey(r), c = DEMARCHES[key] || DEMARCHES.OTHER;
     const done = r.Tenue === true || r.Tenue === 1 || r.Tenue === 'Oui';
     const date = r.Debut ? fmtDate(r.Debut) : 'Date non renseignée';
-    return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur || 'Opérateur non renseigné')} · ${esc(date)}</span></span><span class="dash-project-status ${done?'ok':''}">${done?'Tenue':'À suivre'}</span></button>`;
+    return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${index+1}. ${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur || 'Opérateur non renseigné')} · ${esc(date)}</span></span><span class="dash-project-status">${esc(euroShort(numericValue(r.MontantAide)))}</span></button>`;
   }).join('') || '<div class="dash-empty">Aucun projet à afficher pour cette démarche.</div>';
   root.innerHTML = `
     <div class="dash-heading"><div><div class="dash-eyebrow">Retour d’expérience · Tableau de bord</div><div class="dash-title">${esc(scopeTitle)}</div><div class="dash-subtitle">Vue de synthèse des projets et des auditions recensés dans Grist.</div></div><div class="dash-action">${rows.length} projet${rows.length>1?'s':''} recensé${rows.length>1?'s':''}</div></div>
     <div class="dash-grid">
       <div class="dash-card"><div class="dash-card-label">Projets recensés</div><div class="dash-card-value">${rows.length}</div><div class="dash-card-note">Dans le périmètre sélectionné</div></div>
       <div class="dash-card"><div class="dash-card-label">Auditions tenues</div><div class="dash-card-value">${held}</div><div class="dash-card-note">${rows.length ? Math.round(held/rows.length*100) : 0} % des projets</div></div>
-      <div class="dash-card"><div class="dash-card-label">Montant total des projets</div><div class="dash-card-value">${esc(euroShort(totalProject))}</div><div class="dash-card-note">Somme des montants renseignés</div></div>
       <div class="dash-card"><div class="dash-card-label">Aides recensées</div><div class="dash-card-value">${esc(euroShort(totalAid))}</div><div class="dash-card-note">Somme des aides renseignées</div></div>
     </div>
     <div class="dash-columns">
       <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Répartition des projets</span></div><div class="dash-panel-body">${selectedScope==='ALL' ? bars : `<div class="dash-bar-row"><span class="dash-bar-label">${esc(scopeTitle)}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:100%;background:${(DEMARCHES[selectedScope]||DEMARCHES.OTHER).color}"></div></div><span class="dash-bar-count">${rows.length}</span></div>`}<div style="margin-top:14px;padding-top:12px;border-top:1px solid #edf0f5;color:var(--text-muted);font-size:10.5px;">${scheduled} projet${scheduled>1?'s':''} avec une date d’audition renseignée.</div></div></section>
-      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Projets</span><span class="dash-action">${projects.length>12?'12 premiers':'Tous les projets'}</span></div><div class="dash-list">${projectList}</div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Classement des projets par total d’aide</span><span class="dash-action">Du montant le plus élevé au plus faible</span></div><div class="dash-list">${projectList}</div></section>
     </div>
-    ${projects.length>12?`<div class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Autres projets</span></div><div class="dash-list">${projects.slice(12).map(r=>`<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-main"><span class="dash-project-name">${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur||'Opérateur non renseigné')}</span></span><span class="dash-action">Ouvrir la fiche →</span></button>`).join('')}</div></div>`:''}`;
+`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1119,6 +1129,16 @@ function fillFiche(r) {
   // Bannière
   document.getElementById('bName').textContent = r.Projet    || '—';
   document.getElementById('bOp').textContent   = r.Operateur || '—';
+  const lastUpdateEl = document.getElementById('bLastUpdate');
+  const lastUpdate = r.DerniereModification;
+  if (lastUpdate !== null && lastUpdate !== undefined && lastUpdate !== '') {
+    const lastUpdateDate = lastUpdate instanceof Date ? lastUpdate : new Date(Number(lastUpdate) * 1000);
+    if (!Number.isNaN(lastUpdateDate.getTime())) {
+      const formatted = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(lastUpdateDate);
+      lastUpdateEl.textContent = `Dernière modification : ${formatted}`;
+      lastUpdateEl.style.display = '';
+    } else { lastUpdateEl.style.display = 'none'; }
+  } else { lastUpdateEl.style.display = 'none'; }
 
   document.getElementById('bDate').innerHTML =
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
