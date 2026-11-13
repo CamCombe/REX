@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fiches CORIFER</title>
+  <title>Fiches REX</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
@@ -64,7 +64,35 @@
       display: flex; align-items: center; justify-content: center;
     }
     .brand-mark svg { width: 15px; height: 15px; fill: white; }
-    .brand-name { font-size: 13.5px; font-weight: 700; color: var(--bleu); }
+    .scope-switcher { position: relative; }
+    .scope-trigger {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 0; background: transparent; padding: 5px 7px;
+      border-radius: var(--r-sm); cursor: pointer; color: var(--bleu);
+      font: inherit; transition: background var(--ease);
+    }
+    .scope-trigger:hover, .scope-trigger.open { background: var(--bleu-light); }
+    .brand-name { font-size: 13.5px; font-weight: 700; }
+    .scope-trigger svg { width: 15px; height: 15px; opacity: .7; transition: transform var(--ease); }
+    .scope-trigger.open svg { transform: rotate(180deg); }
+    .scope-menu {
+      display: none; position: absolute; top: calc(100% + 8px); left: 0;
+      min-width: 230px; padding: 6px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r);
+      box-shadow: var(--shadow-lg); z-index: 1000;
+    }
+    .scope-switcher.open .scope-menu { display: block; }
+    .scope-menu-label { padding: 7px 10px 6px; color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; }
+    .scope-option {
+      width: 100%; display: flex; align-items: center; gap: 9px;
+      padding: 9px 10px; border: 0; border-radius: 6px; background: transparent;
+      color: var(--text); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer;
+    }
+    .scope-option:hover { background: var(--surface-alt); }
+    .scope-option.active { background: var(--bleu-light); font-weight: 700; }
+    .scope-option-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--border); }
+    .scope-option-check { margin-left: auto; color: var(--bleu-mid); opacity: 0; }
+    .scope-option.active .scope-option-check { opacity: 1; }
     .sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
     .gap { flex: 1; }
 
@@ -131,6 +159,7 @@
     .picker-item.active .picker-item-dot { background: var(--bleu-mid); }
     .picker-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .picker-item-op { font-size: 11px; color: var(--text-muted); }
+    .picker-item-topic { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
 
     /* SAVE */
     .save-ind {
@@ -169,7 +198,7 @@
 
     /* BANNIÈRE */
     .banner {
-      background: linear-gradient(130deg, var(--bleu) 0%, #1f4e8a 100%);
+      background: linear-gradient(130deg, var(--dmarche-color, var(--bleu)) 0%, var(--dmarche-dark, #1f4e8a) 100%);
       border-radius: var(--r-lg); padding: 22px 26px 20px;
       color: white; box-shadow: var(--shadow);
       position: relative; overflow: hidden;
@@ -328,7 +357,7 @@
       .topbar, .no-print { display: none !important; }
       .main { overflow: visible; padding: 0; }
       .fiche { max-width: 100%; gap: 12pt; }
-      .banner { background: var(--bleu) !important; border-radius: 7pt; padding: 14pt 18pt; }
+      .banner { background: linear-gradient(130deg, var(--dmarche-color, var(--bleu)) 0%, var(--dmarche-dark, #1f4e8a) 100%) !important; border-radius: 7pt; padding: 14pt 18pt; }
       .section {
   break-inside: auto;
   overflow: visible !important;
@@ -374,7 +403,20 @@
       <div class="brand-mark">
         <svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-2 4H6V8h12v2zm2 4H4v-2h16v2zm-2 4H6v-2h12v2z"/></svg>
       </div>
-      <span class="brand-name">CORIFER</span>
+      <div class="scope-switcher no-print" id="scopeSwitcher">
+        <button class="scope-trigger" id="scopeTrigger" type="button" onclick="toggleScopeMenu()" aria-haspopup="true" aria-expanded="false">
+          <span class="brand-name" id="scopeCurrentLabel">CORIFER</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="scope-menu" id="scopeMenu">
+          <div class="scope-menu-label">Choisir une démarche</div>
+          <button class="scope-option" type="button" data-scope="CORIFER" onclick="setScope('CORIFER')"><span class="scope-option-dot"></span><span>CORIFER</span><span class="scope-option-check">✓</span></button>
+          <button class="scope-option" type="button" data-scope="VA" onclick="setScope('VA')"><span class="scope-option-dot"></span><span>Véhicule automatisé (VA)</span><span class="scope-option-check">✓</span></button>
+          <button class="scope-option" type="button" data-scope="PROPULSE" onclick="setScope('PROPULSE')"><span class="scope-option-dot"></span><span>PROPULSE</span><span class="scope-option-check">✓</span></button>
+          <div style="height:1px;background:var(--border);margin:5px 4px;"></div>
+          <button class="scope-option" type="button" data-scope="ALL" onclick="setScope('ALL')"><span class="scope-option-dot" style="background:#778196"></span><span>Toutes les démarches</span><span class="scope-option-check">✓</span></button>
+        </div>
+      </div>
     </div>
     <div class="sep"></div>
     <div class="picker no-print" id="picker">
@@ -652,6 +694,7 @@ grist.ready({
   requiredAccess: 'full',
   columns: [
     { name: 'Projet',           title: 'Titre du projet',               type: 'Text',       optional: false },
+    { name: 'DemarcheEvaluation',title: 'Démarche d\'évaluation',          optional: true  },
     { name: 'Operateur',        title: 'Opérateur',                     type: 'Text',       optional: true  },
     { name: 'ChefDeFile',       title: 'Chef de file',                  type: 'Text',       optional: true  },
     { name: 'Consortium',       title: 'Membres du consortium',         type: 'ChoiceList', optional: true  },
@@ -678,7 +721,7 @@ grist.ready({
 });
 
 /* ═══════════════════════════════════════════════════════
-   ÉTAT
+   ÉTAT ET DÉMARCHES
 ═══════════════════════════════════════════════════════ */
 let allRecords   = [];
 let currentRowId = null;
@@ -686,6 +729,121 @@ let currentMaps  = null;
 let pending      = {};
 let saveTimer    = null;
 let isSaving     = false;
+
+const DEMARCHES = {
+  CORIFER:  { label: 'CORIFER', color: '#1b3f6b', dark: '#2563a8', light: '#edf3fb' },
+  VA:       { label: 'Véhicule automatisé (VA)', color: '#237a57', dark: '#31966d', light: '#eaf6f0' },
+  PROPULSE: { label: 'PROPULSE', color: '#7051a3', dark: '#8b6bc0', light: '#f2edfa' },
+  OTHER:    { label: 'Autre démarche', color: '#687386', dark: '#8490a3', light: '#f0f2f5' }
+};
+const SCOPE_STORAGE_KEY = 'rex-demarche-selection-v1:' + (location.pathname || 'default');
+let selectedScope = loadScope();
+
+function loadScope() {
+  try {
+    const saved = localStorage.getItem(SCOPE_STORAGE_KEY);
+    return ['CORIFER', 'VA', 'PROPULSE', 'ALL'].includes(saved) ? saved : 'CORIFER';
+  } catch (e) { return 'CORIFER'; }
+}
+
+function normalizeText(value) {
+  const raw = Array.isArray(value)
+    ? (value[0] === 'L' ? value.slice(1) : value).join(' ')
+    : (value == null ? '' : String(value));
+  return raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function getDemarcheKey(record) {
+  const value = normalizeText(record?.DemarcheEvaluation);
+  // Les anciennes lignes sans valeur restent rattachées au REX CORIFER.
+  if (!value || value.includes('corifer')) return 'CORIFER';
+  if (value.includes('propulse')) return 'PROPULSE';
+  if (/(^|[^a-z])va([^a-z]|$)/.test(value) || value.includes('vehicule automatise')) return 'VA';
+  return 'OTHER';
+}
+
+function isInSelectedScope(record) {
+  return selectedScope === 'ALL' || getDemarcheKey(record) === selectedScope;
+}
+
+function getScopeLabel(scope) {
+  return scope === 'ALL' ? 'Toutes les démarches' : (DEMARCHES[scope]?.label || 'CORIFER');
+}
+
+function applyBannerColor(record) {
+  const key = getDemarcheKey(record);
+  const colors = DEMARCHES[key] || DEMARCHES.OTHER;
+  const banner = document.querySelector('.banner');
+  if (banner) {
+    banner.style.setProperty('--dmarche-color', colors.color);
+    banner.style.setProperty('--dmarche-dark', colors.dark);
+  }
+}
+
+function updateScopeMenu() {
+  const label = document.getElementById('scopeCurrentLabel');
+  if (label) label.textContent = getScopeLabel(selectedScope);
+  document.querySelectorAll('.scope-option').forEach(btn => {
+    const active = btn.dataset.scope === selectedScope;
+    btn.classList.toggle('active', active);
+    const dot = btn.querySelector('.scope-option-dot');
+    if (dot) dot.style.background = btn.dataset.scope === 'ALL' ? '#778196' : (DEMARCHES[btn.dataset.scope]?.color || '#778196');
+  });
+  const mark = document.querySelector('.brand-mark');
+  if (mark) mark.style.background = selectedScope === 'ALL' ? '#687386' : (DEMARCHES[selectedScope]?.color || DEMARCHES.CORIFER.color);
+}
+
+function toggleScopeMenu() {
+  const wrap = document.getElementById('scopeSwitcher');
+  const trigger = document.getElementById('scopeTrigger');
+  const open = wrap.classList.toggle('open');
+  trigger.classList.toggle('open', open);
+  trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+async function setScope(scope) {
+  if (!['CORIFER', 'VA', 'PROPULSE', 'ALL'].includes(scope) || scope === selectedScope) {
+    closeScopeMenu();
+    return;
+  }
+  if (Object.keys(pending).length && currentRowId !== null) await flush();
+  selectedScope = scope;
+  try { localStorage.setItem(SCOPE_STORAGE_KEY, selectedScope); } catch (e) {}
+  updateScopeMenu();
+  closeScopeMenu();
+
+  const current = allRecords.find(r => r.__id === currentRowId);
+  if (current && isInSelectedScope(current)) {
+    buildPicker();
+    highlightPicker(currentRowId);
+    fillFiche(current);
+  } else {
+    currentRowId = null;
+    buildPicker();
+    clearFiche();
+  }
+}
+
+function closeScopeMenu() {
+  const wrap = document.getElementById('scopeSwitcher');
+  const trigger = document.getElementById('scopeTrigger');
+  if (wrap) wrap.classList.remove('open');
+  if (trigger) {
+    trigger.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function clearFiche() {
+  document.getElementById('fiche').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('emptyState').querySelector('p').textContent =
+    selectedScope === 'ALL' ? 'Sélectionnez un projet pour afficher sa fiche' : 'Aucun projet sélectionné dans cette démarche';
+  document.getElementById('pickerLabel').textContent = 'Sélectionner un projet…';
+  document.querySelectorAll('.picker-item').forEach(el => el.classList.remove('active'));
+}
+
+updateScopeMenu();
 
 /* ═══════════════════════════════════════════════════════
    GRIST EVENTS
@@ -698,12 +856,16 @@ grist.onRecords(function(records, mappings) {
     m.__raw = r;
     return m;
   });
-  document.getElementById('pickerCount').textContent =
-    allRecords.filter(r => r && r.Projet).length;
   buildPicker();
   if (currentRowId !== null) {
     const rec = allRecords.find(r => r.__id === currentRowId);
-    if (rec) fillFiche(rec);
+    if (rec && isInSelectedScope(rec)) {
+      fillFiche(rec);
+      highlightPicker(currentRowId);
+    } else {
+      currentRowId = null;
+      clearFiche();
+    }
   }
 });
 
@@ -714,24 +876,38 @@ grist.onRecord(function(record, mappings) {
   if (!mapped) return;
   mapped.__id  = record.id;
   mapped.__raw = record;
+  if (!isInSelectedScope(mapped)) {
+    currentRowId = null;
+    clearFiche();
+    return;
+  }
   currentRowId = record.id;
   highlightPicker(record.id);
   fillFiche(mapped);
 });
 
 /* ═══════════════════════════════════════════════════════
-   PICKER
+   PICKER DES PROJETS
 ═══════════════════════════════════════════════════════ */
 function buildPicker() {
-  const list  = document.getElementById('pickerList');
-  const items = allRecords.filter(r => r && r.Projet);
-  list.innerHTML = items.map(r => `
+  const list = document.getElementById('pickerList');
+  const items = allRecords.filter(r => r && r.Projet && isInSelectedScope(r));
+  document.getElementById('pickerCount').textContent = items.length;
+  list.innerHTML = items.map(r => {
+    const key = getDemarcheKey(r);
+    const colors = DEMARCHES[key] || DEMARCHES.OTHER;
+    const topic = selectedScope === 'ALL'
+      ? `<span class="picker-item-topic" style="background:${colors.light};color:${colors.color}">${esc(DEMARCHES[key]?.label || 'Autre')}</span>`
+      : '';
+    return `
     <div class="picker-item ${r.__id === currentRowId ? 'active' : ''}"
          data-id="${r.__id}" onclick="selectRow(${r.__id})">
-      <div class="picker-item-dot"></div>
+      <div class="picker-item-dot" style="background:${colors.color}"></div>
       <span class="picker-item-name">${esc(r.Projet)}</span>
+      ${topic}
       <span class="picker-item-op">${esc(r.Operateur || '')}</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function filterPicker(q) {
@@ -756,19 +932,19 @@ document.addEventListener('click', e => {
     p.classList.remove('open');
     document.getElementById('pickerBtn').classList.remove('open');
   }
+  if (!document.getElementById('scopeSwitcher').contains(e.target)) closeScopeMenu();
 });
 
 function selectRow(rowId) {
+  const rec = allRecords.find(r => r.__id === rowId && isInSelectedScope(r));
+  if (!rec) return;
   currentRowId = rowId;
   document.getElementById('picker').classList.remove('open');
   document.getElementById('pickerBtn').classList.remove('open');
   highlightPicker(rowId);
-  const rec = allRecords.find(r => r.__id === rowId);
-  if (rec) {
-    document.getElementById('pickerLabel').textContent = rec.Projet || '—';
-    fillFiche(rec);
-    grist.setCursorPos({ rowId }).catch(() => {});
-  }
+  document.getElementById('pickerLabel').textContent = rec.Projet || '—';
+  fillFiche(rec);
+  grist.setCursorPos({ rowId }).catch(() => {});
 }
 
 function highlightPicker(rowId) {
@@ -784,6 +960,7 @@ function highlightPicker(rowId) {
 function fillFiche(r) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('fiche').style.display      = 'flex';
+  applyBannerColor(r);
 
   // Bannière
   document.getElementById('bName').textContent = r.Projet    || '—';
@@ -1209,7 +1386,7 @@ function exportDocx() {
   .amt-v{font-size:16pt;font-weight:bold;color:#1b3f6b;}
 </style></head><body>
 <h1>${t(r.Projet)}</h1>
-<p class="meta">${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · ${r.Tenue ? '✓ Audition tenue' : '✗ Audition non tenue'}</p>
+<p class="meta">${t(r.DemarcheEvaluation || 'Démarche non renseignée')} · ${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · ${r.Tenue ? '✓ Audition tenue' : '✗ Audition non tenue'}</p>
 <hr style="border:none;border-top:1.5pt solid #1b3f6b;margin-bottom:14pt;"/>
 <h2>Informations générales</h2>
 <p class="lbl">Chef de file</p><p class="val">${t(r.ChefDeFile)}</p>
