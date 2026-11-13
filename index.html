@@ -1,748 +1,485 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Widget Fiches CORIFER</title>
+  <title>Fiches CORIFER</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    /* ===================== RESET & BASE ===================== */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    /* ===================== VARIABLES ===================== */
     :root {
-      --bg: #f0f2f7;
-      --surface: #ffffff;
-      --surface-alt: #f8f9fc;
-      --border: #e2e6ef;
-      --accent: #2d5be3;
-      --accent-light: #eef1fd;
-      --accent-dark: #1a3fb0;
-      --text-primary: #1a1d2e;
-      --text-secondary: #5a6282;
-      --text-muted: #9199b5;
-      --success: #22c55e;
-      --success-light: #f0fdf4;
-      --warning: #f59e0b;
-      --warning-light: #fffbeb;
-      --danger: #ef4444;
-      --danger-light: #fef2f2;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
-      --shadow: 0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
-      --shadow-lg: 0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
-      --radius: 10px;
-      --radius-sm: 6px;
-      --radius-lg: 16px;
-      --transition: .18s cubic-bezier(.4,0,.2,1);
+      --bleu:        #1a3a5c;
+      --bleu-clair:  #2563a8;
+      --bleu-pale:   #e8f0f8;
+      --gris-bg:     #f4f6f9;
+      --gris-bord:   #d1d9e0;
+      --gris-texte:  #5a6a7a;
+      --blanc:       #ffffff;
+      --rouge-doux:  #c0392b;
+      --vert-doux:   #1e7e4a;
+      --texte:       #1c2b3a;
+      --radius:      8px;
+      --radius-lg:   12px;
+      --shadow:      0 1px 4px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.05);
+      --shadow-lg:   0 4px 24px rgba(0,0,0,0.10);
+      --transition:  0.17s ease;
     }
 
-    html, body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text-primary);
-      font-size: 14px;
-      line-height: 1.6;
-      height: 100%;
-    }
+    /* ===================== RESET ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--gris-bg); color: var(--texte); font-size: 14px; line-height: 1.6; }
 
     /* ===================== LAYOUT ===================== */
-    .app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+    .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* ===================== HEADER ===================== */
-    .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 12px 20px;
+    /* ===================== TOPBAR ===================== */
+    .topbar {
+      background: var(--blanc);
+      border-bottom: 1.5px solid var(--gris-bord);
+      padding: 10px 20px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       flex-shrink: 0;
-      box-shadow: var(--shadow-sm);
-      z-index: 10;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      z-index: 100;
     }
-
-    .header-logo {
-      width: 32px; height: 32px;
-      background: var(--accent);
-      border-radius: var(--radius-sm);
+    .topbar-logo {
+      display: flex; align-items: center; gap: 9px;
+      text-decoration: none;
+    }
+    .topbar-logo-mark {
+      width: 30px; height: 30px;
+      background: var(--bleu);
+      border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .header-logo svg { width: 18px; height: 18px; fill: white; }
-
-    .header-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-      flex-shrink: 0;
-    }
-
-    .header-subtitle {
-      font-size: 12px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-
-    .header-sep { flex: 1; }
+    .topbar-logo-mark svg { width: 17px; height: 17px; fill: white; }
+    .topbar-logo-text { font-size: 14px; font-weight: 700; color: var(--bleu); letter-spacing: .3px; }
+    .topbar-sep { width: 1px; height: 24px; background: var(--gris-bord); flex-shrink: 0; }
+    .topbar-spacer { flex: 1; }
 
     /* ===================== SELECTOR ===================== */
-    .selector-wrapper {
-      position: relative;
-      flex: 1;
-      max-width: 340px;
-    }
-
+    .selector-wrap { position: relative; min-width: 260px; max-width: 360px; flex: 1; }
     .selector-btn {
       width: 100%;
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
+      background: var(--gris-bg);
+      border: 1.5px solid var(--gris-bord);
       border-radius: var(--radius);
-      padding: 8px 36px 8px 12px;
-      font-family: inherit;
-      font-size: 13.5px;
-      font-weight: 500;
-      color: var(--text-primary);
-      cursor: pointer;
-      text-align: left;
+      padding: 7px 34px 7px 12px;
+      font-family: inherit; font-size: 13.5px; font-weight: 500;
+      color: var(--texte); cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 8px;
       transition: border-color var(--transition), box-shadow var(--transition);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      white-space: nowrap; overflow: hidden;
     }
-    .selector-btn:hover { border-color: var(--accent); }
-    .selector-btn.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,91,227,.12); }
-
-    .selector-btn-text { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .selector-btn:hover { border-color: var(--bleu-clair); }
+    .selector-btn.open { border-color: var(--bleu-clair); box-shadow: 0 0 0 3px rgba(37,99,168,.13); }
+    .selector-btn-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
     .selector-btn-count {
-      background: var(--accent);
-      color: white;
-      font-size: 10px;
-      font-weight: 600;
-      border-radius: 20px;
-      padding: 1px 7px;
+      background: var(--bleu); color: white;
+      font-size: 10px; font-weight: 700;
+      border-radius: 20px; padding: 1px 7px;
       flex-shrink: 0;
     }
     .selector-chevron {
-      position: absolute;
-      right: 10px; top: 50%;
-      transform: translateY(-50%) rotate(0deg);
+      position: absolute; right: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--gris-texte); pointer-events: none;
       transition: transform var(--transition);
-      color: var(--text-muted);
-      pointer-events: none;
     }
-    .selector-btn.open ~ .selector-chevron,
-    .selector-wrapper.open .selector-chevron { transform: translateY(-50%) rotate(180deg); }
-
+    .selector-btn.open ~ .selector-chevron { transform: translateY(-50%) rotate(180deg); }
     .selector-dropdown {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0; right: 0;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
+      display: none; flex-direction: column;
+      position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+      background: var(--blanc);
+      border: 1.5px solid var(--gris-bord);
+      border-radius: var(--radius-lg);
       box-shadow: var(--shadow-lg);
       z-index: 999;
+      max-height: 340px;
       overflow: hidden;
-      display: none;
-      flex-direction: column;
-      max-height: 320px;
     }
-    .selector-wrapper.open .selector-dropdown { display: flex; }
-
-    .selector-search {
-      padding: 10px 12px 8px;
-      border-bottom: 1px solid var(--border);
+    .selector-wrap.open .selector-dropdown { display: flex; }
+    .selector-search-box {
+      padding: 10px 10px 8px;
+      border-bottom: 1px solid var(--gris-bord);
       flex-shrink: 0;
     }
-    .selector-search input {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 6px 10px;
-      font-family: inherit;
-      font-size: 13px;
-      color: var(--text-primary);
-      background: var(--surface-alt);
-      outline: none;
-      transition: border-color var(--transition);
+    .selector-search-box input {
+      width: 100%; border: 1.5px solid var(--gris-bord);
+      border-radius: var(--radius); padding: 6px 10px;
+      font-family: inherit; font-size: 13px;
+      color: var(--texte); background: var(--gris-bg);
+      outline: none; transition: border-color var(--transition);
     }
-    .selector-search input:focus { border-color: var(--accent); }
-
-    .selector-list {
-      overflow-y: auto;
-      flex: 1;
-    }
+    .selector-search-box input:focus { border-color: var(--bleu-clair); }
+    .selector-list { overflow-y: auto; flex: 1; }
     .selector-item {
-      padding: 9px 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      padding: 9px 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 9px;
+      border-bottom: 1px solid var(--gris-bord);
       transition: background var(--transition);
-      border-bottom: 1px solid var(--border);
     }
     .selector-item:last-child { border-bottom: none; }
-    .selector-item:hover { background: var(--accent-light); }
-    .selector-item.active {
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 600;
-    }
-    .selector-item-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0;
-      opacity: .3;
-    }
-    .selector-item.active .selector-item-dot { opacity: 1; }
-    .selector-item-label { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .selector-item-op { margin-left: auto; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+    .selector-item:hover { background: var(--bleu-pale); }
+    .selector-item.active { background: var(--bleu-pale); font-weight: 600; color: var(--bleu); }
+    .selector-item-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gris-bord); flex-shrink: 0; }
+    .selector-item.active .selector-item-dot { background: var(--bleu-clair); }
+    .selector-item-name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .selector-item-op { font-size: 11px; color: var(--gris-texte); flex-shrink: 0; }
 
-    /* ===================== ACTION BUTTONS ===================== */
+    /* ===================== SAVE ===================== */
+    .save-status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: var(--gris-texte);
+      flex-shrink: 0; min-width: 110px;
+      transition: color var(--transition);
+    }
+    .save-status.saving { color: #c47c00; }
+    .save-status.saved  { color: var(--vert-doux); }
+    .save-status.error  { color: var(--rouge-doux); }
+    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+    /* ===================== BUTTONS ===================== */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1.5px solid transparent;
-      transition: all var(--transition);
-      white-space: nowrap;
-      flex-shrink: 0;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border-radius: var(--radius);
+      font-family: inherit; font-size: 12.5px; font-weight: 500;
+      cursor: pointer; border: 1.5px solid transparent;
+      transition: all var(--transition); white-space: nowrap; flex-shrink: 0;
     }
-    .btn svg { width: 15px; height: 15px; }
+    .btn svg { width: 14px; height: 14px; }
+    .btn-outline {
+      background: transparent; border-color: var(--gris-bord); color: var(--gris-texte);
+    }
+    .btn-outline:hover { border-color: var(--bleu-clair); color: var(--bleu-clair); background: var(--bleu-pale); }
+    .btn-primary { background: var(--bleu); color: white; border-color: var(--bleu); }
+    .btn-primary:hover { background: var(--bleu-clair); border-color: var(--bleu-clair); }
 
-    .btn-ghost {
-      background: transparent;
-      border-color: var(--border);
-      color: var(--text-secondary);
-    }
-    .btn-ghost:hover {
-      background: var(--surface-alt);
-      border-color: var(--text-muted);
-      color: var(--text-primary);
-    }
+    /* ===================== MAIN SCROLL ===================== */
+    .main { flex: 1; overflow-y: auto; padding: 28px 24px; }
 
-    .btn-accent {
-      background: var(--accent);
-      color: white;
-    }
-    .btn-accent:hover { background: var(--accent-dark); }
-
-    /* ===================== SAVE INDICATOR ===================== */
-    .save-indicator {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      transition: all var(--transition);
-    }
-    .save-indicator.saving { color: var(--warning); }
-    .save-indicator.saved { color: var(--success); }
-    .save-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* ===================== MAIN CONTENT ===================== */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px 20px;
-      scroll-behavior: smooth;
-    }
-
+    /* ===================== EMPTY STATE ===================== */
     .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 12px;
-      color: var(--text-muted);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 14px; color: var(--gris-texte);
+      text-align: center;
     }
-    .empty-state svg { width: 48px; height: 48px; opacity: .3; }
-    .empty-state p { font-size: 15px; }
+    .empty-state svg { width: 52px; height: 52px; opacity: .25; }
+    .empty-state-title { font-size: 16px; font-weight: 500; color: var(--texte); opacity: .4; }
+    .empty-state-sub { font-size: 13px; opacity: .6; }
 
     /* ===================== FICHE ===================== */
-    .fiche { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .fiche { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 
-    .fiche-header-card {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    /* En-tête de la fiche */
+    .fiche-hero {
+      background: var(--bleu);
       border-radius: var(--radius-lg);
-      padding: 24px 28px;
+      padding: 26px 30px 22px;
       color: white;
       box-shadow: var(--shadow);
     }
-    .fiche-header-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
+    .fiche-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+    .fiche-hero-name { font-size: 21px; font-weight: 700; line-height: 1.3; letter-spacing: -.2px; }
+    .fiche-hero-op {
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.22);
+      border-radius: 20px; padding: 3px 12px;
+      font-size: 12px; font-weight: 500; white-space: nowrap; flex-shrink: 0;
     }
-    .fiche-projet-name {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -.3px;
-      line-height: 1.3;
+    .fiche-hero-meta { display: flex; flex-wrap: wrap; gap: 18px; }
+    .fiche-hero-meta-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; opacity: .88; }
+    .fiche-hero-meta-item svg { width: 14px; height: 14px; opacity: .7; }
+    .badge-audition {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
     }
-    .fiche-operateur-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.25);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .fiche-header-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .fiche-meta-item {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 13px;
-      opacity: .9;
-    }
-    .fiche-meta-item svg { width: 15px; height: 15px; opacity: .75; }
+    .badge-ok  { background: rgba(30,126,74,.18); color: #a3f7c4; border: 1px solid rgba(163,247,196,.25); }
+    .badge-nok { background: rgba(192,57,43,.18);  color: #ffb3ae; border: 1px solid rgba(255,179,174,.25); }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    .fiche-audition-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .fiche-audition-badge.ok { background: var(--success-light); color: #15803d; }
-    .fiche-audition-badge.nok { background: var(--danger-light); color: #b91c1c; }
-    .fiche-audition-badge .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* ===================== SECTION CARD ===================== */
-    .section-card {
-      background: var(--surface);
+    /* Cartes de section */
+    .section {
+      background: var(--blanc);
+      border: 1px solid var(--gris-bord);
       border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow);
       overflow: hidden;
     }
-    .section-header {
-      padding: 14px 20px 13px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface-alt);
+    .section-head {
+      padding: 13px 20px 12px;
+      border-bottom: 1px solid var(--gris-bord);
+      background: #fafbfc;
+      display: flex; align-items: center; gap: 9px;
     }
     .section-icon {
-      width: 28px; height: 28px;
-      border-radius: var(--radius-sm);
+      width: 26px; height: 26px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .section-icon svg { width: 15px; height: 15px; }
-    .section-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .section-icon svg { width: 14px; height: 14px; }
+    .section-title { font-size: 12.5px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .6px; }
+    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 15px; }
 
-    /* ===================== FIELD GRID ===================== */
+    /* ===================== GRILLE DE CHAMPS ===================== */
     .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .field-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
     .field-full { grid-column: 1 / -1; }
-
-    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
     .field-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .6px;
-      color: var(--text-muted);
+      font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .7px; color: var(--gris-texte);
     }
 
     /* ===================== INPUTS ===================== */
-    .field-input {
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 11px;
-      font-family: inherit;
-      font-size: 13.5px;
-      color: var(--text-primary);
-      width: 100%;
-      outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
-      resize: none;
+    .inp {
+      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
+      border-radius: var(--radius); padding: 7px 11px;
+      font-family: inherit; font-size: 13.5px; color: var(--texte);
+      width: 100%; outline: none; resize: none;
+      transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
     }
-    .field-input:hover { border-color: #c5ccdf; background: var(--surface); }
-    .field-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(45,91,227,.1);
-      background: var(--surface);
-    }
+    .inp:hover { border-color: #9eb4cc; background: var(--blanc); }
+    .inp:focus { border-color: var(--bleu-clair); background: var(--blanc); box-shadow: 0 0 0 3px rgba(37,99,168,.10); }
+    textarea.inp { min-height: 88px; line-height: 1.65; }
+    textarea.inp.tall { min-height: 130px; }
 
-    textarea.field-input { min-height: 90px; line-height: 1.6; }
-    textarea.field-input.tall { min-height: 140px; }
+    /* URL field */
+    .inp-url-wrap { display: flex; }
+    .inp-url-wrap .inp { border-radius: var(--radius) 0 0 var(--radius); border-right: none; }
+    .inp-url-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; background: var(--bleu-pale);
+      border: 1.5px solid var(--gris-bord); border-left: none;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      color: var(--bleu-clair); text-decoration: none; flex-shrink: 0;
+      transition: background var(--transition), color var(--transition);
+    }
+    .inp-url-btn:hover { background: var(--bleu-clair); color: white; }
+    .inp-url-btn svg { width: 14px; height: 14px; }
 
-    .field-input-url {
-      display: flex;
-      align-items: center;
-      gap: 0;
-    }
-    .field-input-url input {
-      flex: 1;
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-      border-right: none;
-    }
-    .field-input-url a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 100%;
-      background: var(--accent-light);
-      border: 1.5px solid var(--border);
-      border-left: none;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      color: var(--accent);
-      text-decoration: none;
-      transition: background var(--transition);
-      flex-shrink: 0;
-    }
-    .field-input-url a:hover { background: var(--accent); color: white; }
-    .field-input-url a svg { width: 14px; height: 14px; }
-
-    /* ===================== TOGGLE ===================== */
-    .toggle-wrapper { display: flex; align-items: center; gap: 10px; padding: 2px 0; }
-    .toggle {
-      position: relative;
-      width: 40px; height: 22px;
-      flex-shrink: 0;
-    }
+    /* Toggle */
+    .toggle-row { display: flex; align-items: center; gap: 10px; }
+    .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
     .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
     .toggle-track {
-      position: absolute;
-      inset: 0;
-      border-radius: 11px;
-      background: var(--border);
-      cursor: pointer;
+      position: absolute; inset: 0; border-radius: 11px;
+      background: var(--gris-bord); cursor: pointer;
       transition: background var(--transition);
     }
-    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle input:checked + .toggle-track { background: var(--bleu-clair); }
     .toggle-thumb {
-      position: absolute;
-      top: 3px; left: 3px;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: var(--shadow-sm);
-      transition: transform var(--transition);
-      pointer-events: none;
+      position: absolute; top: 2.5px; left: 2.5px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: white; box-shadow: 0 1px 3px rgba(0,0,0,.18);
+      transition: transform var(--transition); pointer-events: none;
     }
-    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
-    .toggle-label { font-size: 13.5px; color: var(--text-primary); }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(17px); }
+    .toggle-label { font-size: 13.5px; color: var(--texte); }
 
-    /* ===================== NUMBER DISPLAY ===================== */
-    .amount-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .amount-card {
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
+    /* ===================== MONTANTS ===================== */
+    .montant-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .montant-card {
+      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
+      border-radius: var(--radius); padding: 12px 14px;
     }
-    .amount-card-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 6px; }
-    .amount-card-value-wrap { display: flex; align-items: baseline; gap: 4px; }
-    .amount-card-value input {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-primary);
-      background: transparent;
-      border: none;
-      outline: none;
-      font-family: inherit;
-      width: 100%;
-      padding: 0;
+    .montant-card.accent { border-color: #9eb4cc; background: var(--bleu-pale); }
+    .montant-card-label { font-size: 10.5px; font-weight: 600; color: var(--gris-texte); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+    .montant-card.accent .montant-card-label { color: var(--bleu); }
+    .montant-input-row { display: flex; align-items: baseline; gap: 4px; }
+    .montant-input {
+      flex: 1; border: none; background: transparent; outline: none;
+      font-family: inherit; font-size: 18px; font-weight: 700; color: var(--texte);
+      padding: 0; width: 100%;
     }
-    .amount-card-value input:focus { color: var(--accent); }
-    .amount-card-currency { font-size: 12px; color: var(--text-muted); }
-    .amount-card.highlight { border-color: var(--accent); background: var(--accent-light); }
-    .amount-card.highlight .amount-card-label { color: var(--accent); }
-    .amount-card.highlight input { color: var(--accent); }
+    .montant-card.accent .montant-input { color: var(--bleu); }
+    .montant-input:focus { color: var(--bleu-clair); }
+    .montant-unit { font-size: 12px; color: var(--gris-texte); }
+    .montant-sub { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gris-bord); display: flex; flex-direction: column; gap: 7px; }
+    .montant-sub-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .montant-sub-label { font-size: 12px; color: var(--gris-texte); }
+    .montant-sub-inp-wrap { display: flex; align-items: center; gap: 3px; }
+    .montant-sub-inp {
+      width: 120px; text-align: right;
+      border: 1.5px solid var(--gris-bord); border-radius: var(--radius);
+      background: var(--blanc); padding: 4px 8px;
+      font-family: inherit; font-size: 13px; font-weight: 600; color: var(--texte);
+      outline: none; transition: border-color var(--transition);
+    }
+    .montant-sub-inp:focus { border-color: var(--bleu-clair); }
+    .montant-sub-unit { font-size: 11px; color: var(--gris-texte); }
 
-    .amount-breakdown {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    /* ===================== TAGS ===================== */
+    .tags-wrap {
+      display: flex; flex-wrap: wrap; gap: 5px; align-items: flex-start;
+      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
+      border-radius: var(--radius); padding: 7px 9px; min-height: 40px;
+      cursor: text; transition: border-color var(--transition), box-shadow var(--transition);
     }
-    .amount-breakdown-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .amount-breakdown-label { font-size: 12px; color: var(--text-secondary); }
-    .amount-breakdown-value { display: flex; align-items: center; gap: 4px; }
-    .amount-breakdown-value input {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-primary);
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 4px 8px;
-      font-family: inherit;
-      outline: none;
-      text-align: right;
-      width: 130px;
-      transition: border-color var(--transition);
-    }
-    .amount-breakdown-value input:focus { border-color: var(--accent); }
-
-    /* ===================== PARTICIPANTS ===================== */
-    .participants-grid { display: flex; flex-direction: column; gap: 10px; }
-    .participant-block { display: flex; flex-direction: column; gap: 4px; }
-    .participant-block-label {
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted);
-    }
-    .participant-tags-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      background: var(--surface-alt);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 7px 9px;
-      cursor: text;
-      min-height: 40px;
-      align-items: flex-start;
-      transition: border-color var(--transition);
-    }
-    .participant-tags-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,91,227,.1); }
-    .participant-tag {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: var(--accent-light);
-      border: 1px solid rgba(45,91,227,.2);
-      color: var(--accent);
-      border-radius: 20px;
-      padding: 2px 10px 2px 10px;
+    .tags-wrap:focus-within { border-color: var(--bleu-clair); background: var(--blanc); box-shadow: 0 0 0 3px rgba(37,99,168,.10); }
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--bleu-pale); border: 1px solid #9eb4cc;
+      color: var(--bleu); border-radius: 20px; padding: 2px 10px;
       font-size: 12px; font-weight: 500;
     }
-    .participant-tag .tag-remove {
-      cursor: pointer;
-      opacity: .5;
-      font-size: 14px;
-      line-height: 1;
-      transition: opacity var(--transition);
+    .tag-x { cursor: pointer; opacity: .5; font-size: 14px; line-height: 1; transition: opacity var(--transition); }
+    .tag-x:hover { opacity: 1; }
+    .tag-input {
+      border: none; background: transparent; outline: none;
+      font-family: inherit; font-size: 13px; color: var(--texte);
+      min-width: 90px; flex: 1;
     }
-    .participant-tag .tag-remove:hover { opacity: 1; }
-    .participant-tag-input {
-      border: none; background: transparent;
-      outline: none; font-family: inherit; font-size: 13px;
-      color: var(--text-primary); min-width: 100px; flex: 1;
-    }
-
-    /* ===================== AVIS SECTION ===================== */
-    .avis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .avis-block { display: flex; flex-direction: column; gap: 6px; }
-    .avis-label-row { display: flex; align-items: center; gap: 8px; }
-    .avis-badge {
-      font-size: 11px; font-weight: 700;
-      padding: 2px 10px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: .5px;
-    }
-    .avis-badge.spin { background: #eef1fd; color: var(--accent); }
-    .avis-badge.sfg { background: #fef3c7; color: #92400e; }
-
-    /* ===================== PRINT ===================== */
-    @media print {
-      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      body { background: white; font-size: 11pt; }
-      .app { height: auto; overflow: visible; }
-      .header { display: none; }
-      .main { overflow: visible; padding: 0; }
-      .fiche { max-width: 100%; gap: 12pt; }
-      .print-hidden { display: none !important; }
-
-      .fiche-header-card {
-        background: var(--accent) !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        border-radius: 8pt;
-        padding: 16pt 20pt;
-        margin-bottom: 0;
-      }
-      .section-card { break-inside: avoid; box-shadow: none; border: 1pt solid #ddd; }
-      .section-header { background: #f8f9fc !important; }
-      .field-input, .amount-breakdown-value input, .amount-card-value input {
-        border: none; background: transparent; padding: 0;
-        font-size: inherit;
-      }
-      textarea.field-input { resize: none; overflow: visible; height: auto; }
-      .participant-tags-wrapper { border: none; background: transparent; padding: 0; }
-      .toggle-track { display: none; }
-    }
-
-    /* ===================== SCROLLBAR ===================== */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
     /* ===================== TOAST ===================== */
     .toast {
-      position: fixed;
-      bottom: 20px; right: 20px;
-      background: var(--text-primary);
-      color: white;
-      padding: 10px 16px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: var(--shadow-lg);
-      z-index: 9999;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all var(--transition);
-      pointer-events: none;
+      position: fixed; bottom: 18px; right: 18px;
+      background: var(--bleu); color: white;
+      padding: 9px 16px; border-radius: var(--radius);
+      font-size: 13px; font-weight: 500;
+      box-shadow: var(--shadow-lg); z-index: 9999;
+      opacity: 0; transform: translateY(8px);
+      transition: all .2s ease; pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.success { background: #15803d; }
-    .toast.error { background: var(--danger); }
+    .toast.ok  { background: var(--vert-doux); }
+    .toast.err { background: var(--rouge-doux); }
+
+    /* ===================== PRINT ===================== */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: white; font-size: 10.5pt; }
+      .app { height: auto; overflow: visible; }
+      .topbar, .print-hide { display: none !important; }
+      .main { overflow: visible; padding: 0; }
+      .fiche { max-width: 100%; gap: 14pt; }
+      .fiche-hero { background: var(--bleu) !important; border-radius: 8pt; padding: 18pt 22pt 14pt; }
+      .section { break-inside: avoid; box-shadow: none; border: 1pt solid #d1d9e0; }
+      .section-head { background: #fafbfc !important; }
+      .inp, .montant-sub-inp { border: none; background: transparent; padding: 0; font-size: inherit; box-shadow: none; }
+      textarea.inp { resize: none; overflow: visible; height: auto; }
+      .tags-wrap { border: none; background: transparent; padding: 0; }
+      .toggle-track, .toggle-thumb { display: none; }
+      .toggle-label::before { content: attr(data-print); }
+      .montant-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--gris-bord); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9eb4cc; }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ===== HEADER ===== -->
-  <header class="header">
-
-    <div class="header-logo">
-      <svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-2 4H6V8h12v2zm2 4H4v-2h16v2zm-2 4H6v-2h12v2z"/></svg>
+  <!-- ======= TOPBAR ======= -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-2 4H6V8h12v2zm2 4H4v-2h16v2zm-2 4H6v-2h12v2z"/></svg>
+      </div>
+      <span class="topbar-logo-text">CORIFER</span>
     </div>
-    <div>
-      <div class="header-title">CORIFER</div>
-      <div class="header-subtitle">Suivi des projets</div>
-    </div>
+    <div class="topbar-sep"></div>
 
-    <!-- Selector -->
-    <div class="selector-wrapper print-hidden" id="selectorWrapper">
+    <!-- Sélecteur de fiche -->
+    <div class="selector-wrap print-hide" id="selectorWrap">
       <button class="selector-btn" id="selectorBtn" onclick="toggleSelector()">
-        <span class="selector-btn-text" id="selectorBtnText">Sélectionner une fiche…</span>
+        <span class="selector-btn-label" id="selectorLabel">Sélectionner une fiche…</span>
         <span class="selector-btn-count" id="selectorCount">0</span>
       </button>
-      <svg class="selector-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="selector-dropdown" id="selectorDropdown">
-        <div class="selector-search">
-          <input type="text" id="searchInput" placeholder="Rechercher un projet…" oninput="filterItems(this.value)" />
+      <svg class="selector-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="selector-dropdown">
+        <div class="selector-search-box">
+          <input type="text" id="searchInp" placeholder="Rechercher…" oninput="filterSelector(this.value)"/>
         </div>
         <div class="selector-list" id="selectorList"></div>
       </div>
     </div>
 
-    <div class="header-sep"></div>
+    <div class="topbar-spacer"></div>
 
-    <!-- Save indicator -->
-    <div class="save-indicator" id="saveIndicator">
+    <!-- Statut sauvegarde -->
+    <div class="save-status" id="saveStatus">
       <span class="save-dot"></span>
-      <span id="saveText">Synchronisé</span>
+      <span id="saveLabel">Synchronisé</span>
     </div>
 
-    <!-- Actions -->
-    <button class="btn btn-ghost print-hidden" onclick="window.print()">
+    <!-- Boutons export -->
+    <button class="btn btn-outline print-hide" onclick="window.print()" title="Imprimer ou exporter en PDF">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      Imprimer / PDF
+      PDF / Imprimer
     </button>
-
-    <button class="btn btn-accent print-hidden" onclick="exportDocx()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Export DOCX
+    <button class="btn btn-primary print-hide" onclick="exportDoc()" title="Exporter en DOCX">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Exporter DOCX
     </button>
   </header>
 
-  <!-- ===== MAIN ===== -->
-  <main class="main" id="mainContent">
+  <!-- ======= CONTENU ======= -->
+  <main class="main">
+
+    <!-- État vide -->
     <div class="empty-state" id="emptyState">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <p>Sélectionnez un projet pour afficher sa fiche</p>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <p class="empty-state-title">Aucune fiche sélectionnée</p>
+      <p class="empty-state-sub">Choisissez un projet dans le sélecteur ci-dessus</p>
     </div>
 
     <!-- ===== FICHE ===== -->
     <div class="fiche" id="fiche" style="display:none;">
 
-      <!-- Header de la fiche -->
-      <div class="fiche-header-card" id="ficheHeader">
-        <div class="fiche-header-top">
-          <div class="fiche-projet-name" id="ficheTitle">—</div>
-          <span class="fiche-operateur-badge" id="ficheOperateurBadge">—</span>
+      <!-- Hero -->
+      <div class="fiche-hero">
+        <div class="fiche-hero-top">
+          <div class="fiche-hero-name" id="heroName">—</div>
+          <span class="fiche-hero-op" id="heroOp">—</span>
         </div>
-        <div class="fiche-header-meta">
-          <div class="fiche-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span id="ficheDate">—</span>
+        <div class="fiche-hero-meta">
+          <div class="fiche-hero-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="heroDate">—</span>
           </div>
-          <div class="fiche-meta-item">
+          <div class="fiche-hero-meta-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="ficheHoraires">—</span>
+            <span id="heroHoraires">—</span>
           </div>
-          <div id="ficheAuditionWrap"></div>
+          <div id="heroAuditionWrap"></div>
         </div>
       </div>
 
-      <!-- Section 1 : Informations générales -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#eef1fd;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <!-- 1. Informations générales -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <span class="section-title">Informations générales</span>
         </div>
         <div class="section-body">
           <div class="field-grid">
-            <div class="field-group">
+            <div class="field">
               <label class="field-label">Opérateur</label>
-              <input class="field-input" id="f_Operateur" data-col="Opérateur" type="text" oninput="scheduleUpdate(this)" />
+              <input class="inp" id="f_op" data-grist="Operateur" type="text" oninput="onChange(this)"/>
             </div>
-            <div class="field-group">
+            <div class="field">
               <label class="field-label">Chef de file</label>
-              <input class="field-input" id="f_ChefDeFile" data-col="Chef de file" type="text" oninput="scheduleUpdate(this)" />
+              <input class="inp" id="f_chef" data-grist="Chef_de_file" type="text" oninput="onChange(this)"/>
             </div>
-            <div class="field-group field-full">
+            <div class="field field-full">
               <label class="field-label">Membres du consortium</label>
-              <div class="participant-tags-wrapper" id="tags_Consortium" data-col="Membres du consortium"></div>
+              <div class="tags-wrap" id="tags_consortium" data-grist="Membres_du_consortium"></div>
             </div>
-            <div class="field-group field-full">
+            <div class="field field-full">
               <label class="field-label">Lien vers le dossier partagé</label>
-              <div class="field-input-url">
-                <input class="field-input" id="f_Lien" data-col="Lien vers le dossier partagé" type="url" placeholder="https://…" oninput="scheduleUpdate(this)" />
-                <a id="f_LienHref" href="#" target="_blank" title="Ouvrir">
+              <div class="inp-url-wrap">
+                <input class="inp" id="f_lien" data-grist="Lien_vers_le_dossier_partage" type="url" placeholder="https://…" oninput="onChange(this)"/>
+                <a id="f_lienBtn" href="#" target="_blank" class="inp-url-btn" title="Ouvrir le lien">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>
               </div>
@@ -751,109 +488,103 @@
         </div>
       </div>
 
-      <!-- Section 2 : Audition -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#f0fdf4;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <!-- 2. Audition -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
           <span class="section-title">Audition</span>
         </div>
         <div class="section-body">
-          <div class="field-grid cols-3">
-            <div class="field-group">
+          <div class="field-grid cols3">
+            <div class="field">
               <label class="field-label">Date de début</label>
-              <input class="field-input" id="f_Debut" data-col="Début" type="datetime-local" oninput="scheduleUpdate(this)" />
+              <input class="inp" id="f_debut" data-grist="Debut" type="datetime-local" oninput="onChange(this)"/>
             </div>
-            <div class="field-group">
+            <div class="field">
               <label class="field-label">Date de fin</label>
-              <input class="field-input" id="f_Fin" data-col="Fin" type="datetime-local" oninput="scheduleUpdate(this)" />
+              <input class="inp" id="f_fin" data-grist="Fin" type="datetime-local" oninput="onChange(this)"/>
             </div>
-            <div class="field-group">
+            <div class="field">
               <label class="field-label">Horaires (affichage)</label>
-              <input class="field-input" id="f_Horaires" data-col="Horaires (affichage)" type="text" placeholder="ex: 14h–16h" oninput="scheduleUpdate(this)" />
+              <input class="inp" id="f_horaires" data-grist="Horaires_affichage_" type="text" oninput="onChange(this)"/>
             </div>
           </div>
-          <div class="toggle-wrapper">
+          <div class="toggle-row">
             <label class="toggle">
-              <input type="checkbox" id="f_Tenue" data-col="Tenue de l'audition" onchange="scheduleUpdate(this)" />
+              <input type="checkbox" id="f_tenue" data-grist="Tenue_de_l_audition" onchange="onChange(this)"/>
               <div class="toggle-track"></div>
               <div class="toggle-thumb"></div>
             </label>
-            <span class="toggle-label">Audition tenue</span>
+            <span class="toggle-label" id="toggleLabel">Audition non tenue</span>
           </div>
         </div>
       </div>
 
-      <!-- Section 3 : Participants -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#fef3c7;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <!-- 3. Participants -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <span class="section-title">Participants</span>
         </div>
         <div class="section-body">
-          <div class="participants-grid">
-            <div class="participant-block">
-              <span class="participant-block-label">Participants SPIN</span>
-              <div class="participant-tags-wrapper" id="tags_SPIN" data-col="Participants SPIN"></div>
-            </div>
-            <div class="participant-block">
-              <span class="participant-block-label">Participation État</span>
-              <div class="participant-tags-wrapper" id="tags_Etat" data-col="Participation Etat"></div>
-            </div>
-            <div class="participant-block">
-              <span class="participant-block-label">Participants hors SPIN</span>
-              <div class="participant-tags-wrapper" id="tags_HorsSPIN" data-col="Participants hors SPIN"></div>
-            </div>
+          <div class="field">
+            <label class="field-label">Participants SPIN</label>
+            <div class="tags-wrap" id="tags_spin" data-grist="Participants_SPIN"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Participation État</label>
+            <div class="tags-wrap" id="tags_etat" data-grist="Participation_Etat"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">Participants hors SPIN</label>
+            <div class="tags-wrap" id="tags_horsspin" data-grist="Participants_hors_SPIN"></div>
           </div>
         </div>
       </div>
 
-      <!-- Section 4 : Financements -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#f0fdf4;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <!-- 4. Financements -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <span class="section-title">Financements</span>
         </div>
         <div class="section-body">
-          <div class="amount-grid">
-            <div class="amount-card highlight">
-              <div class="amount-card-label">Montant total du projet</div>
-              <div class="amount-card-value-wrap">
-                <div class="amount-card-value">
-                  <input type="number" id="f_MontantTotal" data-col="Montant total du projet (en €)" step="1" placeholder="0" oninput="scheduleUpdate(this)" />
-                </div>
-                <span class="amount-card-currency">€</span>
+          <div class="montant-grid">
+            <div class="montant-card accent">
+              <div class="montant-card-label">Montant total du projet</div>
+              <div class="montant-input-row">
+                <input class="montant-input" id="f_montantTotal" data-grist="Montant_total_du_projet_en_" type="number" placeholder="0" oninput="onChange(this)"/>
+                <span class="montant-unit">€</span>
               </div>
             </div>
-            <div class="amount-card highlight">
-              <div class="amount-card-label">Montant total d'aide</div>
-              <div class="amount-card-value-wrap">
-                <div class="amount-card-value">
-                  <input type="number" id="f_MontantAide" data-col="Montant total d'aide du projet (en €)" step="1" placeholder="0" oninput="scheduleUpdate(this)" />
-                </div>
-                <span class="amount-card-currency">€</span>
+            <div class="montant-card accent">
+              <div class="montant-card-label">Montant total d'aide</div>
+              <div class="montant-input-row">
+                <input class="montant-input" id="f_montantAide" data-grist="Montant_total_d_aide_du_projet_en_" type="number" placeholder="0" oninput="onChange(this)"/>
+                <span class="montant-unit">€</span>
               </div>
             </div>
-            <div class="amount-card">
-              <div class="amount-card-label">Répartition de l'aide</div>
-              <div class="amount-breakdown">
-                <div class="amount-breakdown-item">
-                  <span class="amount-breakdown-label">Subventions</span>
-                  <div class="amount-breakdown-value">
-                    <input type="number" id="f_Subventions" data-col="Subventions" step="1" placeholder="0" oninput="scheduleUpdate(this)" />
-                    <span style="font-size:11px;color:var(--text-muted);">€</span>
+            <div class="montant-card">
+              <div class="montant-card-label">Détail de l'aide</div>
+              <div class="montant-sub">
+                <div class="montant-sub-row">
+                  <span class="montant-sub-label">Subventions</span>
+                  <div class="montant-sub-inp-wrap">
+                    <input class="montant-sub-inp" id="f_subventions" data-grist="Subventions" type="number" placeholder="0" oninput="onChange(this)"/>
+                    <span class="montant-sub-unit">€</span>
                   </div>
                 </div>
-                <div class="amount-breakdown-item">
-                  <span class="amount-breakdown-label">AR</span>
-                  <div class="amount-breakdown-value">
-                    <input type="number" id="f_AR" data-col="AR" step="1" placeholder="0" oninput="scheduleUpdate(this)" />
-                    <span style="font-size:11px;color:var(--text-muted);">€</span>
+                <div class="montant-sub-row">
+                  <span class="montant-sub-label">AR</span>
+                  <div class="montant-sub-inp-wrap">
+                    <input class="montant-sub-inp" id="f_ar" data-grist="AR" type="number" placeholder="0" oninput="onChange(this)"/>
+                    <span class="montant-sub-unit">€</span>
                   </div>
                 </div>
               </div>
@@ -862,65 +593,59 @@
         </div>
       </div>
 
-      <!-- Section 5 : Fiche projet -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#eef1fd;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#2d5be3" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <!-- 5. Fiche projet -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           </div>
           <span class="section-title">Fiche projet</span>
         </div>
         <div class="section-body">
-
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Présentation</label>
-            <textarea class="field-input" id="f_Presentation" data-col="Projet_Présentation" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp" id="f_pres" data-grist="Projet_Presentation" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Objectifs</label>
-            <textarea class="field-input tall" id="f_Objectifs" data-col="Projet_Objectifs" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp tall" id="f_obj" data-grist="Projet_Objectifs" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Avancement</label>
-            <textarea class="field-input tall" id="f_Avancement" data-col="Projet_Avancement" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp tall" id="f_av" data-grist="Projet_Avancement" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Freins rencontrés</label>
-            <textarea class="field-input tall" id="f_Freins" data-col="Projet_Freins rencontrés" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp tall" id="f_freins" data-grist="Projet_Freins_rencontres" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Potentiel de l'innovation</label>
-            <textarea class="field-input tall" id="f_Potentiel" data-col="Projet_Potentiel de l'innovation" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp tall" id="f_potentiel" data-grist="Projet_Potentiel_de_l_innovation" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-          <div class="field-group">
+          <div class="field">
             <label class="field-label">Perspectives de développement</label>
-            <textarea class="field-input tall" id="f_Perspectives" data-col="Projet_Perspectives de développement" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <textarea class="inp tall" id="f_perspectives" data-grist="Projet_Perspectives_de_developpement" oninput="autoH(this);onChange(this)"></textarea>
           </div>
-
         </div>
       </div>
 
-      <!-- Section 6 : Avis -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon" style="background:#fef3c7;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <!-- 6. Avis -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-icon" style="background:#e8f0f8;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           </div>
           <span class="section-title">Avis</span>
         </div>
         <div class="section-body">
-          <div class="avis-grid">
-            <div class="avis-block">
-              <div class="avis-label-row">
-                <span class="avis-badge spin">SPIN</span>
-              </div>
-              <textarea class="field-input tall" id="f_AvisSPIN" data-col="Avis SPIN" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+          <div class="field-grid">
+            <div class="field">
+              <label class="field-label">Avis SPIN</label>
+              <textarea class="inp tall" id="f_avisSpin" data-grist="Avis_SPIN" oninput="autoH(this);onChange(this)"></textarea>
             </div>
-            <div class="avis-block">
-              <div class="avis-label-row">
-                <span class="avis-badge sfg">SFG</span>
-              </div>
-              <textarea class="field-input tall" id="f_AvisSFG" data-col="Avis SFG" oninput="autoResize(this);scheduleUpdate(this)"></textarea>
+            <div class="field">
+              <label class="field-label">Avis SFG</label>
+              <textarea class="inp tall" id="f_avisSfg" data-grist="Avis_SFG" oninput="autoH(this);onChange(this)"></textarea>
             </div>
           </div>
         </div>
@@ -934,456 +659,464 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ===================== STATE =====================
-let allRecords = [];
+// ===================================================
+// CONFIGURATION DU MAPPING
+// data-grist = identifiant Grist attendu après mapping
+// ===================================================
+
+// Déclaration des colonnes pour le mapping Grist
+const COLUMNS = [
+  { name: 'Projet',                              title: 'Titre du projet',                  type: 'Text'     },
+  { name: 'Operateur',                           title: 'Opérateur',                        type: 'Text'     },
+  { name: 'Chef_de_file',                        title: 'Chef de file',                     type: 'Text'     },
+  { name: 'Membres_du_consortium',               title: 'Membres du consortium',            type: 'Text'     },
+  { name: 'Lien_vers_le_dossier_partage',        title: 'Lien vers le dossier partagé',     type: 'Text'     },
+  { name: 'Debut',                               title: 'Date de début',                    type: 'DateTime' },
+  { name: 'Fin',                                 title: 'Date de fin',                      type: 'DateTime' },
+  { name: 'Horaires_affichage_',                 title: 'Horaires (affichage)',              type: 'Text'     },
+  { name: 'Tenue_de_l_audition',                 title: "Tenue de l'audition",              type: 'Bool'     },
+  { name: 'Participants_SPIN',                   title: 'Participants SPIN',                type: 'Text'     },
+  { name: 'Participation_Etat',                  title: 'Participation État',               type: 'Text'     },
+  { name: 'Participants_hors_SPIN',              title: 'Participants hors SPIN',           type: 'Text'     },
+  { name: 'Montant_total_du_projet_en_',         title: 'Montant total du projet (€)',      type: 'Numeric'  },
+  { name: 'Montant_total_d_aide_du_projet_en_',  title: "Montant total d'aide (€)",         type: 'Numeric'  },
+  { name: 'Subventions',                         title: 'Subventions (€)',                  type: 'Numeric'  },
+  { name: 'AR',                                  title: 'AR (€)',                           type: 'Numeric'  },
+  { name: 'Projet_Presentation',                 title: 'Présentation',                     type: 'Text'     },
+  { name: 'Projet_Objectifs',                    title: 'Objectifs',                        type: 'Text'     },
+  { name: 'Projet_Avancement',                   title: 'Avancement',                       type: 'Text'     },
+  { name: 'Projet_Freins_rencontres',            title: 'Freins rencontrés',                type: 'Text'     },
+  { name: 'Projet_Potentiel_de_l_innovation',    title: "Potentiel de l'innovation",        type: 'Text'     },
+  { name: 'Projet_Perspectives_de_developpement',title: 'Perspectives de développement',   type: 'Text'     },
+  { name: 'Avis_SPIN',                           title: 'Avis SPIN',                        type: 'Text'     },
+  { name: 'Avis_SFG',                            title: 'Avis SFG',                         type: 'Text'     },
+];
+
+// ===================================================
+// ÉTAT
+// ===================================================
+let allRecords   = [];
 let currentRowId = null;
-let saveTimer = null;
-let pendingUpdates = {};
-let isUpdating = false;
+let currentMaps  = null;   // mappings reçus de Grist
+let pending      = {};
+let saveTimer    = null;
+let isSaving     = false;
 
-// ===================== GRIST INIT =====================
-grist.ready({ requiredAccess: 'full' });
+// ===================================================
+// INIT GRIST
+// ===================================================
+grist.ready({
+  requiredAccess: 'full',
+  columns: COLUMNS.map(c => ({
+    name:     c.name,
+    title:    c.title,
+    type:     c.type,
+    optional: c.name !== 'Projet',   // seul "Projet" est obligatoire pour le sélecteur
+  }))
+});
 
-grist.onRecords(function(records) {
-  allRecords = records;
-  document.getElementById('selectorCount').textContent = records.length;
-  buildSelectorList(records);
-
-  // Refresh current fiche if already open
+// Réception de toutes les lignes
+grist.onRecords(function(records, mappings) {
+  currentMaps = mappings;
+  // On mappe chaque enregistrement avec les noms déclarés
+  allRecords = records.map(r => {
+    const mapped = grist.mapColumnNames(r, mappings);
+    mapped.__id = r.id;
+    return mapped;
+  });
+  document.getElementById('selectorCount').textContent = allRecords.filter(r => r && r.Projet).length;
+  buildSelector();
   if (currentRowId !== null) {
-    const rec = records.find(r => r.id === currentRowId);
-    if (rec) fillFiche(rec);
+    const r = allRecords.find(r => r.__id === currentRowId);
+    if (r) fillFiche(r);
   }
 });
 
-grist.onRecord(function(record) {
+// Réception de la ligne sélectionnée (curseur Grist)
+grist.onRecord(function(record, mappings) {
   if (!record) return;
+  currentMaps  = mappings;
+  const mapped = grist.mapColumnNames(record, mappings);
+  if (!mapped) return;
+  mapped.__id  = record.id;
   currentRowId = record.id;
-  selectRecord(record.id, false);
+  highlightSelector(record.id);
+  fillFiche(mapped);
 });
 
-// ===================== SELECTOR =====================
-function buildSelectorList(records) {
+// ===================================================
+// SÉLECTEUR
+// ===================================================
+function buildSelector() {
   const list = document.getElementById('selectorList');
-  const filtered = records.filter(r => r['Projet'] && String(r['Projet']).trim() !== '');
-  list.innerHTML = filtered.map(r => `
-    <div class="selector-item ${r.id === currentRowId ? 'active' : ''}"
-         data-id="${r.id}"
-         onclick="selectRecord(${r.id}, true)">
+  const items = allRecords.filter(r => r && r.Projet);
+  list.innerHTML = items.map(r => `
+    <div class="selector-item ${r.__id === currentRowId ? 'active' : ''}"
+         data-id="${r.__id}"
+         onclick="selectRow(${r.__id})">
       <div class="selector-item-dot"></div>
-      <span class="selector-item-label">${escHtml(r['Projet'] || '—')}</span>
-      <span class="selector-item-op">${escHtml(r['Opérateur'] || '')}</span>
+      <span class="selector-item-name">${esc(r.Projet)}</span>
+      <span class="selector-item-op">${esc(r.Operateur || '')}</span>
     </div>
   `).join('');
 }
 
-function filterItems(query) {
-  const q = query.toLowerCase();
-  document.querySelectorAll('.selector-item').forEach(item => {
-    const label = item.querySelector('.selector-item-label').textContent.toLowerCase();
-    item.style.display = label.includes(q) ? '' : 'none';
+function filterSelector(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.selector-item').forEach(el => {
+    el.style.display = el.querySelector('.selector-item-name').textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
 
 function toggleSelector() {
-  const wrapper = document.getElementById('selectorWrapper');
-  const btn = document.getElementById('selectorBtn');
-  const isOpen = wrapper.classList.toggle('open');
-  btn.classList.toggle('open', isOpen);
-  if (isOpen) {
-    setTimeout(() => document.getElementById('searchInput').focus(), 50);
-  }
+  const wrap = document.getElementById('selectorWrap');
+  const btn  = document.getElementById('selectorBtn');
+  const open = wrap.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open) setTimeout(() => document.getElementById('searchInp').focus(), 40);
 }
 
-document.addEventListener('click', function(e) {
-  const wrapper = document.getElementById('selectorWrapper');
-  if (!wrapper.contains(e.target)) {
-    wrapper.classList.remove('open');
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('selectorWrap');
+  if (!wrap.contains(e.target)) {
+    wrap.classList.remove('open');
     document.getElementById('selectorBtn').classList.remove('open');
   }
 });
 
-function selectRecord(rowId, fromUI) {
+function selectRow(rowId) {
   currentRowId = rowId;
+  highlightSelector(rowId);
+  document.getElementById('selectorWrap').classList.remove('open');
+  document.getElementById('selectorBtn').classList.remove('open');
+  const r = allRecords.find(r => r.__id === rowId);
+  if (r) {
+    document.getElementById('selectorLabel').textContent = r.Projet || '—';
+    fillFiche(r);
+    grist.setCursorPos({ rowId }).catch(() => {});
+  }
+}
 
-  // Update selector highlight
+function highlightSelector(rowId) {
   document.querySelectorAll('.selector-item').forEach(el => {
     el.classList.toggle('active', parseInt(el.dataset.id) === rowId);
   });
-
-  const rec = allRecords.find(r => r.id === rowId);
-  if (!rec) return;
-
-  // Update selector button text
-  document.getElementById('selectorBtnText').textContent = rec['Projet'] || '—';
-
-  // Close dropdown
-  document.getElementById('selectorWrapper').classList.remove('open');
-  document.getElementById('selectorBtn').classList.remove('open');
-
-  fillFiche(rec);
-
-  if (fromUI) {
-    grist.setCursorPos({ rowId: rowId }).catch(() => {});
-  }
+  const r = allRecords.find(r => r.__id === rowId);
+  if (r) document.getElementById('selectorLabel').textContent = r.Projet || '—';
 }
 
-// ===================== FILL FICHE =====================
-function fillFiche(rec) {
+// ===================================================
+// REMPLISSAGE DE LA FICHE
+// ===================================================
+function fillFiche(r) {
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('fiche').style.display = 'flex';
+  document.getElementById('fiche').style.display      = 'flex';
 
-  // Header
-  document.getElementById('ficheTitle').textContent = rec['Projet'] || '—';
-  document.getElementById('ficheOperateurBadge').textContent = rec['Opérateur'] || '—';
+  // Hero
+  document.getElementById('heroName').textContent     = r.Projet || '—';
+  document.getElementById('heroOp').textContent       = r.Operateur || '—';
+  document.getElementById('heroDate').textContent     = fmtDate(r.Debut);
+  document.getElementById('heroHoraires').textContent = r.Horaires_affichage_ || '—';
 
-  const debut = rec['Début'];
-  if (debut) {
-    const d = new Date(typeof debut === 'number' ? debut * 1000 : debut);
-    document.getElementById('ficheDate').textContent = formatDate(d);
-  } else {
-    document.getElementById('ficheDate').textContent = '—';
-  }
+  const tenue = !!r.Tenue_de_l_audition;
+  document.getElementById('heroAuditionWrap').innerHTML = `
+    <span class="badge-audition ${tenue ? 'badge-ok' : 'badge-nok'}">
+      <span class="badge-dot"></span>${tenue ? 'Audition tenue' : 'Non tenue'}
+    </span>`;
 
-  document.getElementById('ficheHoraires').textContent = rec['Horaires (affichage)'] || '—';
+  // Champs simples
+  sv('f_op',         r.Operateur);
+  sv('f_chef',       r.Chef_de_file);
+  sv('f_lien',       r.Lien_vers_le_dossier_partage);
+  sv('f_horaires',   r.Horaires_affichage_);
+  sv('f_montantTotal', r.Montant_total_du_projet_en_);
+  sv('f_montantAide',  r.Montant_total_d_aide_du_projet_en_);
+  sv('f_subventions',  r.Subventions);
+  sv('f_ar',           r.AR);
 
-  const tenue = rec["Tenue de l'audition"];
-  const wrap = document.getElementById('ficheAuditionWrap');
-  wrap.innerHTML = `<span class="fiche-audition-badge ${tenue ? 'ok' : 'nok'}">
-    <span class="dot"></span>${tenue ? 'Audition tenue' : 'Non tenue'}
-  </span>`;
-
-  // Simple inputs
-  setInput('f_Operateur', rec['Opérateur']);
-  setInput('f_ChefDeFile', rec['Chef de file']);
-  setInput('f_Horaires', rec['Horaires (affichage)']);
-
-  const lienVal = rec['Lien vers le dossier partagé'] || '';
-  setInput('f_Lien', lienVal);
-  document.getElementById('f_LienHref').href = lienVal || '#';
+  document.getElementById('f_lienBtn').href = r.Lien_vers_le_dossier_partage || '#';
 
   // Dates
-  setDateInput('f_Debut', rec['Début']);
-  setDateInput('f_Fin', rec['Fin']);
+  svDate('f_debut', r.Debut);
+  svDate('f_fin',   r.Fin);
 
   // Toggle
-  document.getElementById('f_Tenue').checked = !!tenue;
-
-  // Numbers
-  setInput('f_MontantTotal', rec['Montant total du projet (en €)']);
-  setInput('f_MontantAide', rec["Montant total d'aide du projet (en €)"]);
-  setInput('f_Subventions', rec['Subventions']);
-  setInput('f_AR', rec['AR']);
+  const cb = document.getElementById('f_tenue');
+  cb.checked = tenue;
+  document.getElementById('toggleLabel').textContent = tenue ? 'Audition tenue' : 'Audition non tenue';
 
   // Tags
-  buildTags('tags_Consortium', rec['Membres du consortium']);
-  buildTags('tags_SPIN', rec['Participants SPIN']);
-  buildTags('tags_Etat', rec['Participation Etat']);
-  buildTags('tags_HorsSPIN', rec['Participants hors SPIN']);
+  buildTags('tags_consortium', r.Membres_du_consortium);
+  buildTags('tags_spin',       r.Participants_SPIN);
+  buildTags('tags_etat',       r.Participation_Etat);
+  buildTags('tags_horsspin',   r.Participants_hors_SPIN);
 
   // Textareas
-  setTextarea('f_Presentation', rec['Projet_Présentation']);
-  setTextarea('f_Objectifs', rec['Projet_Objectifs']);
-  setTextarea('f_Avancement', rec['Projet_Avancement']);
-  setTextarea('f_Freins', rec['Projet_Freins rencontrés']);
-  setTextarea('f_Potentiel', rec["Projet_Potentiel de l'innovation"]);
-  setTextarea('f_Perspectives', rec['Projet_Perspectives de développement']);
-  setTextarea('f_AvisSPIN', rec['Avis SPIN']);
-  setTextarea('f_AvisSFG', rec['Avis SFG']);
+  sta('f_pres',          r.Projet_Presentation);
+  sta('f_obj',           r.Projet_Objectifs);
+  sta('f_av',            r.Projet_Avancement);
+  sta('f_freins',        r.Projet_Freins_rencontres);
+  sta('f_potentiel',     r.Projet_Potentiel_de_l_innovation);
+  sta('f_perspectives',  r.Projet_Perspectives_de_developpement);
+  sta('f_avisSpin',      r.Avis_SPIN);
+  sta('f_avisSfg',       r.Avis_SFG);
 
-  pendingUpdates = {};
+  pending = {};
 }
 
-function setInput(id, val) {
+function sv(id, val) {
   const el = document.getElementById(id);
-  if (el) el.value = (val !== null && val !== undefined) ? val : '';
+  if (el) el.value = val != null ? val : '';
 }
-
-function setTextarea(id, val) {
+function sta(id, val) {
   const el = document.getElementById(id);
-  if (el) {
-    el.value = (val !== null && val !== undefined) ? val : '';
-    autoResize(el);
-  }
+  if (!el) return;
+  el.value = val != null ? val : '';
+  autoH(el);
 }
-
-function setDateInput(id, val) {
+function svDate(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
   if (!val) { el.value = ''; return; }
   const d = new Date(typeof val === 'number' ? val * 1000 : val);
   if (isNaN(d)) { el.value = ''; return; }
-  const pad = n => String(n).padStart(2, '0');
-  el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const p = n => String(n).padStart(2, '0');
+  el.value = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtDate(val) {
+  if (!val) return '—';
+  const d = new Date(typeof val === 'number' ? val * 1000 : val);
+  if (isNaN(d)) return '—';
+  return d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 }
 
-function formatDate(d) {
-  if (!d || isNaN(d)) return '—';
-  return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-// ===================== TAGS =====================
-function buildTags(containerId, rawValue) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-
-  const col = container.dataset.col;
-  const items = parseTagList(rawValue);
-
-  items.forEach(item => {
-    if (item.trim()) container.appendChild(createTag(item.trim(), containerId, col));
-  });
-
-  // Add input
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.className = 'participant-tag-input';
-  input.placeholder = items.length === 0 ? 'Ajouter…' : '+';
-  input.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ';') && input.value.trim()) {
+// ===================================================
+// TAGS
+// ===================================================
+function buildTags(containerId, raw) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = '';
+  const items = splitTags(raw);
+  items.forEach(t => c.appendChild(makeTag(t, containerId)));
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = 'tag-input';
+  inp.placeholder = items.length ? '+' : 'Ajouter…';
+  inp.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ';') && inp.value.trim()) {
       e.preventDefault();
-      addTag(containerId, col, input.value.trim());
-      input.value = '';
-      input.placeholder = '+';
-    } else if (e.key === 'Backspace' && input.value === '') {
-      const tags = container.querySelectorAll('.participant-tag');
-      if (tags.length > 0) tags[tags.length - 1].remove();
-      saveTagsToGrist(containerId, col);
+      c.insertBefore(makeTag(inp.value.trim(), containerId), inp);
+      inp.value = '';
+      saveTags(containerId);
+    } else if (e.key === 'Backspace' && !inp.value) {
+      const tags = c.querySelectorAll('.tag');
+      if (tags.length) { tags[tags.length-1].remove(); saveTags(containerId); }
     }
   });
-  input.addEventListener('blur', () => {
-    if (input.value.trim()) {
-      addTag(containerId, col, input.value.trim());
-      input.value = '';
+  inp.addEventListener('blur', () => {
+    if (inp.value.trim()) {
+      c.insertBefore(makeTag(inp.value.trim(), containerId), inp);
+      inp.value = '';
+      saveTags(containerId);
     }
   });
-  container.appendChild(input);
+  c.appendChild(inp);
 }
 
-function parseTagList(rawValue) {
-  if (!rawValue) return [];
-  const str = String(rawValue);
-  return str.split(/[;,]/).map(s => s.trim()).filter(Boolean);
+function makeTag(text, containerId) {
+  const t = document.createElement('span');
+  t.className = 'tag';
+  t.innerHTML = `${esc(text)}<span class="tag-x" title="Supprimer">×</span>`;
+  t.querySelector('.tag-x').onclick = () => { t.remove(); saveTags(containerId); };
+  return t;
 }
 
-function createTag(text, containerId, col) {
-  const tag = document.createElement('span');
-  tag.className = 'participant-tag';
-  tag.innerHTML = `${escHtml(text)}<span class="tag-remove" title="Supprimer">×</span>`;
-  tag.querySelector('.tag-remove').addEventListener('click', () => {
-    tag.remove();
-    saveTagsToGrist(containerId, col);
-  });
-  return tag;
+function saveTags(containerId) {
+  const c   = document.getElementById(containerId);
+  const col = c.dataset.grist;
+  const val = [...c.querySelectorAll('.tag')].map(t => t.childNodes[0].textContent.trim()).join('; ');
+  pending[col] = val;
+  scheduleSave();
 }
 
-function addTag(containerId, col, text) {
-  const container = document.getElementById(containerId);
-  const input = container.querySelector('.participant-tag-input');
-  container.insertBefore(createTag(text, containerId, col), input);
-  saveTagsToGrist(containerId, col);
+function splitTags(raw) {
+  if (!raw) return [];
+  return String(raw).split(/[;,]/).map(s => s.trim()).filter(Boolean);
 }
 
-function saveTagsToGrist(containerId, col) {
-  const container = document.getElementById(containerId);
-  const tags = [...container.querySelectorAll('.participant-tag')].map(t => {
-    return t.childNodes[0].textContent.trim();
-  });
-  const value = tags.join('; ');
-  pendingUpdates[col] = value;
-  scheduleFlush();
-}
-
-// ===================== AUTOSAVE =====================
-function scheduleUpdate(el) {
-  const col = el.dataset.col;
+// ===================================================
+// SAUVEGARDE AUTO
+// ===================================================
+function onChange(el) {
+  const col = el.dataset.grist;
   if (!col) return;
+  let val;
+  if (el.type === 'checkbox')       val = el.checked;
+  else if (el.type === 'number')    val = el.value === '' ? null : parseFloat(el.value);
+  else if (el.type === 'datetime-local') val = el.value ? new Date(el.value).getTime() / 1000 : null;
+  else val = el.value;
 
-  let value;
-  if (el.type === 'checkbox') {
-    value = el.checked;
-  } else if (el.type === 'number') {
-    value = el.value === '' ? null : parseFloat(el.value);
-  } else if (el.type === 'datetime-local') {
-    value = el.value ? new Date(el.value).getTime() / 1000 : null;
-  } else {
-    value = el.value;
+  pending[col] = val;
+
+  // Mise à jour live du hero
+  if (col === 'Operateur')           { document.getElementById('heroOp').textContent = val || '—';
+                                       document.getElementById('heroOp').textContent = val || '—'; }
+  if (col === 'Horaires_affichage_') { document.getElementById('heroHoraires').textContent = val || '—'; }
+  if (col === 'Tenue_de_l_audition') {
+    document.getElementById('toggleLabel').textContent = val ? 'Audition tenue' : 'Audition non tenue';
+    document.getElementById('heroAuditionWrap').innerHTML = `
+      <span class="badge-audition ${val ? 'badge-ok' : 'badge-nok'}">
+        <span class="badge-dot"></span>${val ? 'Audition tenue' : 'Non tenue'}
+      </span>`;
+  }
+  if (col === 'Lien_vers_le_dossier_partage') {
+    document.getElementById('f_lienBtn').href = val || '#';
   }
 
-  pendingUpdates[col] = value;
-
-  // Update live header
-  updateLiveHeader(col, value, el);
-
-  scheduleFlush();
+  scheduleSave();
 }
 
-function updateLiveHeader(col, value, el) {
-  if (col === 'Opérateur') {
-    document.getElementById('ficheOperateurBadge').textContent = value || '—';
-  }
-  if (col === 'Horaires (affichage)') {
-    document.getElementById('ficheHoraires').textContent = value || '—';
-  }
-  if (col === "Tenue de l'audition") {
-    const wrap = document.getElementById('ficheAuditionWrap');
-    wrap.innerHTML = `<span class="fiche-audition-badge ${value ? 'ok' : 'nok'}">
-      <span class="dot"></span>${value ? 'Audition tenue' : 'Non tenue'}
-    </span>`;
-  }
-  if (col === 'Lien vers le dossier partagé') {
-    document.getElementById('f_LienHref').href = value || '#';
-  }
+function scheduleSave() {
+  setSave('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 900);
 }
 
-function scheduleFlush() {
-  setSaveState('saving');
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushUpdates, 800);
-}
+async function flush() {
+  if (!currentRowId || !Object.keys(pending).length) return;
+  if (isSaving) { scheduleSave(); return; }
+  isSaving = true;
+  const data = { ...pending };
+  pending = {};
 
-async function flushUpdates() {
-  if (currentRowId === null) return;
-  if (Object.keys(pendingUpdates).length === 0) return;
-  if (isUpdating) {
-    scheduleFlush();
-    return;
-  }
-
-  isUpdating = true;
-  const updates = { ...pendingUpdates };
-  pendingUpdates = {};
+  // Remapper les noms internes → noms réels Grist via mappings inverses
+  const toSend = remapForSave(data);
 
   try {
-    await grist.selectedTable.setRecord(currentRowId, updates);
-    setSaveState('saved');
-    setTimeout(() => setSaveState('idle'), 2500);
-  } catch (e) {
-    setSaveState('error');
-    showToast('Erreur lors de la sauvegarde', 'error');
-    console.error('Save error:', e);
+    await grist.selectedTable.update({ id: currentRowId, fields: toSend });
+    setSave('saved');
+    setTimeout(() => setSave('idle'), 2500);
+  } catch(e) {
+    console.error('Erreur sauvegarde', e);
+    setSave('error');
+    toast('Erreur lors de la sauvegarde', 'err');
   } finally {
-    isUpdating = false;
+    isSaving = false;
   }
 }
 
-function setSaveState(state) {
-  const indicator = document.getElementById('saveIndicator');
-  const text = document.getElementById('saveText');
-  indicator.className = 'save-indicator';
-  if (state === 'saving') {
-    indicator.classList.add('saving');
-    text.textContent = 'Enregistrement…';
-  } else if (state === 'saved') {
-    indicator.classList.add('saved');
-    text.textContent = 'Enregistré ✓';
-  } else if (state === 'error') {
-    text.textContent = 'Erreur !';
-  } else {
-    text.textContent = 'Synchronisé';
+// Convertit les noms déclarés (data-grist) → noms réels de colonnes Grist
+function remapForSave(data) {
+  if (!currentMaps) return data;
+  const out = {};
+  for (const [widgetCol, val] of Object.entries(data)) {
+    // currentMaps : { widgetColName: realColName }
+    const realCol = currentMaps[widgetCol];
+    if (realCol) out[realCol] = val;
+    else out[widgetCol] = val;  // fallback si pas de mapping
   }
+  return out;
 }
 
-// ===================== UTILS =====================
-function autoResize(el) {
+function setSave(state) {
+  const el  = document.getElementById('saveStatus');
+  const lbl = document.getElementById('saveLabel');
+  el.className = 'save-status' + (state !== 'idle' ? ` ${state}` : '');
+  lbl.textContent = state === 'saving' ? 'Enregistrement…' : state === 'saved' ? 'Enregistré ✓' : state === 'error' ? 'Erreur !' : 'Synchronisé';
+}
+
+// ===================================================
+// EXPORT DOCX (Word)
+// ===================================================
+function exportDoc() {
+  if (!currentRowId) { toast('Aucune fiche sélectionnée', 'err'); return; }
+  const r = allRecords.find(r => r.__id === currentRowId);
+  if (!r) return;
+
+  const fmt = v => (v != null && v !== '') ? new Intl.NumberFormat('fr-FR').format(v) + ' €' : '—';
+  const fmtD = v => fmtDate(v);
+  const nl = v => v ? String(v).replace(/\n/g, '<br/>') : '—';
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; color: #1c2b3a; font-size: 11pt; padding: 2cm; }
+    h1 { font-size: 18pt; color: #1a3a5c; margin: 0 0 4pt; }
+    h2 { font-size: 12pt; color: #1a3a5c; border-bottom: 1pt solid #1a3a5c; padding-bottom: 3pt; margin: 16pt 0 6pt; }
+    .meta { color: #5a6a7a; font-size: 9.5pt; margin-bottom: 14pt; }
+    .label { font-size: 8.5pt; font-weight: bold; text-transform: uppercase; color: #5a6a7a; letter-spacing: .5pt; }
+    .val { font-size: 10.5pt; margin: 2pt 0 8pt; }
+    .pre { font-size: 10.5pt; white-space: pre-wrap; background: #f4f6f9; padding: 8pt; border-left: 3pt solid #1a3a5c; margin: 3pt 0 10pt; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20pt; }
+  </style></head><body>
+  <h1>${esc(r.Projet || '—')}</h1>
+  <p class="meta">${esc(r.Operateur || '')} — ${fmtD(r.Debut)}</p>
+  <hr/>
+  <h2>Informations générales</h2>
+  <div class="grid">
+    <div><p class="label">Opérateur</p><p class="val">${esc(r.Operateur||'—')}</p></div>
+    <div><p class="label">Chef de file</p><p class="val">${esc(r.Chef_de_file||'—')}</p></div>
+  </div>
+  <p class="label">Membres du consortium</p><p class="val">${esc(r.Membres_du_consortium||'—')}</p>
+  <p class="label">Lien dossier partagé</p><p class="val">${esc(r.Lien_vers_le_dossier_partage||'—')}</p>
+  <h2>Audition</h2>
+  <div class="grid">
+    <div><p class="label">Date de début</p><p class="val">${fmtD(r.Debut)}</p></div>
+    <div><p class="label">Date de fin</p><p class="val">${fmtD(r.Fin)}</p></div>
+    <div><p class="label">Horaires</p><p class="val">${esc(r.Horaires_affichage_||'—')}</p></div>
+    <div><p class="label">Tenue</p><p class="val">${r.Tenue_de_l_audition ? '✓ Oui' : '✗ Non'}</p></div>
+  </div>
+  <h2>Participants</h2>
+  <p class="label">Participants SPIN</p><p class="val">${esc(r.Participants_SPIN||'—')}</p>
+  <p class="label">Participation État</p><p class="val">${esc(r.Participation_Etat||'—')}</p>
+  <p class="label">Participants hors SPIN</p><p class="val">${esc(r.Participants_hors_SPIN||'—')}</p>
+  <h2>Financements</h2>
+  <div class="grid">
+    <div><p class="label">Montant total du projet</p><p class="val">${fmt(r.Montant_total_du_projet_en_)}</p></div>
+    <div><p class="label">Montant total d'aide</p><p class="val">${fmt(r.Montant_total_d_aide_du_projet_en_)}</p></div>
+    <div><p class="label">Subventions</p><p class="val">${fmt(r.Subventions)}</p></div>
+    <div><p class="label">AR</p><p class="val">${fmt(r.AR)}</p></div>
+  </div>
+  <h2>Fiche projet</h2>
+  <p class="label">Présentation</p><div class="pre">${nl(r.Projet_Presentation)}</div>
+  <p class="label">Objectifs</p><div class="pre">${nl(r.Projet_Objectifs)}</div>
+  <p class="label">Avancement</p><div class="pre">${nl(r.Projet_Avancement)}</div>
+  <p class="label">Freins rencontrés</p><div class="pre">${nl(r.Projet_Freins_rencontres)}</div>
+  <p class="label">Potentiel de l'innovation</p><div class="pre">${nl(r.Projet_Potentiel_de_l_innovation)}</div>
+  <p class="label">Perspectives de développement</p><div class="pre">${nl(r.Projet_Perspectives_de_developpement)}</div>
+  <h2>Avis</h2>
+  <div class="grid">
+    <div><p class="label">Avis SPIN</p><div class="pre">${nl(r.Avis_SPIN)}</div></div>
+    <div><p class="label">Avis SFG</p><div class="pre">${nl(r.Avis_SFG)}</div></div>
+  </div>
+  </body></html>`;
+
+  const blob = new Blob([html], { type: 'application/msword' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `Fiche_${(r.Projet||'projet').replace(/[^a-zA-Z0-9]/g,'_')}.doc`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Export lancé ✓', 'ok');
+}
+
+// ===================================================
+// UTILITAIRES
+// ===================================================
+function autoH(el) {
   el.style.height = 'auto';
-  el.style.height = Math.max(el.scrollHeight, 90) + 'px';
+  el.style.height = Math.max(el.scrollHeight, 88) + 'px';
 }
-
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function showToast(msg, type = '') {
+function toast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast ${type}`;
+  t.className   = `toast ${type}`;
   void t.offsetWidth;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3200);
-}
-
-// ===================== EXPORT DOCX =====================
-function exportDocx() {
-  if (!currentRowId) { showToast('Aucune fiche sélectionnée', 'error'); return; }
-  const rec = allRecords.find(r => r.id === currentRowId);
-  if (!rec) return;
-
-  const lines = [];
-  const h1 = s => lines.push(`<h1 style="font-size:20pt;color:#2d5be3;margin:0 0 4pt;">${escHtml(s)}</h1>`);
-  const h2 = s => lines.push(`<h2 style="font-size:13pt;color:#2d5be3;border-bottom:1pt solid #2d5be3;margin:14pt 0 6pt;padding-bottom:3pt;">${escHtml(s)}</h2>`);
-  const field = (label, val) => {
-    if (!val && val !== 0) return;
-    lines.push(`<p style="margin:4pt 0;"><strong style="color:#5a6282;font-size:9pt;">${escHtml(label).toUpperCase()} : </strong><span style="font-size:10.5pt;">${escHtml(String(val))}</span></p>`);
-  };
-  const fieldPre = (label, val) => {
-    if (!val) return;
-    lines.push(`<p style="margin:4pt 0;"><strong style="color:#5a6282;font-size:9pt;">${escHtml(label).toUpperCase()}</strong></p>`);
-    lines.push(`<div style="font-size:10.5pt;white-space:pre-wrap;background:#f8f9fc;padding:8pt;border-left:3pt solid #2d5be3;margin:3pt 0 8pt;">${escHtml(String(val))}</div>`);
-  };
-  const fmt = v => v !== null && v !== undefined && v !== '' ? new Intl.NumberFormat('fr-FR').format(v) + ' €' : '—';
-  const fmtDate = v => {
-    if (!v) return '—';
-    const d = new Date(typeof v === 'number' ? v * 1000 : v);
-    return isNaN(d) ? String(v) : formatDate(d);
-  };
-
-  lines.push(`<div style="font-family:Calibri,Arial,sans-serif;padding:20pt 24pt;max-width:700pt;">`);
-  h1(rec['Projet'] || '—');
-  lines.push(`<p style="color:#5a6282;font-size:10pt;margin:2pt 0 12pt;">${escHtml(rec['Opérateur'] || '')} — ${fmtDate(rec['Début'])}</p>`);
-  lines.push(`<hr style="border:none;border-top:2pt solid #2d5be3;margin-bottom:14pt;"/>`);
-
-  h2('Informations générales');
-  field('Opérateur', rec['Opérateur']);
-  field('Chef de file', rec['Chef de file']);
-  field('Membres du consortium', rec['Membres du consortium']);
-  field('Lien dossier partagé', rec['Lien vers le dossier partagé']);
-
-  h2('Audition');
-  field('Date de début', fmtDate(rec['Début']));
-  field('Date de fin', fmtDate(rec['Fin']));
-  field('Horaires', rec['Horaires (affichage)']);
-  field('Tenue', rec["Tenue de l'audition"] ? '✓ Oui' : '✗ Non');
-
-  h2('Participants');
-  field('Participants SPIN', rec['Participants SPIN']);
-  field('Participation État', rec['Participation Etat']);
-  field('Participants hors SPIN', rec['Participants hors SPIN']);
-
-  h2('Financements');
-  field('Montant total du projet', fmt(rec['Montant total du projet (en €)']));
-  field("Montant total d'aide", fmt(rec["Montant total d'aide du projet (en €)"]));
-  field('dont Subventions', fmt(rec['Subventions']));
-  field('dont AR', fmt(rec['AR']));
-
-  h2('Fiche projet');
-  fieldPre('Présentation', rec['Projet_Présentation']);
-  fieldPre('Objectifs', rec['Projet_Objectifs']);
-  fieldPre('Avancement', rec['Projet_Avancement']);
-  fieldPre('Freins rencontrés', rec['Projet_Freins rencontrés']);
-  fieldPre("Potentiel de l'innovation", rec["Projet_Potentiel de l'innovation"]);
-  fieldPre('Perspectives de développement', rec['Projet_Perspectives de développement']);
-
-  h2('Avis');
-  fieldPre('Avis SPIN', rec['Avis SPIN']);
-  fieldPre('Avis SFG', rec['Avis SFG']);
-
-  lines.push('</div>');
-
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(rec['Projet'] || 'Fiche')}</title></head><body>${lines.join('\n')}</body></html>`;
-  const blob = new Blob([html], { type: 'application/msword' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Fiche_${(rec['Projet'] || 'projet').replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Export DOC lancé ✓', 'success');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 </body>
