@@ -891,7 +891,13 @@ grist.onRecord(function(record, mappings) {
 ═══════════════════════════════════════════════════════ */
 function buildPicker() {
   const list = document.getElementById('pickerList');
-  const items = allRecords.filter(r => r && r.Projet && isInSelectedScope(r));
+  const items = allRecords
+    .filter(r => r && r.Projet && isInSelectedScope(r))
+    .sort((a, b) => String(a.Projet).localeCompare(
+      String(b.Projet),
+      'fr',
+      { sensitivity: 'base', numeric: true }
+    ));
   document.getElementById('pickerCount').textContent = items.length;
   list.innerHTML = items.map(r => {
     const key = getDemarcheKey(r);
