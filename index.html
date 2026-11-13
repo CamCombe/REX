@@ -7,645 +7,840 @@
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    /* ===================== VARIABLES ===================== */
+
+    /* ═══════════════════════════════════════
+       VARIABLES
+    ═══════════════════════════════════════ */
     :root {
-      --bleu:        #1a3a5c;
-      --bleu-clair:  #2563a8;
-      --bleu-pale:   #e8f0f8;
-      --gris-bg:     #f4f6f9;
-      --gris-bord:   #d1d9e0;
-      --gris-texte:  #5a6a7a;
-      --blanc:       #ffffff;
-      --rouge-doux:  #c0392b;
-      --vert-doux:   #1e7e4a;
-      --texte:       #1c2b3a;
-      --radius:      8px;
-      --radius-lg:   12px;
-      --shadow:      0 1px 4px rgba(0,0,0,0.08), 0 2px 12px rgba(0,0,0,0.05);
-      --shadow-lg:   0 4px 24px rgba(0,0,0,0.10);
-      --transition:  0.17s ease;
+      --bleu:          #1b3f6b;
+      --bleu-mid:      #2563a8;
+      --bleu-light:    #edf3fb;
+      --bleu-border:   rgba(37,99,168,.22);
+      --bg:            #f0f3f8;
+      --surface:       #ffffff;
+      --surface-alt:   #f7f8fc;
+      --border:        #dde2ee;
+      --text:          #1a1e2e;
+      --text-sec:      #4a5270;
+      --text-muted:    #8b93b0;
+      --green:         #177a4e;
+      --green-bg:      #eaf6f0;
+      --red-bg:        #fdf0ef;
+      --red:           #b83030;
+      --tag-bg:        #e8f0fb;
+      --tag-border:    rgba(37,99,168,.18);
+      --tag-text:      #1b4d9a;
+      --shadow-sm:     0 1px 3px rgba(20,30,70,.07);
+      --shadow:        0 2px 12px rgba(20,30,70,.08), 0 1px 3px rgba(20,30,70,.05);
+      --shadow-lg:     0 6px 28px rgba(20,30,70,.11), 0 2px 6px rgba(20,30,70,.06);
+      --r:             10px;
+      --r-sm:          6px;
+      --r-lg:          14px;
+      --ease:          .17s cubic-bezier(.4,0,.2,1);
     }
 
-    /* ===================== RESET ===================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--gris-bg); color: var(--texte); font-size: 14px; line-height: 1.6; }
 
-    /* ===================== LAYOUT ===================== */
+    html, body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+      height: 100%;
+    }
+
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
     .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* ===================== TOPBAR ===================== */
+    /* ═══════════════════════════════════════
+       TOPBAR
+    ═══════════════════════════════════════ */
     .topbar {
-      background: var(--blanc);
-      border-bottom: 1.5px solid var(--gris-bord);
-      padding: 10px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 18px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      z-index: 100;
+      box-shadow: var(--shadow-sm);
+      z-index: 50;
     }
-    .topbar-logo {
-      display: flex; align-items: center; gap: 9px;
-      text-decoration: none;
-    }
-    .topbar-logo-mark {
-      width: 30px; height: 30px;
-      background: var(--bleu);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .topbar-logo-mark svg { width: 17px; height: 17px; fill: white; }
-    .topbar-logo-text { font-size: 14px; font-weight: 700; color: var(--bleu); letter-spacing: .3px; }
-    .topbar-sep { width: 1px; height: 24px; background: var(--gris-bord); flex-shrink: 0; }
-    .topbar-spacer { flex: 1; }
 
-    /* ===================== SELECTOR ===================== */
-    .selector-wrap { position: relative; min-width: 260px; max-width: 360px; flex: 1; }
-    .selector-btn {
-      width: 100%;
-      background: var(--gris-bg);
-      border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius);
-      padding: 7px 34px 7px 12px;
-      font-family: inherit; font-size: 13.5px; font-weight: 500;
-      color: var(--texte); cursor: pointer; text-align: left;
+    /* Logo */
+    .brand {
       display: flex; align-items: center; gap: 8px;
-      transition: border-color var(--transition), box-shadow var(--transition);
-      white-space: nowrap; overflow: hidden;
+      flex-shrink: 0;
     }
-    .selector-btn:hover { border-color: var(--bleu-clair); }
-    .selector-btn.open { border-color: var(--bleu-clair); box-shadow: 0 0 0 3px rgba(37,99,168,.13); }
-    .selector-btn-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-    .selector-btn-count {
+    .brand-mark {
+      width: 28px; height: 28px;
+      background: var(--bleu);
+      border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-mark svg { width: 15px; height: 15px; fill: white; }
+    .brand-name { font-size: 13.5px; font-weight: 700; color: var(--bleu); }
+
+    .sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+    .gap { flex: 1; }
+
+    /* ═══════════════════════════════════════
+       SÉLECTEUR CUSTOM
+    ═══════════════════════════════════════ */
+    .picker {
+      position: relative;
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .picker-btn {
+      width: 100%;
+      background: var(--surface-alt);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: 7px 34px 7px 12px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color var(--ease), box-shadow var(--ease);
+      outline: none;
+    }
+    .picker-btn:hover { border-color: var(--bleu-mid); }
+    .picker-btn.open {
+      border-color: var(--bleu-mid);
+      box-shadow: 0 0 0 3px rgba(37,99,168,.11);
+      border-radius: var(--r) var(--r) 0 0;
+      border-bottom-color: transparent;
+    }
+
+    .picker-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .picker-count {
       background: var(--bleu); color: white;
       font-size: 10px; font-weight: 700;
       border-radius: 20px; padding: 1px 7px;
       flex-shrink: 0;
     }
-    .selector-chevron {
+    .picker-chevron {
       position: absolute; right: 10px; top: 50%;
       transform: translateY(-50%);
-      color: var(--gris-texte); pointer-events: none;
-      transition: transform var(--transition);
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: transform var(--ease);
     }
-    .selector-btn.open ~ .selector-chevron { transform: translateY(-50%) rotate(180deg); }
-    .selector-dropdown {
-      display: none; flex-direction: column;
-      position: absolute; top: calc(100% + 5px); left: 0; right: 0;
-      background: var(--blanc);
-      border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius-lg);
+    .picker-btn.open ~ .picker-chevron { transform: translateY(-50%) rotate(180deg); }
+
+    .picker-drop {
+      display: none;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--bleu-mid);
+      border-top: none;
+      border-radius: 0 0 var(--r) var(--r);
       box-shadow: var(--shadow-lg);
       z-index: 999;
-      max-height: 340px;
+      flex-direction: column;
+      max-height: 320px;
       overflow: hidden;
     }
-    .selector-wrap.open .selector-dropdown { display: flex; }
-    .selector-search-box {
-      padding: 10px 10px 8px;
-      border-bottom: 1px solid var(--gris-bord);
+    .picker.open .picker-drop { display: flex; }
+
+    .picker-search-wrap {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .selector-search-box input {
-      width: 100%; border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius); padding: 6px 10px;
+    .picker-search {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 6px 10px;
       font-family: inherit; font-size: 13px;
-      color: var(--texte); background: var(--gris-bg);
-      outline: none; transition: border-color var(--transition);
+      color: var(--text); background: var(--bg);
+      outline: none;
+      transition: border-color var(--ease);
     }
-    .selector-search-box input:focus { border-color: var(--bleu-clair); }
-    .selector-list { overflow-y: auto; flex: 1; }
-    .selector-item {
-      padding: 9px 14px; cursor: pointer;
-      display: flex; align-items: center; gap: 9px;
-      border-bottom: 1px solid var(--gris-bord);
-      transition: background var(--transition);
-    }
-    .selector-item:last-child { border-bottom: none; }
-    .selector-item:hover { background: var(--bleu-pale); }
-    .selector-item.active { background: var(--bleu-pale); font-weight: 600; color: var(--bleu); }
-    .selector-item-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gris-bord); flex-shrink: 0; }
-    .selector-item.active .selector-item-dot { background: var(--bleu-clair); }
-    .selector-item-name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-    .selector-item-op { font-size: 11px; color: var(--gris-texte); flex-shrink: 0; }
+    .picker-search:focus { border-color: var(--bleu-mid); }
 
-    /* ===================== SAVE ===================== */
-    .save-status {
+    .picker-list { overflow-y: auto; flex: 1; }
+
+    .picker-item {
+      padding: 9px 14px;
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background var(--ease);
+      font-size: 13px;
+    }
+    .picker-item:last-child { border-bottom: none; }
+    .picker-item:hover { background: var(--bleu-light); }
+    .picker-item.active { background: var(--bleu-light); font-weight: 600; color: var(--bleu-mid); }
+
+    .picker-item-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0;
+    }
+    .picker-item.active .picker-item-dot { background: var(--bleu-mid); }
+    .picker-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .picker-item-op { font-size: 11px; color: var(--text-muted); }
+
+    /* ═══════════════════════════════════════
+       SAVE INDICATOR
+    ═══════════════════════════════════════ */
+    .save-ind {
       display: flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--gris-texte);
-      flex-shrink: 0; min-width: 110px;
-      transition: color var(--transition);
+      font-size: 12px; color: var(--text-muted);
+      flex-shrink: 0;
+      transition: color var(--ease);
     }
-    .save-status.saving { color: #c47c00; }
-    .save-status.saved  { color: var(--vert-doux); }
-    .save-status.error  { color: var(--rouge-doux); }
-    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .save-ind.saving { color: #b07a00; }
+    .save-ind.saved  { color: var(--green); }
+    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    /* ===================== BUTTONS ===================== */
+    /* ═══════════════════════════════════════
+       BOUTONS
+    ═══════════════════════════════════════ */
     .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 13px; border-radius: var(--radius);
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 12px;
+      border-radius: var(--r-sm);
       font-family: inherit; font-size: 12.5px; font-weight: 500;
       cursor: pointer; border: 1.5px solid transparent;
-      transition: all var(--transition); white-space: nowrap; flex-shrink: 0;
+      transition: all var(--ease); white-space: nowrap; flex-shrink: 0;
     }
     .btn svg { width: 14px; height: 14px; }
-    .btn-outline {
-      background: transparent; border-color: var(--gris-bord); color: var(--gris-texte);
+
+    .btn-ghost {
+      background: transparent; border-color: var(--border); color: var(--text-sec);
     }
-    .btn-outline:hover { border-color: var(--bleu-clair); color: var(--bleu-clair); background: var(--bleu-pale); }
-    .btn-primary { background: var(--bleu); color: white; border-color: var(--bleu); }
-    .btn-primary:hover { background: var(--bleu-clair); border-color: var(--bleu-clair); }
+    .btn-ghost:hover { border-color: var(--bleu-mid); color: var(--bleu-mid); background: var(--bleu-light); }
 
-    /* ===================== MAIN SCROLL ===================== */
-    .main { flex: 1; overflow-y: auto; padding: 28px 24px; }
+    .btn-solid {
+      background: var(--bleu); color: white; border-color: var(--bleu);
+    }
+    .btn-solid:hover { background: var(--bleu-mid); border-color: var(--bleu-mid); }
 
-    /* ===================== EMPTY STATE ===================== */
-    .empty-state {
+    /* ═══════════════════════════════════════
+       SCROLL ZONE
+    ═══════════════════════════════════════ */
+    .main {
+      flex: 1; overflow-y: auto;
+      padding: 24px 20px 48px;
+    }
+
+    /* ═══════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════ */
+    .empty {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      height: 100%; gap: 14px; color: var(--gris-texte);
-      text-align: center;
+      height: 100%; gap: 10px;
+      color: var(--text-muted);
     }
-    .empty-state svg { width: 52px; height: 52px; opacity: .25; }
-    .empty-state-title { font-size: 16px; font-weight: 500; color: var(--texte); opacity: .4; }
-    .empty-state-sub { font-size: 13px; opacity: .6; }
+    .empty svg { width: 46px; height: 46px; opacity: .2; }
+    .empty p { font-size: 14px; opacity: .5; }
 
-    /* ===================== FICHE ===================== */
-    .fiche { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    /* ═══════════════════════════════════════
+       FICHE CONTAINER
+    ═══════════════════════════════════════ */
+    .fiche { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 
-    /* En-tête de la fiche */
-    .fiche-hero {
-      background: var(--bleu);
-      border-radius: var(--radius-lg);
-      padding: 26px 30px 22px;
+    /* ═══════════════════════════════════════
+       BANNIÈRE PROJET
+    ═══════════════════════════════════════ */
+    .banner {
+      background: linear-gradient(130deg, var(--bleu) 0%, #1f4e8a 100%);
+      border-radius: var(--r-lg);
+      padding: 22px 26px 20px;
       color: white;
       box-shadow: var(--shadow);
-    }
-    .fiche-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
-    .fiche-hero-name { font-size: 21px; font-weight: 700; line-height: 1.3; letter-spacing: -.2px; }
-    .fiche-hero-op {
-      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.22);
-      border-radius: 20px; padding: 3px 12px;
-      font-size: 12px; font-weight: 500; white-space: nowrap; flex-shrink: 0;
-    }
-    .fiche-hero-meta { display: flex; flex-wrap: wrap; gap: 18px; }
-    .fiche-hero-meta-item { display: flex; align-items: center; gap: 6px; font-size: 12.5px; opacity: .88; }
-    .fiche-hero-meta-item svg { width: 14px; height: 14px; opacity: .7; }
-    .badge-audition {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
-    }
-    .badge-ok  { background: rgba(30,126,74,.18); color: #a3f7c4; border: 1px solid rgba(163,247,196,.25); }
-    .badge-nok { background: rgba(192,57,43,.18);  color: #ffb3ae; border: 1px solid rgba(255,179,174,.25); }
-    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-    /* Cartes de section */
-    .section {
-      background: var(--blanc);
-      border: 1px solid var(--gris-bord);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
+      position: relative;
       overflow: hidden;
     }
+    .banner::before {
+      content: '';
+      position: absolute; top: -50px; right: -40px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+    }
+    .banner-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .banner-name { font-size: 21px; font-weight: 700; letter-spacing: -.2px; line-height: 1.25; }
+
+    .banner-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+    .banner-op-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .55; font-weight: 500; }
+    .banner-op-pill {
+      font-size: 12.5px; font-weight: 600;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 20px; padding: 3px 11px;
+    }
+
+    .banner-meta { display: flex; flex-wrap: wrap; gap: 18px; position: relative; z-index: 1; }
+    .banner-meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .banner-meta-hint { font-size: 10px; text-transform: uppercase; letter-spacing: .7px; opacity: .5; font-weight: 500; }
+    .banner-meta-val {
+      font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .banner-meta-val svg { width: 12px; height: 12px; opacity: .65; }
+
+    /* Badge tenue */
+    .badge-tenue {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 10px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600;
+    }
+    .badge-tenue.ok  { background: rgba(23,122,78,.2);  color: #9ff5c8; }
+    .badge-tenue.nok { background: rgba(184,48,48,.2);  color: #ffb3b3; }
+    .badge-tenue-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    /* Lien dossier */
+    .dossier-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: var(--r-sm);
+      color: white; text-decoration: none;
+      transition: background var(--ease);
+    }
+    .dossier-btn:hover { background: rgba(255,255,255,.26); }
+    .dossier-btn svg { width: 13px; height: 13px; }
+
+    /* ═══════════════════════════════════════
+       SECTION CARD
+    ═══════════════════════════════════════ */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
     .section-head {
-      padding: 13px 20px 12px;
-      border-bottom: 1px solid var(--gris-bord);
-      background: #fafbfc;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-alt);
       display: flex; align-items: center; gap: 9px;
     }
     .section-icon {
-      width: 26px; height: 26px; border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      width: 25px; height: 25px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .section-icon svg { width: 14px; height: 14px; }
-    .section-title { font-size: 12.5px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .6px; }
-    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 15px; }
+    .section-icon svg { width: 13px; height: 13px; }
+    .section-title { font-size: 12px; font-weight: 600; color: var(--bleu); text-transform: uppercase; letter-spacing: .65px; }
 
-    /* ===================== GRILLE DE CHAMPS ===================== */
-    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .field-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
-    .field-full { grid-column: 1 / -1; }
+    .section-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* ═══════════════════════════════════════
+       GRILLE DE CHAMPS
+    ═══════════════════════════════════════ */
+    .row   { display: grid; gap: 13px; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
+    .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .full  { grid-column: 1/-1; }
+
     .field { display: flex; flex-direction: column; gap: 4px; }
     .field-label {
       font-size: 10.5px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .7px; color: var(--gris-texte);
+      letter-spacing: .65px; color: var(--text-muted);
     }
 
-    /* ===================== INPUTS ===================== */
+    /* ═══════════════════════════════════════
+       INPUTS
+    ═══════════════════════════════════════ */
     .inp {
-      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius); padding: 7px 11px;
-      font-family: inherit; font-size: 13.5px; color: var(--texte);
+      background: var(--surface-alt);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 7px 10px;
+      font-family: inherit; font-size: 13.5px; color: var(--text);
       width: 100%; outline: none; resize: none;
-      transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+      transition: border-color var(--ease), background var(--ease), box-shadow var(--ease);
     }
-    .inp:hover { border-color: #9eb4cc; background: var(--blanc); }
-    .inp:focus { border-color: var(--bleu-clair); background: var(--blanc); box-shadow: 0 0 0 3px rgba(37,99,168,.10); }
-    textarea.inp { min-height: 88px; line-height: 1.65; }
+    .inp:hover { border-color: #b8c0d8; background: white; }
+    .inp:focus { border-color: var(--bleu-mid); background: white; box-shadow: 0 0 0 3px rgba(37,99,168,.1); }
+    textarea.inp { min-height: 90px; line-height: 1.65; }
     textarea.inp.tall { min-height: 130px; }
 
-    /* URL field */
-    .inp-url-wrap { display: flex; }
-    .inp-url-wrap .inp { border-radius: var(--radius) 0 0 var(--radius); border-right: none; }
-    .inp-url-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; background: var(--bleu-pale);
-      border: 1.5px solid var(--gris-bord); border-left: none;
-      border-radius: 0 var(--radius) var(--radius) 0;
-      color: var(--bleu-clair); text-decoration: none; flex-shrink: 0;
-      transition: background var(--transition), color var(--transition);
-    }
-    .inp-url-btn:hover { background: var(--bleu-clair); color: white; }
-    .inp-url-btn svg { width: 14px; height: 14px; }
+    /* ═══════════════════════════════════════
+       MONTANTS
+    ═══════════════════════════════════════ */
+    .montant-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 
-    /* Toggle */
-    .toggle-row { display: flex; align-items: center; gap: 10px; }
-    .toggle { position: relative; width: 38px; height: 21px; flex-shrink: 0; }
-    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .toggle-track {
-      position: absolute; inset: 0; border-radius: 11px;
-      background: var(--gris-bord); cursor: pointer;
-      transition: background var(--transition);
+    .montant-card {
+      background: var(--surface-alt); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 14px;
     }
-    .toggle input:checked + .toggle-track { background: var(--bleu-clair); }
-    .toggle-thumb {
-      position: absolute; top: 2.5px; left: 2.5px;
+    .montant-card.hi { background: var(--bleu-light); border-color: var(--bleu-border); }
+
+    .montant-card-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--text-muted); margin-bottom: 5px;
+    }
+    .montant-card.hi .montant-card-label { color: var(--bleu-mid); }
+
+    .montant-row { display: flex; align-items: baseline; gap: 4px; }
+    .montant-inp {
+      flex: 1; border: none; background: transparent; outline: none;
+      font-family: inherit; font-size: 18px; font-weight: 700; color: var(--text);
+      padding: 0; min-width: 0;
+    }
+    .montant-card.hi .montant-inp { color: var(--bleu); }
+    .montant-inp:focus { color: var(--bleu-mid); }
+    .montant-unit { font-size: 12px; color: var(--text-muted); }
+
+    .montant-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ═══════════════════════════════════════
+       CHOICE LIST — sélecteur de tags
+    ═══════════════════════════════════════ */
+    .cl-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+    /* Tags sélectionnés */
+    .cl-tags {
+      display: flex; flex-wrap: wrap; gap: 5px;
+      min-height: 32px;
+    }
+    .cl-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--tag-bg); border: 1px solid var(--tag-border);
+      color: var(--tag-text); border-radius: 20px;
+      padding: 2px 10px; font-size: 12px; font-weight: 500;
+    }
+    .cl-tag-x {
+      cursor: pointer; opacity: .45; font-size: 15px; line-height: 1;
+      transition: opacity var(--ease);
+    }
+    .cl-tag-x:hover { opacity: 1; }
+
+    /* Zone d'ajout */
+    .cl-add { position: relative; }
+    .cl-inp {
+      width: 100%;
+      background: var(--surface-alt); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 7px 10px;
+      font-family: inherit; font-size: 13px; color: var(--text);
+      outline: none;
+      transition: border-color var(--ease), box-shadow var(--ease);
+    }
+    .cl-inp:focus { border-color: var(--bleu-mid); box-shadow: 0 0 0 3px rgba(37,99,168,.09); background: white; }
+
+    .cl-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 3px); left: 0; right: 0;
+      background: var(--surface);
+      border: 1.5px solid var(--bleu-mid);
+      border-radius: var(--r-sm);
+      box-shadow: var(--shadow-lg);
+      z-index: 200;
+      max-height: 180px; overflow-y: auto;
+    }
+    .cl-dropdown.show { display: block; }
+
+    .cl-opt {
+      padding: 8px 12px; cursor: pointer;
+      font-size: 13px; color: var(--text);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      transition: background var(--ease);
+    }
+    .cl-opt:last-child { border-bottom: none; }
+    .cl-opt:hover { background: var(--bleu-light); }
+    .cl-opt.selected { opacity: .4; cursor: default; }
+    .cl-opt-check { width: 14px; height: 14px; color: var(--bleu-mid); flex-shrink: 0; }
+
+    .cl-empty {
+      padding: 10px 12px; font-size: 12px;
+      color: var(--text-muted); text-align: center;
+    }
+
+    /* Saisie libre (si colonne n'a pas de choix prédéfinis) */
+    .cl-free-hint { font-size: 11px; color: var(--text-muted); padding: 2px 0; }
+
+    /* ═══════════════════════════════════════
+       TOGGLE
+    ═══════════════════════════════════════ */
+    .tgl-row { display: flex; align-items: center; gap: 9px; }
+    .tgl { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .tgl input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tgl-track {
+      position: absolute; inset: 0; border-radius: 10px;
+      background: var(--border); cursor: pointer;
+      transition: background var(--ease);
+    }
+    .tgl input:checked + .tgl-track { background: var(--bleu-mid); }
+    .tgl-thumb {
+      position: absolute; top: 2px; left: 2px;
       width: 16px; height: 16px; border-radius: 50%;
       background: white; box-shadow: 0 1px 3px rgba(0,0,0,.18);
-      transition: transform var(--transition); pointer-events: none;
+      transition: transform var(--ease); pointer-events: none;
     }
-    .toggle input:checked ~ .toggle-thumb { transform: translateX(17px); }
-    .toggle-label { font-size: 13.5px; color: var(--texte); }
+    .tgl input:checked ~ .tgl-thumb { transform: translateX(16px); }
+    .tgl-lbl { font-size: 13.5px; }
 
-    /* ===================== MONTANTS ===================== */
-    .montant-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    .montant-card {
-      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius); padding: 12px 14px;
-    }
-    .montant-card.accent { border-color: #9eb4cc; background: var(--bleu-pale); }
-    .montant-card-label { font-size: 10.5px; font-weight: 600; color: var(--gris-texte); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
-    .montant-card.accent .montant-card-label { color: var(--bleu); }
-    .montant-input-row { display: flex; align-items: baseline; gap: 4px; }
-    .montant-input {
-      flex: 1; border: none; background: transparent; outline: none;
-      font-family: inherit; font-size: 18px; font-weight: 700; color: var(--texte);
-      padding: 0; width: 100%;
-    }
-    .montant-card.accent .montant-input { color: var(--bleu); }
-    .montant-input:focus { color: var(--bleu-clair); }
-    .montant-unit { font-size: 12px; color: var(--gris-texte); }
-    .montant-sub { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gris-bord); display: flex; flex-direction: column; gap: 7px; }
-    .montant-sub-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .montant-sub-label { font-size: 12px; color: var(--gris-texte); }
-    .montant-sub-inp-wrap { display: flex; align-items: center; gap: 3px; }
-    .montant-sub-inp {
-      width: 120px; text-align: right;
-      border: 1.5px solid var(--gris-bord); border-radius: var(--radius);
-      background: var(--blanc); padding: 4px 8px;
-      font-family: inherit; font-size: 13px; font-weight: 600; color: var(--texte);
-      outline: none; transition: border-color var(--transition);
-    }
-    .montant-sub-inp:focus { border-color: var(--bleu-clair); }
-    .montant-sub-unit { font-size: 11px; color: var(--gris-texte); }
-
-    /* ===================== TAGS ===================== */
-    .tags-wrap {
-      display: flex; flex-wrap: wrap; gap: 5px; align-items: flex-start;
-      background: var(--gris-bg); border: 1.5px solid var(--gris-bord);
-      border-radius: var(--radius); padding: 7px 9px; min-height: 40px;
-      cursor: text; transition: border-color var(--transition), box-shadow var(--transition);
-    }
-    .tags-wrap:focus-within { border-color: var(--bleu-clair); background: var(--blanc); box-shadow: 0 0 0 3px rgba(37,99,168,.10); }
-    .tag {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: var(--bleu-pale); border: 1px solid #9eb4cc;
-      color: var(--bleu); border-radius: 20px; padding: 2px 10px;
-      font-size: 12px; font-weight: 500;
-    }
-    .tag-x { cursor: pointer; opacity: .5; font-size: 14px; line-height: 1; transition: opacity var(--transition); }
-    .tag-x:hover { opacity: 1; }
-    .tag-input {
-      border: none; background: transparent; outline: none;
-      font-family: inherit; font-size: 13px; color: var(--texte);
-      min-width: 90px; flex: 1;
-    }
-
-    /* ===================== TOAST ===================== */
+    /* ═══════════════════════════════════════
+       TOAST
+    ═══════════════════════════════════════ */
     .toast {
-      position: fixed; bottom: 18px; right: 18px;
-      background: var(--bleu); color: white;
-      padding: 9px 16px; border-radius: var(--radius);
-      font-size: 13px; font-weight: 500;
-      box-shadow: var(--shadow-lg); z-index: 9999;
-      opacity: 0; transform: translateY(8px);
-      transition: all .2s ease; pointer-events: none;
+      position: fixed; bottom: 16px; right: 16px;
+      padding: 9px 15px; border-radius: var(--r);
+      font-size: 13px; font-weight: 500; color: white;
+      background: var(--bleu); box-shadow: var(--shadow-lg);
+      z-index: 9999; opacity: 0; transform: translateY(8px);
+      transition: all var(--ease); pointer-events: none;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.ok  { background: var(--vert-doux); }
-    .toast.err { background: var(--rouge-doux); }
+    .toast.ok  { background: var(--green); }
+    .toast.err { background: var(--red); }
 
-    /* ===================== PRINT ===================== */
+    /* ═══════════════════════════════════════
+       IMPRESSION
+    ═══════════════════════════════════════ */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { background: white; font-size: 10.5pt; }
       .app { height: auto; overflow: visible; }
-      .topbar, .print-hide { display: none !important; }
+      .topbar, .no-print { display: none !important; }
       .main { overflow: visible; padding: 0; }
-      .fiche { max-width: 100%; gap: 14pt; }
-      .fiche-hero { background: var(--bleu) !important; border-radius: 8pt; padding: 18pt 22pt 14pt; }
-      .section { break-inside: avoid; box-shadow: none; border: 1pt solid #d1d9e0; }
-      .section-head { background: #fafbfc !important; }
-      .inp, .montant-sub-inp { border: none; background: transparent; padding: 0; font-size: inherit; box-shadow: none; }
-      textarea.inp { resize: none; overflow: visible; height: auto; }
-      .tags-wrap { border: none; background: transparent; padding: 0; }
-      .toggle-track, .toggle-thumb { display: none; }
-      .toggle-label::before { content: attr(data-print); }
-      .montant-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .fiche { max-width: 100%; gap: 12pt; }
+      .banner { background: var(--bleu) !important; border-radius: 7pt; padding: 14pt 18pt; }
+      .section { break-inside: avoid; box-shadow: none; border: .75pt solid #d0d4e4; }
+      .section-head { background: #f7f8fc !important; }
+      .inp { border: none; background: transparent; padding: 0; resize: none; overflow: visible; height: auto; }
+      textarea.inp { min-height: 0; }
+      .cl-tags { flex-wrap: wrap; }
+      .cl-add { display: none; }
+      .montant-inp { font-size: 14pt; }
+      .montant-card { border: .75pt solid #d0d4e4; }
+      .tgl-track, .tgl-thumb { display: none; }
     }
 
-    /* scrollbar */
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: var(--gris-bord); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #9eb4cc; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #b0b8d0; }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- ======= TOPBAR ======= -->
+  <!-- ══ TOPBAR ══ -->
   <header class="topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-mark">
+    <div class="brand">
+      <div class="brand-mark">
         <svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm-2 4H6V8h12v2zm2 4H4v-2h16v2zm-2 4H6v-2h12v2z"/></svg>
       </div>
-      <span class="topbar-logo-text">CORIFER</span>
+      <span class="brand-name">CORIFER</span>
     </div>
-    <div class="topbar-sep"></div>
+
+    <div class="sep"></div>
 
     <!-- Sélecteur de fiche -->
-    <div class="selector-wrap print-hide" id="selectorWrap">
-      <button class="selector-btn" id="selectorBtn" onclick="toggleSelector()">
-        <span class="selector-btn-label" id="selectorLabel">Sélectionner une fiche…</span>
-        <span class="selector-btn-count" id="selectorCount">0</span>
+    <div class="picker no-print" id="picker">
+      <button class="picker-btn" id="pickerBtn" onclick="togglePicker()">
+        <span class="picker-label" id="pickerLabel">Sélectionner un projet…</span>
+        <span class="picker-count" id="pickerCount">0</span>
       </button>
-      <svg class="selector-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>
-      <div class="selector-dropdown">
-        <div class="selector-search-box">
-          <input type="text" id="searchInp" placeholder="Rechercher…" oninput="filterSelector(this.value)"/>
+      <svg class="picker-chevron" viewBox="0 0 24 24" width="16" height="16"
+           fill="none" stroke="currentColor" stroke-width="2.2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+      <div class="picker-drop" id="pickerDrop">
+        <div class="picker-search-wrap">
+          <input class="picker-search" id="pickerSearch" type="text"
+                 placeholder="Rechercher…" oninput="filterPicker(this.value)"/>
         </div>
-        <div class="selector-list" id="selectorList"></div>
+        <div class="picker-list" id="pickerList"></div>
       </div>
     </div>
 
-    <div class="topbar-spacer"></div>
+    <div class="gap"></div>
 
     <!-- Statut sauvegarde -->
-    <div class="save-status" id="saveStatus">
+    <div class="save-ind no-print" id="saveInd">
       <span class="save-dot"></span>
-      <span id="saveLabel">Synchronisé</span>
+      <span id="saveTxt">Synchronisé</span>
     </div>
 
-    <!-- Boutons export -->
-    <button class="btn btn-outline print-hide" onclick="window.print()" title="Imprimer ou exporter en PDF">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      PDF / Imprimer
+    <!-- Export PDF -->
+    <button class="btn btn-ghost no-print" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      PDF
     </button>
-    <button class="btn btn-primary print-hide" onclick="exportDoc()" title="Exporter en DOCX">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Exporter DOCX
+
+    <!-- Export DOCX -->
+    <button class="btn btn-solid no-print" onclick="exportDocx()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      DOCX
     </button>
   </header>
 
-  <!-- ======= CONTENU ======= -->
+  <!-- ══ MAIN ══ -->
   <main class="main">
-
-    <!-- État vide -->
-    <div class="empty-state" id="emptyState">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <p class="empty-state-title">Aucune fiche sélectionnée</p>
-      <p class="empty-state-sub">Choisissez un projet dans le sélecteur ci-dessus</p>
+    <div class="empty" id="emptyState">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      <p>Sélectionnez un projet pour afficher sa fiche</p>
     </div>
 
-    <!-- ===== FICHE ===== -->
     <div class="fiche" id="fiche" style="display:none;">
 
-      <!-- Hero -->
-      <div class="fiche-hero">
-        <div class="fiche-hero-top">
-          <div class="fiche-hero-name" id="heroName">—</div>
-          <span class="fiche-hero-op" id="heroOp">—</span>
+      <!-- ══ BANNIÈRE ══ -->
+      <div class="banner">
+        <div class="banner-top">
+          <div class="banner-name" id="bName">—</div>
+          <div class="banner-right">
+            <span class="banner-op-hint">Opérateur</span>
+            <span class="banner-op-pill" id="bOp">—</span>
+          </div>
         </div>
-        <div class="fiche-hero-meta">
-          <div class="fiche-hero-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span id="heroDate">—</span>
+        <div class="banner-meta">
+          <!-- Date -->
+          <div class="banner-meta-item">
+            <span class="banner-meta-hint">Audition</span>
+            <span class="banner-meta-val" id="bDate">—</span>
           </div>
-          <div class="fiche-hero-meta-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="heroHoraires">—</span>
+          <!-- Horaires -->
+          <div class="banner-meta-item">
+            <span class="banner-meta-hint">Horaires</span>
+            <span class="banner-meta-val" id="bHoraires">—</span>
           </div>
-          <div id="heroAuditionWrap"></div>
+          <!-- Tenue -->
+          <div class="banner-meta-item">
+            <span class="banner-meta-hint">Tenue</span>
+            <span class="banner-meta-val" id="bTenue">—</span>
+          </div>
+          <!-- Dossier partagé -->
+          <div class="banner-meta-item">
+            <span class="banner-meta-hint">Dossier partagé</span>
+            <span class="banner-meta-val">
+              <a id="bLien" href="#" target="_blank" class="dossier-btn" title="Ouvrir le dossier">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+              </a>
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- 1. Informations générales -->
+      <!-- ══ SECTION 1 — Généralités ══ -->
       <div class="section">
         <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div class="section-icon" style="background:#edf3fb;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563a8" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
           </div>
           <span class="section-title">Informations générales</span>
         </div>
         <div class="section-body">
-          <div class="field-grid">
-            <div class="field">
-              <label class="field-label">Opérateur</label>
-              <input class="inp" id="f_op" data-grist="Operateur" type="text" oninput="onChange(this)"/>
-            </div>
+          <div class="row row-2">
             <div class="field">
               <label class="field-label">Chef de file</label>
-              <input class="inp" id="f_chef" data-grist="Chef_de_file" type="text" oninput="onChange(this)"/>
+              <input class="inp" id="f_chef" type="text"
+                     data-col="ChefDeFile" oninput="onChange(this)"/>
             </div>
-            <div class="field field-full">
+            <div class="field">
               <label class="field-label">Membres du consortium</label>
-              <div class="tags-wrap" id="tags_consortium" data-grist="Membres_du_consortium"></div>
-            </div>
-            <div class="field field-full">
-              <label class="field-label">Lien vers le dossier partagé</label>
-              <div class="inp-url-wrap">
-                <input class="inp" id="f_lien" data-grist="Lien_vers_le_dossier_partage" type="url" placeholder="https://…" oninput="onChange(this)"/>
-                <a id="f_lienBtn" href="#" target="_blank" class="inp-url-btn" title="Ouvrir le lien">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </a>
-              </div>
+              <div class="cl-wrap" id="cl_consortium" data-col="Consortium"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. Audition -->
+      <!-- ══ SECTION 2 — Participants ══ -->
       <div class="section">
         <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </div>
-          <span class="section-title">Audition</span>
-        </div>
-        <div class="section-body">
-          <div class="field-grid cols3">
-            <div class="field">
-              <label class="field-label">Date de début</label>
-              <input class="inp" id="f_debut" data-grist="Debut" type="datetime-local" oninput="onChange(this)"/>
-            </div>
-            <div class="field">
-              <label class="field-label">Date de fin</label>
-              <input class="inp" id="f_fin" data-grist="Fin" type="datetime-local" oninput="onChange(this)"/>
-            </div>
-            <div class="field">
-              <label class="field-label">Horaires (affichage)</label>
-              <input class="inp" id="f_horaires" data-grist="Horaires_affichage_" type="text" oninput="onChange(this)"/>
-            </div>
-          </div>
-          <div class="toggle-row">
-            <label class="toggle">
-              <input type="checkbox" id="f_tenue" data-grist="Tenue_de_l_audition" onchange="onChange(this)"/>
-              <div class="toggle-track"></div>
-              <div class="toggle-thumb"></div>
-            </label>
-            <span class="toggle-label" id="toggleLabel">Audition non tenue</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Participants -->
-      <div class="section">
-        <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="section-icon" style="background:#fef5e7;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#b07a00" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
           </div>
           <span class="section-title">Participants</span>
         </div>
         <div class="section-body">
           <div class="field">
             <label class="field-label">Participants SPIN</label>
-            <div class="tags-wrap" id="tags_spin" data-grist="Participants_SPIN"></div>
+            <div class="cl-wrap" id="cl_spin" data-col="ParticipantsSPIN"></div>
           </div>
-          <div class="field">
-            <label class="field-label">Participation État</label>
-            <div class="tags-wrap" id="tags_etat" data-grist="Participation_Etat"></div>
-          </div>
-          <div class="field">
-            <label class="field-label">Participants hors SPIN</label>
-            <div class="tags-wrap" id="tags_horsspin" data-grist="Participants_hors_SPIN"></div>
+          <div class="row row-2">
+            <div class="field">
+              <label class="field-label">Participation État</label>
+              <div class="cl-wrap" id="cl_etat" data-col="ParticipationEtat"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">Participants hors SPIN</label>
+              <div class="cl-wrap" id="cl_horsspin" data-col="HorsSPIN"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 4. Financements -->
+      <!-- ══ SECTION 3 — Financements ══ -->
       <div class="section">
         <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <div class="section-icon" style="background:#eaf6f0;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#177a4e" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
           </div>
           <span class="section-title">Financements</span>
         </div>
         <div class="section-body">
           <div class="montant-grid">
-            <div class="montant-card accent">
+            <!-- Montant projet -->
+            <div class="montant-card hi">
               <div class="montant-card-label">Montant total du projet</div>
-              <div class="montant-input-row">
-                <input class="montant-input" id="f_montantTotal" data-grist="Montant_total_du_projet_en_" type="number" placeholder="0" oninput="onChange(this)"/>
+              <div class="montant-row">
+                <input class="montant-inp" id="f_mProjet" type="text" inputmode="numeric"
+                       placeholder="0" data-col="MontantProjet"
+                       oninput="onMontant(this)"
+                       onblur="fmtMontant(this)"
+                       onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
             </div>
-            <div class="montant-card accent">
+            <!-- Montant aide -->
+            <div class="montant-card hi">
               <div class="montant-card-label">Montant total d'aide</div>
-              <div class="montant-input-row">
-                <input class="montant-input" id="f_montantAide" data-grist="Montant_total_d_aide_du_projet_en_" type="number" placeholder="0" oninput="onChange(this)"/>
+              <div class="montant-row">
+                <input class="montant-inp" id="f_mAide" type="text" inputmode="numeric"
+                       placeholder="0" data-col="MontantAide"
+                       oninput="onMontant(this)"
+                       onblur="fmtMontant(this)"
+                       onfocus="unfmtMontant(this)"/>
+                <span class="montant-unit">€</span>
+              </div>
+              <div class="montant-sub">Subventions + AR</div>
+            </div>
+            <!-- Subventions -->
+            <div class="montant-card">
+              <div class="montant-card-label">dont Subventions</div>
+              <div class="montant-row">
+                <input class="montant-inp" id="f_subv" type="text" inputmode="numeric"
+                       placeholder="0" data-col="Subventions"
+                       oninput="onMontant(this)"
+                       onblur="fmtMontant(this)"
+                       onfocus="unfmtMontant(this)"/>
                 <span class="montant-unit">€</span>
               </div>
             </div>
+            <!-- AR -->
             <div class="montant-card">
-              <div class="montant-card-label">Détail de l'aide</div>
-              <div class="montant-sub">
-                <div class="montant-sub-row">
-                  <span class="montant-sub-label">Subventions</span>
-                  <div class="montant-sub-inp-wrap">
-                    <input class="montant-sub-inp" id="f_subventions" data-grist="Subventions" type="number" placeholder="0" oninput="onChange(this)"/>
-                    <span class="montant-sub-unit">€</span>
-                  </div>
-                </div>
-                <div class="montant-sub-row">
-                  <span class="montant-sub-label">AR</span>
-                  <div class="montant-sub-inp-wrap">
-                    <input class="montant-sub-inp" id="f_ar" data-grist="AR" type="number" placeholder="0" oninput="onChange(this)"/>
-                    <span class="montant-sub-unit">€</span>
-                  </div>
-                </div>
+              <div class="montant-card-label">dont AR</div>
+              <div class="montant-row">
+                <input class="montant-inp" id="f_ar" type="text" inputmode="numeric"
+                       placeholder="0" data-col="AR"
+                       oninput="onMontant(this)"
+                       onblur="fmtMontant(this)"
+                       onfocus="unfmtMontant(this)"/>
+                <span class="montant-unit">€</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 5. Fiche projet -->
+      <!-- ══ SECTION 4 — Fiche projet ══ -->
       <div class="section">
         <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <div class="section-icon" style="background:#edf3fb;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563a8" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
           </div>
           <span class="section-title">Fiche projet</span>
         </div>
         <div class="section-body">
           <div class="field">
             <label class="field-label">Présentation</label>
-            <textarea class="inp" id="f_pres" data-grist="Projet_Presentation" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp" id="f_pres" data-col="Presentation"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Objectifs</label>
-            <textarea class="inp tall" id="f_obj" data-grist="Projet_Objectifs" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp tall" id="f_obj" data-col="Objectifs"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Avancement</label>
-            <textarea class="inp tall" id="f_av" data-grist="Projet_Avancement" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp tall" id="f_av" data-col="Avancement"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Freins rencontrés</label>
-            <textarea class="inp tall" id="f_freins" data-grist="Projet_Freins_rencontres" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp tall" id="f_freins" data-col="Freins"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Potentiel de l'innovation</label>
-            <textarea class="inp tall" id="f_potentiel" data-grist="Projet_Potentiel_de_l_innovation" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp tall" id="f_potentiel" data-col="Potentiel"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
           <div class="field">
             <label class="field-label">Perspectives de développement</label>
-            <textarea class="inp tall" id="f_perspectives" data-grist="Projet_Perspectives_de_developpement" oninput="autoH(this);onChange(this)"></textarea>
+            <textarea class="inp tall" id="f_perspectives" data-col="Perspectives"
+                      oninput="autoH(this);onChange(this)"></textarea>
           </div>
         </div>
       </div>
 
-      <!-- 6. Avis -->
+      <!-- ══ SECTION 5 — Avis ══ -->
       <div class="section">
         <div class="section-head">
-          <div class="section-icon" style="background:#e8f0f8;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1a3a5c" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <div class="section-icon" style="background:#f3f0fb;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b4fc8" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
           </div>
           <span class="section-title">Avis</span>
         </div>
         <div class="section-body">
-          <div class="field-grid">
+          <div class="row row-2">
             <div class="field">
               <label class="field-label">Avis SPIN</label>
-              <textarea class="inp tall" id="f_avisSpin" data-grist="Avis_SPIN" oninput="autoH(this);onChange(this)"></textarea>
+              <textarea class="inp tall" id="f_avisSpin" data-col="AvisSPIN"
+                        oninput="autoH(this);onChange(this)"></textarea>
             </div>
             <div class="field">
               <label class="field-label">Avis SFG</label>
-              <textarea class="inp tall" id="f_avisSfg" data-grist="Avis_SFG" oninput="autoH(this);onChange(this)"></textarea>
+              <textarea class="inp tall" id="f_avisSfg" data-col="AvisSFG"
+                        oninput="autoH(this);onChange(this)"></textarea>
             </div>
           </div>
         </div>
@@ -655,465 +850,623 @@
   </main>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ===================================================
-// CONFIGURATION DU MAPPING
-// data-grist = identifiant Grist attendu après mapping
-// ===================================================
+/* ═══════════════════════════════════════════════════════
+   GRIST — COLUMN MAPPING
+   Chaque { name } est le nom interne du widget.
+   L'utilisateur fait l'association dans le panneau Grist.
+═══════════════════════════════════════════════════════ */
+grist.ready({
+  requiredAccess: 'full',
+  columns: [
+    { name: 'Projet',           title: 'Titre du projet',               type: 'Text',     optional: false },
+    { name: 'Operateur',        title: 'Opérateur',                     type: 'Text',     optional: true  },
+    { name: 'ChefDeFile',       title: 'Chef de file',                  type: 'Text',     optional: true  },
+    { name: 'Consortium',       title: 'Membres du consortium',         type: 'ChoiceList', optional: true },
+    { name: 'Lien',             title: 'Lien vers le dossier partagé',  type: 'Text',     optional: true  },
+    { name: 'Debut',            title: 'Date de début',                 type: 'DateTime', optional: true  },
+    { name: 'Fin',              title: 'Date de fin',                   type: 'DateTime', optional: true  },
+    { name: 'Horaires',         title: 'Horaires (affichage)',          type: 'Text',     optional: true  },
+    { name: 'Tenue',            title: "Tenue de l'audition",           type: 'Bool',     optional: true  },
+    { name: 'ParticipantsSPIN', title: 'Participants SPIN',             type: 'ChoiceList', optional: true },
+    { name: 'ParticipationEtat',title: 'Participation État',            type: 'ChoiceList', optional: true },
+    { name: 'HorsSPIN',         title: 'Participants hors SPIN',        type: 'ChoiceList', optional: true },
+    { name: 'MontantProjet',    title: 'Montant total du projet (€)',   type: 'Numeric',  optional: true  },
+    { name: 'MontantAide',      title: "Montant total d'aide (€)",      type: 'Numeric',  optional: true  },
+    { name: 'Subventions',      title: 'Subventions (€)',               type: 'Numeric',  optional: true  },
+    { name: 'AR',               title: 'AR (€)',                        type: 'Numeric',  optional: true  },
+    { name: 'Presentation',     title: 'Présentation du projet',        type: 'Text',     optional: true  },
+    { name: 'Objectifs',        title: 'Objectifs du projet',           type: 'Text',     optional: true  },
+    { name: 'Avancement',       title: 'Avancement du projet',          type: 'Text',     optional: true  },
+    { name: 'Freins',           title: 'Freins rencontrés',             type: 'Text',     optional: true  },
+    { name: 'Potentiel',        title: "Potentiel de l'innovation",     type: 'Text',     optional: true  },
+    { name: 'Perspectives',     title: 'Perspectives de développement', type: 'Text',     optional: true  },
+    { name: 'AvisSPIN',         title: 'Avis SPIN',                     type: 'Text',     optional: true  },
+    { name: 'AvisSFG',          title: 'Avis SFG',                      type: 'Text',     optional: true  },
+  ]
+});
 
-// Déclaration des colonnes pour le mapping Grist
-const COLUMNS = [
-  { name: 'Projet',                              title: 'Titre du projet',                  type: 'Text'     },
-  { name: 'Operateur',                           title: 'Opérateur',                        type: 'Text'     },
-  { name: 'Chef_de_file',                        title: 'Chef de file',                     type: 'Text'     },
-  { name: 'Membres_du_consortium',               title: 'Membres du consortium',            type: 'Text'     },
-  { name: 'Lien_vers_le_dossier_partage',        title: 'Lien vers le dossier partagé',     type: 'Text'     },
-  { name: 'Debut',                               title: 'Date de début',                    type: 'DateTime' },
-  { name: 'Fin',                                 title: 'Date de fin',                      type: 'DateTime' },
-  { name: 'Horaires_affichage_',                 title: 'Horaires (affichage)',              type: 'Text'     },
-  { name: 'Tenue_de_l_audition',                 title: "Tenue de l'audition",              type: 'Bool'     },
-  { name: 'Participants_SPIN',                   title: 'Participants SPIN',                type: 'Text'     },
-  { name: 'Participation_Etat',                  title: 'Participation État',               type: 'Text'     },
-  { name: 'Participants_hors_SPIN',              title: 'Participants hors SPIN',           type: 'Text'     },
-  { name: 'Montant_total_du_projet_en_',         title: 'Montant total du projet (€)',      type: 'Numeric'  },
-  { name: 'Montant_total_d_aide_du_projet_en_',  title: "Montant total d'aide (€)",         type: 'Numeric'  },
-  { name: 'Subventions',                         title: 'Subventions (€)',                  type: 'Numeric'  },
-  { name: 'AR',                                  title: 'AR (€)',                           type: 'Numeric'  },
-  { name: 'Projet_Presentation',                 title: 'Présentation',                     type: 'Text'     },
-  { name: 'Projet_Objectifs',                    title: 'Objectifs',                        type: 'Text'     },
-  { name: 'Projet_Avancement',                   title: 'Avancement',                       type: 'Text'     },
-  { name: 'Projet_Freins_rencontres',            title: 'Freins rencontrés',                type: 'Text'     },
-  { name: 'Projet_Potentiel_de_l_innovation',    title: "Potentiel de l'innovation",        type: 'Text'     },
-  { name: 'Projet_Perspectives_de_developpement',title: 'Perspectives de développement',   type: 'Text'     },
-  { name: 'Avis_SPIN',                           title: 'Avis SPIN',                        type: 'Text'     },
-  { name: 'Avis_SFG',                            title: 'Avis SFG',                         type: 'Text'     },
-];
-
-// ===================================================
-// ÉTAT
-// ===================================================
+/* ═══════════════════════════════════════════════════════
+   ÉTAT
+═══════════════════════════════════════════════════════ */
 let allRecords   = [];
 let currentRowId = null;
-let currentMaps  = null;   // mappings reçus de Grist
+let currentMaps  = null;
 let pending      = {};
 let saveTimer    = null;
 let isSaving     = false;
 
-// ===================================================
-// INIT GRIST
-// ===================================================
-grist.ready({
-  requiredAccess: 'full',
-  columns: COLUMNS.map(c => ({
-    name:     c.name,
-    title:    c.title,
-    type:     c.type,
-    optional: c.name !== 'Projet',   // seul "Projet" est obligatoire pour le sélecteur
-  }))
-});
-
-// Réception de toutes les lignes
+/* ═══════════════════════════════════════════════════════
+   RÉCEPTION DES DONNÉES
+═══════════════════════════════════════════════════════ */
 grist.onRecords(function(records, mappings) {
   currentMaps = mappings;
-  // On mappe chaque enregistrement avec les noms déclarés
-  allRecords = records.map(r => {
-    const mapped = grist.mapColumnNames(r, mappings);
-    mapped.__id = r.id;
-    return mapped;
+  allRecords  = records.map(r => {
+    const m  = grist.mapColumnNames(r, mappings) || {};
+    m.__id   = r.id;
+    m.__raw  = r; // garde les données brutes pour les ChoiceList
+    return m;
   });
-  document.getElementById('selectorCount').textContent = allRecords.filter(r => r && r.Projet).length;
-  buildSelector();
+  document.getElementById('pickerCount').textContent =
+    allRecords.filter(r => r && r.Projet).length;
+  buildPicker();
   if (currentRowId !== null) {
-    const r = allRecords.find(r => r.__id === currentRowId);
-    if (r) fillFiche(r);
+    const rec = allRecords.find(r => r.__id === currentRowId);
+    if (rec) fillFiche(rec);
   }
 });
 
-// Réception de la ligne sélectionnée (curseur Grist)
 grist.onRecord(function(record, mappings) {
   if (!record) return;
   currentMaps  = mappings;
   const mapped = grist.mapColumnNames(record, mappings);
   if (!mapped) return;
   mapped.__id  = record.id;
+  mapped.__raw = record;
   currentRowId = record.id;
-  highlightSelector(record.id);
+  highlightPicker(record.id);
   fillFiche(mapped);
 });
 
-// ===================================================
-// SÉLECTEUR
-// ===================================================
-function buildSelector() {
-  const list = document.getElementById('selectorList');
+/* ═══════════════════════════════════════════════════════
+   SÉLECTEUR
+═══════════════════════════════════════════════════════ */
+function buildPicker() {
+  const list  = document.getElementById('pickerList');
   const items = allRecords.filter(r => r && r.Projet);
   list.innerHTML = items.map(r => `
-    <div class="selector-item ${r.__id === currentRowId ? 'active' : ''}"
-         data-id="${r.__id}"
-         onclick="selectRow(${r.__id})">
-      <div class="selector-item-dot"></div>
-      <span class="selector-item-name">${esc(r.Projet)}</span>
-      <span class="selector-item-op">${esc(r.Operateur || '')}</span>
-    </div>
-  `).join('');
+    <div class="picker-item ${r.__id === currentRowId ? 'active' : ''}"
+         data-id="${r.__id}" onclick="selectRow(${r.__id})">
+      <div class="picker-item-dot"></div>
+      <span class="picker-item-name">${esc(r.Projet)}</span>
+      <span class="picker-item-op">${esc(r.Operateur || '')}</span>
+    </div>`).join('');
 }
 
-function filterSelector(q) {
+function filterPicker(q) {
   q = q.toLowerCase();
-  document.querySelectorAll('.selector-item').forEach(el => {
-    el.style.display = el.querySelector('.selector-item-name').textContent.toLowerCase().includes(q) ? '' : 'none';
+  document.querySelectorAll('.picker-item').forEach(el => {
+    el.style.display =
+      el.querySelector('.picker-item-name').textContent.toLowerCase().includes(q) ? '' : 'none';
   });
 }
 
-function toggleSelector() {
-  const wrap = document.getElementById('selectorWrap');
-  const btn  = document.getElementById('selectorBtn');
-  const open = wrap.classList.toggle('open');
+function togglePicker() {
+  const p   = document.getElementById('picker');
+  const btn = document.getElementById('pickerBtn');
+  const open = p.classList.toggle('open');
   btn.classList.toggle('open', open);
-  if (open) setTimeout(() => document.getElementById('searchInp').focus(), 40);
+  if (open) setTimeout(() => document.getElementById('pickerSearch').focus(), 40);
 }
 
 document.addEventListener('click', e => {
-  const wrap = document.getElementById('selectorWrap');
-  if (!wrap.contains(e.target)) {
-    wrap.classList.remove('open');
-    document.getElementById('selectorBtn').classList.remove('open');
+  const p = document.getElementById('picker');
+  if (!p.contains(e.target)) {
+    p.classList.remove('open');
+    document.getElementById('pickerBtn').classList.remove('open');
   }
 });
 
 function selectRow(rowId) {
   currentRowId = rowId;
-  highlightSelector(rowId);
-  document.getElementById('selectorWrap').classList.remove('open');
-  document.getElementById('selectorBtn').classList.remove('open');
-  const r = allRecords.find(r => r.__id === rowId);
-  if (r) {
-    document.getElementById('selectorLabel').textContent = r.Projet || '—';
-    fillFiche(r);
+  document.getElementById('picker').classList.remove('open');
+  document.getElementById('pickerBtn').classList.remove('open');
+  highlightPicker(rowId);
+  const rec = allRecords.find(r => r.__id === rowId);
+  if (rec) {
+    document.getElementById('pickerLabel').textContent = rec.Projet || '—';
+    fillFiche(rec);
     grist.setCursorPos({ rowId }).catch(() => {});
   }
 }
 
-function highlightSelector(rowId) {
-  document.querySelectorAll('.selector-item').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.id) === rowId);
-  });
-  const r = allRecords.find(r => r.__id === rowId);
-  if (r) document.getElementById('selectorLabel').textContent = r.Projet || '—';
+function highlightPicker(rowId) {
+  document.querySelectorAll('.picker-item').forEach(el =>
+    el.classList.toggle('active', parseInt(el.dataset.id) === rowId));
+  const rec = allRecords.find(r => r.__id === rowId);
+  if (rec) document.getElementById('pickerLabel').textContent = rec.Projet || '—';
 }
 
-// ===================================================
-// REMPLISSAGE DE LA FICHE
-// ===================================================
+/* ═══════════════════════════════════════════════════════
+   REMPLISSAGE DE LA FICHE
+═══════════════════════════════════════════════════════ */
 function fillFiche(r) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('fiche').style.display      = 'flex';
 
-  // Hero
-  document.getElementById('heroName').textContent     = r.Projet || '—';
-  document.getElementById('heroOp').textContent       = r.Operateur || '—';
-  document.getElementById('heroDate').textContent     = fmtDate(r.Debut);
-  document.getElementById('heroHoraires').textContent = r.Horaires_affichage_ || '—';
+  // Bannière
+  document.getElementById('bName').textContent = r.Projet    || '—';
+  document.getElementById('bOp').textContent   = r.Operateur || '—';
 
-  const tenue = !!r.Tenue_de_l_audition;
-  document.getElementById('heroAuditionWrap').innerHTML = `
-    <span class="badge-audition ${tenue ? 'badge-ok' : 'badge-nok'}">
-      <span class="badge-dot"></span>${tenue ? 'Audition tenue' : 'Non tenue'}
-    </span>`;
+  document.getElementById('bDate').innerHTML =
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+       <rect x="3" y="4" width="18" height="18" rx="2"/>
+       <line x1="16" y1="2" x2="16" y2="6"/>
+       <line x1="8" y1="2" x2="8" y2="6"/>
+       <line x1="3" y1="10" x2="21" y2="10"/>
+     </svg>${fmtDate(r.Debut)}`;
 
-  // Champs simples
-  sv('f_op',         r.Operateur);
-  sv('f_chef',       r.Chef_de_file);
-  sv('f_lien',       r.Lien_vers_le_dossier_partage);
-  sv('f_horaires',   r.Horaires_affichage_);
-  sv('f_montantTotal', r.Montant_total_du_projet_en_);
-  sv('f_montantAide',  r.Montant_total_d_aide_du_projet_en_);
-  sv('f_subventions',  r.Subventions);
-  sv('f_ar',           r.AR);
+  document.getElementById('bHoraires').innerHTML =
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+       <circle cx="12" cy="12" r="10"/>
+       <polyline points="12 6 12 12 16 14"/>
+     </svg>${esc(r.Horaires || '—')}`;
 
-  document.getElementById('f_lienBtn').href = r.Lien_vers_le_dossier_partage || '#';
+  const tenue = !!r.Tenue;
+  document.getElementById('bTenue').innerHTML =
+    `<span class="badge-tenue ${tenue ? 'ok' : 'nok'}">
+       <span class="badge-tenue-dot"></span>${tenue ? 'Tenue' : 'Non tenue'}
+     </span>`;
 
-  // Dates
-  svDate('f_debut', r.Debut);
-  svDate('f_fin',   r.Fin);
+  const lien = r.Lien || '';
+  const lienEl = document.getElementById('bLien');
+  lienEl.href  = lien || '#';
+  lienEl.style.opacity       = lien ? '1' : '.3';
+  lienEl.style.pointerEvents = lien ? '' : 'none';
 
-  // Toggle
-  const cb = document.getElementById('f_tenue');
-  cb.checked = tenue;
-  document.getElementById('toggleLabel').textContent = tenue ? 'Audition tenue' : 'Audition non tenue';
+  // Champ texte
+  sv('f_chef', r.ChefDeFile);
 
-  // Tags
-  buildTags('tags_consortium', r.Membres_du_consortium);
-  buildTags('tags_spin',       r.Participants_SPIN);
-  buildTags('tags_etat',       r.Participation_Etat);
-  buildTags('tags_horsspin',   r.Participants_hors_SPIN);
+  // Choice lists
+  buildCL('cl_consortium', r.__raw, 'Consortium');
+  buildCL('cl_spin',       r.__raw, 'ParticipantsSPIN');
+  buildCL('cl_etat',       r.__raw, 'ParticipationEtat');
+  buildCL('cl_horsspin',   r.__raw, 'HorsSPIN');
+
+  // Montants
+  setMontant('f_mProjet', r.MontantProjet);
+  setMontant('f_mAide',   r.MontantAide);
+  setMontant('f_subv',    r.Subventions);
+  setMontant('f_ar',      r.AR);
 
   // Textareas
-  sta('f_pres',          r.Projet_Presentation);
-  sta('f_obj',           r.Projet_Objectifs);
-  sta('f_av',            r.Projet_Avancement);
-  sta('f_freins',        r.Projet_Freins_rencontres);
-  sta('f_potentiel',     r.Projet_Potentiel_de_l_innovation);
-  sta('f_perspectives',  r.Projet_Perspectives_de_developpement);
-  sta('f_avisSpin',      r.Avis_SPIN);
-  sta('f_avisSfg',       r.Avis_SFG);
+  sta('f_pres',          r.Presentation);
+  sta('f_obj',           r.Objectifs);
+  sta('f_av',            r.Avancement);
+  sta('f_freins',        r.Freins);
+  sta('f_potentiel',     r.Potentiel);
+  sta('f_perspectives',  r.Perspectives);
+  sta('f_avisSpin',      r.AvisSPIN);
+  sta('f_avisSfg',       r.AvisSFG);
 
   pending = {};
 }
 
+/* ═══════════════════════════════════════════════════════
+   CHOICE LIST — décodage / encodage / UI
+═══════════════════════════════════════════════════════ */
+
+/*
+  Grist envoie les ChoiceList sous forme : ["L", "val1", "val2", ...]
+  On decode vers un tableau JS simple, et on rencode avant sauvegarde.
+*/
+function decodeChoiceList(val) {
+  if (Array.isArray(val) && val[0] === 'L') return val.slice(1);
+  if (typeof val === 'string' && val.trim()) return val.split(';').map(s => s.trim()).filter(Boolean);
+  return [];
+}
+
+function encodeChoiceList(arr) {
+  // Format attendu par Grist pour une ChoiceList
+  return ['L', ...arr];
+}
+
+/*
+  Construit l'interface choice list pour un conteneur donné.
+  widgetColName : nom interne du widget (ex: 'Consortium')
+  On retrouve la vraie colonne via currentMaps pour lire les choix disponibles.
+*/
+function buildCL(containerId, rawRecord, widgetColName) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  // Récupère la vraie colonne mappée
+  const realCol = currentMaps ? currentMaps[widgetColName] : null;
+
+  // Valeur actuelle (depuis l'enregistrement brut)
+  const rawVal   = realCol && rawRecord ? rawRecord[realCol] : null;
+  const selected = decodeChoiceList(rawVal);
+
+  // Récupère les options disponibles via les métadonnées Grist
+  // (on les cherche dans grist.getTableMeta si dispo, sinon on affiche saisie libre)
+  container.innerHTML = '';
+  container.dataset.widgetCol = widgetColName;
+  container.dataset.selected  = JSON.stringify(selected);
+
+  // Zone de tags sélectionnés
+  const tagsDiv = document.createElement('div');
+  tagsDiv.className = 'cl-tags';
+  tagsDiv.id = containerId + '_tags';
+  container.appendChild(tagsDiv);
+
+  // Zone d'ajout
+  const addDiv = document.createElement('div');
+  addDiv.className = 'cl-add';
+
+  const inp = document.createElement('input');
+  inp.className   = 'cl-inp';
+  inp.type        = 'text';
+  inp.placeholder = 'Ajouter un membre…';
+  inp.setAttribute('autocomplete', 'off');
+
+  const drop = document.createElement('div');
+  drop.className = 'cl-dropdown';
+  drop.id        = containerId + '_drop';
+
+  addDiv.appendChild(inp);
+  addDiv.appendChild(drop);
+  container.appendChild(addDiv);
+
+  // Rendu des tags déjà sélectionnés
+  renderTags(containerId, selected);
+
+  // Récupère les choix disponibles depuis Grist
+  loadChoices(containerId, widgetColName, selected, inp, drop);
+}
+
+function renderTags(containerId, selected) {
+  const tagsDiv = document.getElementById(containerId + '_tags');
+  if (!tagsDiv) return;
+  tagsDiv.innerHTML = '';
+  selected.forEach(val => {
+    const tag = document.createElement('span');
+    tag.className = 'cl-tag';
+    tag.innerHTML = `${esc(val)}<span class="cl-tag-x" title="Retirer">×</span>`;
+    tag.querySelector('.cl-tag-x').onclick = () => removeChoice(containerId, val);
+    tagsDiv.appendChild(tag);
+  });
+}
+
+async function loadChoices(containerId, widgetColName, selected, inp, drop) {
+  // Tente de récupérer les métadonnées de la colonne pour avoir la liste des choix
+  let choices = [];
+  try {
+    const realCol = currentMaps ? currentMaps[widgetColName] : null;
+    if (realCol) {
+      // On récupère les choix via fetchSelectedTable pour en extraire les valeurs uniques
+      const tableData = await grist.docApi.fetchTable('_grist_Tables_column');
+      // Si pas dispo, on part en mode saisie libre avec auto-complétion depuis les enregistrements
+      choices = extractChoicesFromRecords(widgetColName);
+    }
+  } catch (e) {
+    choices = extractChoicesFromRecords(widgetColName);
+  }
+
+  // Filtre et affichage du dropdown
+  inp.addEventListener('input', () => {
+    const q = inp.value.toLowerCase().trim();
+    renderDrop(containerId, choices, selected, q, drop, inp);
+    drop.classList.toggle('show', inp.value.length > 0 || choices.length > 0);
+  });
+
+  inp.addEventListener('focus', () => {
+    renderDrop(containerId, choices, selected, inp.value.toLowerCase(), drop, inp);
+    drop.classList.add('show');
+  });
+
+  // Validation à l'appui sur Entrée (saisie libre si pas dans la liste)
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && inp.value.trim()) {
+      e.preventDefault();
+      addChoice(containerId, inp.value.trim());
+      inp.value = '';
+      drop.classList.remove('show');
+    }
+    if (e.key === 'Escape') {
+      drop.classList.remove('show');
+      inp.blur();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!inp.contains(e.target) && !drop.contains(e.target)) {
+      drop.classList.remove('show');
+    }
+  }, true);
+}
+
+function renderDrop(containerId, choices, selected, q, drop, inp) {
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+
+  let filtered = choices;
+  if (q) filtered = choices.filter(c => c.toLowerCase().includes(q));
+
+  // Ajoute la saisie libre si pas dans la liste
+  if (q && !choices.some(c => c.toLowerCase() === q)) {
+    filtered = [inp.value.trim(), ...filtered];
+  }
+
+  if (filtered.length === 0) {
+    drop.innerHTML = '<div class="cl-empty">Aucun résultat — appuyez sur Entrée pour ajouter</div>';
+    return;
+  }
+
+  drop.innerHTML = filtered.map(c => {
+    const isSelected = current.includes(c);
+    return `<div class="cl-opt ${isSelected ? 'selected' : ''}"
+                 onclick="${isSelected ? '' : `pickChoice('${containerId}', '${esc(c)}')`}">
+              ${isSelected
+                ? `<svg class="cl-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`
+                : `<span style="width:14px;flex-shrink:0;"></span>`}
+              ${esc(c)}
+            </div>`;
+  }).join('');
+}
+
+// Extrait les valeurs uniques existantes dans tous les enregistrements pour cette colonne
+function extractChoicesFromRecords(widgetColName) {
+  const all = new Set();
+  allRecords.forEach(r => {
+    const rawVal = r.__raw ? r.__raw[currentMaps?.[widgetColName]] : null;
+    decodeChoiceList(rawVal).forEach(v => all.add(v));
+  });
+  return [...all].sort();
+}
+
+function pickChoice(containerId, val) {
+  addChoice(containerId, val);
+  const inp  = document.querySelector(`#${containerId} .cl-inp`);
+  const drop = document.getElementById(containerId + '_drop');
+  if (inp) inp.value = '';
+  if (drop) drop.classList.remove('show');
+}
+
+function addChoice(containerId, val) {
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  if (current.includes(val)) return;
+  const next = [...current, val];
+  container.dataset.selected = JSON.stringify(next);
+  renderTags(containerId, next);
+  saveCL(containerId);
+}
+
+function removeChoice(containerId, val) {
+  const container = document.getElementById(containerId);
+  const current   = JSON.parse(container.dataset.selected || '[]');
+  const next      = current.filter(v => v !== val);
+  container.dataset.selected = JSON.stringify(next);
+  renderTags(containerId, next);
+  saveCL(containerId);
+}
+
+function saveCL(containerId) {
+  const container  = document.getElementById(containerId);
+  const widgetCol  = container.dataset.widgetCol;
+  const current    = JSON.parse(container.dataset.selected || '[]');
+  queueUpdate(widgetCol, encodeChoiceList(current));
+}
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS CHAMPS
+═══════════════════════════════════════════════════════ */
 function sv(id, val) {
   const el = document.getElementById(id);
   if (el) el.value = val != null ? val : '';
 }
+
 function sta(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
   el.value = val != null ? val : '';
   autoH(el);
 }
-function svDate(id, val) {
+
+function setMontant(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
-  if (!val) { el.value = ''; return; }
-  const d = new Date(typeof val === 'number' ? val * 1000 : val);
-  if (isNaN(d)) { el.value = ''; return; }
-  const p = n => String(n).padStart(2, '0');
-  el.value = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  el.value = (val != null && val !== '') ? fmtNum(parseFloat(val)) : '';
 }
+
 function fmtDate(val) {
   if (!val) return '—';
   const d = new Date(typeof val === 'number' ? val * 1000 : val);
   if (isNaN(d)) return '—';
-  return d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-}
-
-// ===================================================
-// TAGS
-// ===================================================
-function buildTags(containerId, raw) {
-  const c = document.getElementById(containerId);
-  if (!c) return;
-  c.innerHTML = '';
-  const items = splitTags(raw);
-  items.forEach(t => c.appendChild(makeTag(t, containerId)));
-  const inp = document.createElement('input');
-  inp.type = 'text';
-  inp.className = 'tag-input';
-  inp.placeholder = items.length ? '+' : 'Ajouter…';
-  inp.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ';') && inp.value.trim()) {
-      e.preventDefault();
-      c.insertBefore(makeTag(inp.value.trim(), containerId), inp);
-      inp.value = '';
-      saveTags(containerId);
-    } else if (e.key === 'Backspace' && !inp.value) {
-      const tags = c.querySelectorAll('.tag');
-      if (tags.length) { tags[tags.length-1].remove(); saveTags(containerId); }
-    }
+  return d.toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
-  inp.addEventListener('blur', () => {
-    if (inp.value.trim()) {
-      c.insertBefore(makeTag(inp.value.trim(), containerId), inp);
-      inp.value = '';
-      saveTags(containerId);
-    }
-  });
-  c.appendChild(inp);
 }
 
-function makeTag(text, containerId) {
-  const t = document.createElement('span');
-  t.className = 'tag';
-  t.innerHTML = `${esc(text)}<span class="tag-x" title="Supprimer">×</span>`;
-  t.querySelector('.tag-x').onclick = () => { t.remove(); saveTags(containerId); };
-  return t;
+/* ═══════════════════════════════════════════════════════
+   FORMATAGE MONTANTS
+═══════════════════════════════════════════════════════ */
+function fmtNum(n) {
+  if (n == null || isNaN(n)) return '';
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(n);
 }
 
-function saveTags(containerId) {
-  const c   = document.getElementById(containerId);
-  const col = c.dataset.grist;
-  const val = [...c.querySelectorAll('.tag')].map(t => t.childNodes[0].textContent.trim()).join('; ');
-  pending[col] = val;
-  scheduleSave();
+function parseNum(s) {
+  if (!s && s !== 0) return null;
+  const n = parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+  return isNaN(n) ? null : n;
 }
 
-function splitTags(raw) {
-  if (!raw) return [];
-  return String(raw).split(/[;,]/).map(s => s.trim()).filter(Boolean);
+function fmtMontant(el) {
+  const n = parseNum(el.value);
+  el.value = n != null ? fmtNum(n) : '';
 }
 
-// ===================================================
-// SAUVEGARDE AUTO
-// ===================================================
+function unfmtMontant(el) {
+  const n = parseNum(el.value);
+  el.value = n != null ? String(n) : '';
+}
+
+function onMontant(el) {
+  queueUpdate(el.dataset.col, parseNum(el.value));
+}
+
+/* ═══════════════════════════════════════════════════════
+   SAUVEGARDE AUTO
+═══════════════════════════════════════════════════════ */
 function onChange(el) {
-  const col = el.dataset.grist;
-  if (!col) return;
-  let val;
-  if (el.type === 'checkbox')       val = el.checked;
-  else if (el.type === 'number')    val = el.value === '' ? null : parseFloat(el.value);
-  else if (el.type === 'datetime-local') val = el.value ? new Date(el.value).getTime() / 1000 : null;
-  else val = el.value;
-
-  pending[col] = val;
-
-  // Mise à jour live du hero
-  if (col === 'Operateur')           { document.getElementById('heroOp').textContent = val || '—';
-                                       document.getElementById('heroOp').textContent = val || '—'; }
-  if (col === 'Horaires_affichage_') { document.getElementById('heroHoraires').textContent = val || '—'; }
-  if (col === 'Tenue_de_l_audition') {
-    document.getElementById('toggleLabel').textContent = val ? 'Audition tenue' : 'Audition non tenue';
-    document.getElementById('heroAuditionWrap').innerHTML = `
-      <span class="badge-audition ${val ? 'badge-ok' : 'badge-nok'}">
-        <span class="badge-dot"></span>${val ? 'Audition tenue' : 'Non tenue'}
-      </span>`;
-  }
-  if (col === 'Lien_vers_le_dossier_partage') {
-    document.getElementById('f_lienBtn').href = val || '#';
-  }
-
-  scheduleSave();
+  queueUpdate(el.dataset.col, el.value);
 }
 
-function scheduleSave() {
+function queueUpdate(col, val) {
+  if (!col) return;
+  pending[col] = val;
   setSave('saving');
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(flush, 900);
+  saveTimer = setTimeout(flush, 850);
 }
 
 async function flush() {
-  if (!currentRowId || !Object.keys(pending).length) return;
-  if (isSaving) { scheduleSave(); return; }
+  if (!currentRowId || !Object.keys(pending).length || isSaving) return;
   isSaving = true;
   const data = { ...pending };
-  pending = {};
+  pending    = {};
 
-  // Remapper les noms internes → noms réels Grist via mappings inverses
-  const toSend = remapForSave(data);
+  // Remapping noms internes → noms réels Grist
+  const fields = {};
+  for (const [k, v] of Object.entries(data)) {
+    const real = currentMaps?.[k];
+    if (real) fields[real] = v;
+    else      fields[k]    = v;
+  }
 
   try {
-    await grist.selectedTable.update({ id: currentRowId, fields: toSend });
+    await grist.selectedTable.update({ id: currentRowId, fields });
     setSave('saved');
     setTimeout(() => setSave('idle'), 2500);
-  } catch(e) {
+  } catch (e) {
     console.error('Erreur sauvegarde', e);
-    setSave('error');
+    setSave('idle');
     toast('Erreur lors de la sauvegarde', 'err');
   } finally {
     isSaving = false;
   }
 }
 
-// Convertit les noms déclarés (data-grist) → noms réels de colonnes Grist
-function remapForSave(data) {
-  if (!currentMaps) return data;
-  const out = {};
-  for (const [widgetCol, val] of Object.entries(data)) {
-    // currentMaps : { widgetColName: realColName }
-    const realCol = currentMaps[widgetCol];
-    if (realCol) out[realCol] = val;
-    else out[widgetCol] = val;  // fallback si pas de mapping
-  }
-  return out;
-}
-
 function setSave(state) {
-  const el  = document.getElementById('saveStatus');
-  const lbl = document.getElementById('saveLabel');
-  el.className = 'save-status' + (state !== 'idle' ? ` ${state}` : '');
-  lbl.textContent = state === 'saving' ? 'Enregistrement…' : state === 'saved' ? 'Enregistré ✓' : state === 'error' ? 'Erreur !' : 'Synchronisé';
+  const el  = document.getElementById('saveInd');
+  const lbl = document.getElementById('saveTxt');
+  el.className = 'save-ind no-print';
+  if (state === 'saving') { el.classList.add('saving'); lbl.textContent = 'Enregistrement…'; }
+  else if (state === 'saved') { el.classList.add('saved');  lbl.textContent = 'Enregistré ✓'; }
+  else lbl.textContent = 'Synchronisé';
 }
 
-// ===================================================
-// EXPORT DOCX (Word)
-// ===================================================
-function exportDoc() {
+/* ═══════════════════════════════════════════════════════
+   EXPORT DOCX
+═══════════════════════════════════════════════════════ */
+function exportDocx() {
   if (!currentRowId) { toast('Aucune fiche sélectionnée', 'err'); return; }
   const r = allRecords.find(r => r.__id === currentRowId);
   if (!r) return;
 
-  const fmt = v => (v != null && v !== '') ? new Intl.NumberFormat('fr-FR').format(v) + ' €' : '—';
-  const fmtD = v => fmtDate(v);
-  const nl = v => v ? String(v).replace(/\n/g, '<br/>') : '—';
+  const fmt  = v => (v != null && v !== '') ? fmtNum(parseFloat(v)) + ' €' : '—';
+  const t    = v => esc(v ? String(v) : '—');
+  const pre  = v => v ? `<div style="white-space:pre-wrap;">${esc(String(v))}</div>` : '<em>—</em>';
+  const cl   = v => Array.isArray(v) ? v.filter((_,i)=>i>0).join(', ') : (v||'—');
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>
-    body { font-family: Calibri, Arial, sans-serif; color: #1c2b3a; font-size: 11pt; padding: 2cm; }
-    h1 { font-size: 18pt; color: #1a3a5c; margin: 0 0 4pt; }
-    h2 { font-size: 12pt; color: #1a3a5c; border-bottom: 1pt solid #1a3a5c; padding-bottom: 3pt; margin: 16pt 0 6pt; }
-    .meta { color: #5a6a7a; font-size: 9.5pt; margin-bottom: 14pt; }
-    .label { font-size: 8.5pt; font-weight: bold; text-transform: uppercase; color: #5a6a7a; letter-spacing: .5pt; }
-    .val { font-size: 10.5pt; margin: 2pt 0 8pt; }
-    .pre { font-size: 10.5pt; white-space: pre-wrap; background: #f4f6f9; padding: 8pt; border-left: 3pt solid #1a3a5c; margin: 3pt 0 10pt; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20pt; }
-  </style></head><body>
-  <h1>${esc(r.Projet || '—')}</h1>
-  <p class="meta">${esc(r.Operateur || '')} — ${fmtD(r.Debut)}</p>
-  <hr/>
-  <h2>Informations générales</h2>
-  <div class="grid">
-    <div><p class="label">Opérateur</p><p class="val">${esc(r.Operateur||'—')}</p></div>
-    <div><p class="label">Chef de file</p><p class="val">${esc(r.Chef_de_file||'—')}</p></div>
+<style>
+  body{font-family:Calibri,Arial,sans-serif;padding:2cm;font-size:11pt;color:#1a1e2e;}
+  h1{font-size:19pt;color:#1b3f6b;margin:0 0 4pt;}
+  h2{font-size:12pt;color:#1b3f6b;border-bottom:1pt solid #1b3f6b;margin:14pt 0 7pt;padding-bottom:3pt;}
+  .meta{color:#8b93b0;font-size:9.5pt;margin-bottom:14pt;}
+  .lbl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#8b93b0;letter-spacing:.4pt;}
+  .val{font-size:10.5pt;margin:2pt 0 9pt;}
+  .pre{font-size:10.5pt;background:#f7f8fc;padding:8pt;border-left:3pt solid #2563a8;
+       white-space:pre-wrap;margin:3pt 0 12pt;line-height:1.6;}
+  .g2{display:table;width:100%;} .c{display:table-cell;width:50%;vertical-align:top;padding-right:12pt;}
+  .amt{background:#edf3fb;border:1pt solid rgba(37,99,168,.2);border-radius:5pt;
+       padding:8pt 12pt;margin-bottom:8pt;}
+  .amt-l{font-size:8.5pt;font-weight:bold;text-transform:uppercase;color:#2563a8;margin-bottom:3pt;}
+  .amt-v{font-size:16pt;font-weight:bold;color:#1b3f6b;}
+</style></head><body>
+<h1>${t(r.Projet)}</h1>
+<p class="meta">${t(r.Operateur)} · ${fmtDate(r.Debut)} · ${t(r.Horaires)} · Audition : ${r.Tenue ? '✓ tenue' : '✗ non tenue'}</p>
+<hr style="border:none;border-top:1.5pt solid #1b3f6b;margin-bottom:14pt;"/>
+
+<h2>Informations générales</h2>
+<p class="lbl">Chef de file</p><p class="val">${t(r.ChefDeFile)}</p>
+<p class="lbl">Membres du consortium</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.Consortium]))}</p>
+
+<h2>Participants</h2>
+<div class="g2">
+  <div class="c">
+    <p class="lbl">Participants SPIN</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.ParticipantsSPIN]))}</p>
+    <p class="lbl">Participation État</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.ParticipationEtat]))}</p>
   </div>
-  <p class="label">Membres du consortium</p><p class="val">${esc(r.Membres_du_consortium||'—')}</p>
-  <p class="label">Lien dossier partagé</p><p class="val">${esc(r.Lien_vers_le_dossier_partage||'—')}</p>
-  <h2>Audition</h2>
-  <div class="grid">
-    <div><p class="label">Date de début</p><p class="val">${fmtD(r.Debut)}</p></div>
-    <div><p class="label">Date de fin</p><p class="val">${fmtD(r.Fin)}</p></div>
-    <div><p class="label">Horaires</p><p class="val">${esc(r.Horaires_affichage_||'—')}</p></div>
-    <div><p class="label">Tenue</p><p class="val">${r.Tenue_de_l_audition ? '✓ Oui' : '✗ Non'}</p></div>
+  <div class="c">
+    <p class="lbl">Participants hors SPIN</p><p class="val">${esc(cl(r.__raw?.[currentMaps?.HorsSPIN]))}</p>
   </div>
-  <h2>Participants</h2>
-  <p class="label">Participants SPIN</p><p class="val">${esc(r.Participants_SPIN||'—')}</p>
-  <p class="label">Participation État</p><p class="val">${esc(r.Participation_Etat||'—')}</p>
-  <p class="label">Participants hors SPIN</p><p class="val">${esc(r.Participants_hors_SPIN||'—')}</p>
-  <h2>Financements</h2>
-  <div class="grid">
-    <div><p class="label">Montant total du projet</p><p class="val">${fmt(r.Montant_total_du_projet_en_)}</p></div>
-    <div><p class="label">Montant total d'aide</p><p class="val">${fmt(r.Montant_total_d_aide_du_projet_en_)}</p></div>
-    <div><p class="label">Subventions</p><p class="val">${fmt(r.Subventions)}</p></div>
-    <div><p class="label">AR</p><p class="val">${fmt(r.AR)}</p></div>
-  </div>
-  <h2>Fiche projet</h2>
-  <p class="label">Présentation</p><div class="pre">${nl(r.Projet_Presentation)}</div>
-  <p class="label">Objectifs</p><div class="pre">${nl(r.Projet_Objectifs)}</div>
-  <p class="label">Avancement</p><div class="pre">${nl(r.Projet_Avancement)}</div>
-  <p class="label">Freins rencontrés</p><div class="pre">${nl(r.Projet_Freins_rencontres)}</div>
-  <p class="label">Potentiel de l'innovation</p><div class="pre">${nl(r.Projet_Potentiel_de_l_innovation)}</div>
-  <p class="label">Perspectives de développement</p><div class="pre">${nl(r.Projet_Perspectives_de_developpement)}</div>
-  <h2>Avis</h2>
-  <div class="grid">
-    <div><p class="label">Avis SPIN</p><div class="pre">${nl(r.Avis_SPIN)}</div></div>
-    <div><p class="label">Avis SFG</p><div class="pre">${nl(r.Avis_SFG)}</div></div>
-  </div>
-  </body></html>`;
+</div>
+
+<h2>Financements</h2>
+<div class="g2">
+  <div class="c"><div class="amt"><div class="amt-l">Montant total du projet</div><div class="amt-v">${fmt(r.MontantProjet)}</div></div></div>
+  <div class="c"><div class="amt"><div class="amt-l">Montant total d'aide</div><div class="amt-v">${fmt(r.MontantAide)}</div></div></div>
+</div>
+<p class="lbl">dont Subventions</p><p class="val">${fmt(r.Subventions)}</p>
+<p class="lbl">dont AR</p><p class="val">${fmt(r.AR)}</p>
+
+<h2>Fiche projet</h2>
+<p class="lbl">Présentation</p><div class="pre">${pre(r.Presentation)}</div>
+<p class="lbl">Objectifs</p><div class="pre">${pre(r.Objectifs)}</div>
+<p class="lbl">Avancement</p><div class="pre">${pre(r.Avancement)}</div>
+<p class="lbl">Freins rencontrés</p><div class="pre">${pre(r.Freins)}</div>
+<p class="lbl">Potentiel de l'innovation</p><div class="pre">${pre(r.Potentiel)}</div>
+<p class="lbl">Perspectives de développement</p><div class="pre">${pre(r.Perspectives)}</div>
+
+<h2>Avis</h2>
+<div class="g2">
+  <div class="c"><p class="lbl">Avis SPIN</p><div class="pre">${pre(r.AvisSPIN)}</div></div>
+  <div class="c"><p class="lbl">Avis SFG</p><div class="pre">${pre(r.AvisSFG)}</div></div>
+</div>
+</body></html>`;
 
   const blob = new Blob([html], { type: 'application/msword' });
-  const a    = document.createElement('a');
-  a.href     = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href  = URL.createObjectURL(blob);
   a.download = `Fiche_${(r.Projet||'projet').replace(/[^a-zA-Z0-9]/g,'_')}.doc`;
   a.click();
   URL.revokeObjectURL(a.href);
   toast('Export lancé ✓', 'ok');
 }
 
-// ===================================================
-// UTILITAIRES
-// ===================================================
+/* ═══════════════════════════════════════════════════════
+   UTILITAIRES
+═══════════════════════════════════════════════════════ */
 function autoH(el) {
   el.style.height = 'auto';
-  el.style.height = Math.max(el.scrollHeight, 88) + 'px';
+  el.style.height = Math.max(el.scrollHeight, 90) + 'px';
 }
+
 function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function toast(msg, type = '') {
+
+function toast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className   = `toast ${type}`;
+  t.className   = `toast ${type||''}`;
   void t.offsetWidth;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
