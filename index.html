@@ -164,12 +164,13 @@
     /* SAVE */
     .save-ind {
       display: flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--text-muted); flex-shrink: 0;
-      transition: color var(--ease);
+      width: 112px; justify-content: flex-start;
+      font-size: 11px; color: var(--text-muted); flex: 0 0 112px;
+      white-space: nowrap; transition: color var(--ease);
     }
     .save-ind.saving { color: #b07a00; }
     .save-ind.saved  { color: var(--green); }
-    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .save-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: 0 0 7px; }
 
     /* BUTTONS */
     .btn {
@@ -184,6 +185,24 @@
     .btn-ghost:hover { border-color: var(--bleu-mid); color: var(--bleu-mid); background: var(--bleu-light); }
     .btn-solid { background: var(--bleu); color: white; border-color: var(--bleu); }
     .btn-solid:hover { background: var(--bleu-mid); border-color: var(--bleu-mid); }
+    .export-menu-wrap { position: relative; flex: 0 0 auto; }
+    .export-trigger { width: 34px; height: 34px; padding: 0; justify-content: center; }
+    .export-trigger svg { width: 17px; height: 17px; }
+    .export-menu {
+      display: none; position: absolute; top: calc(100% + 7px); right: 0;
+      min-width: 184px; padding: 5px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r);
+      box-shadow: var(--shadow-lg); z-index: 1100;
+    }
+    .export-menu-wrap.open .export-menu { display: block; }
+    .export-option {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 9px 10px; border: 0; border-radius: 6px;
+      background: transparent; color: var(--text); font: inherit;
+      font-size: 12.5px; text-align: left; cursor: pointer; white-space: nowrap;
+    }
+    .export-option:hover { background: var(--bleu-light); color: var(--bleu); }
+    .export-option svg { width: 15px; height: 15px; color: var(--text-sec); flex: 0 0 15px; }
 
     /* MAIN */
     .main { flex: 1; overflow-y: auto; padding: 24px 20px 48px; }
@@ -385,8 +404,42 @@
     .dash-project-status.ok { background:var(--green-bg); color:var(--green); }
     .dash-empty { padding:22px 15px; color:var(--text-muted); font-size:12px; text-align:center; }
     .dash-action { color:var(--bleu-mid); font-size:11px; font-weight:600; white-space:nowrap; }
-    @media(max-width:850px) { .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.dash-columns{grid-template-columns:1fr}.dash-heading{align-items:flex-start;flex-direction:column}.topbar{flex-wrap:wrap}.picker{max-width:none;min-width:180px} }
-    @media(max-width:520px) { .dash-title{font-size:21px}.dash-grid{gap:8px}.dash-card{padding:12px}.dash-card-value{font-size:21px}.dash-bar-row{grid-template-columns:90px 1fr 22px;gap:6px} }
+    @media(max-width:850px) {
+      .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .dash-columns{grid-template-columns:1fr}
+      .dash-heading{align-items:flex-start;flex-direction:column}
+      .topbar{flex-wrap:nowrap;gap:7px;padding:8px 10px;min-width:0}
+      .picker{max-width:none;min-width:0;flex:1 1 auto}
+      .picker-btn{padding:6px 28px 6px 9px;font-size:12px}
+      .scope-trigger{gap:4px;padding:5px 4px}
+      .brand-name{font-size:12px}
+      .btn{padding:6px 8px;font-size:11.5px}
+      .save-ind{width:100px;flex-basis:100px;font-size:10.5px}
+    }
+    @media(max-width:520px) {
+      .dash-title{font-size:21px}.dash-grid{gap:8px}.dash-card{padding:12px}.dash-card-value{font-size:21px}.dash-bar-row{grid-template-columns:90px 1fr 22px;gap:6px}
+      .topbar{gap:5px;padding:7px 8px}
+      .brand-mark,.topbar > .sep{display:none}
+      .brand{gap:0;min-width:0}
+      .scope-trigger{padding:5px 3px}
+      .brand-name{font-size:11px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .scope-trigger svg{width:12px;height:12px}
+      .nav-dashboard{font-size:0;padding:6px 7px;min-width:30px;justify-content:center}
+      .nav-dashboard::before{content:'▦';font-size:16px;line-height:1}
+      .picker{min-width:0}
+      .picker-btn{padding:6px 24px 6px 8px;gap:4px;font-size:11px}
+      .picker-count{font-size:9px;padding:1px 5px}
+      .picker-chevron{right:7px;width:13px;height:13px}
+      .save-ind{width:15px;flex:0 0 15px;justify-content:center;gap:0}
+      .save-ind #saveTxt{display:none}
+      .save-dot{width:8px;height:8px;flex-basis:8px}
+      .export-trigger{width:32px;height:32px}
+    }
+    @media(max-width:360px) {
+      .brand-name{max-width:60px}
+      .picker-count{display:none}
+      .topbar{gap:4px;padding-left:6px;padding-right:6px}
+    }
 
     /* ═══ IMPRESSION ═══ */
     @media print {
@@ -479,23 +532,29 @@
       <span class="save-dot"></span>
       <span id="saveTxt">Synchronisé</span>
     </div>
-    <button class="btn btn-ghost no-print" onclick="window.print()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 6 2 18 2 18 9"/>
-        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-        <rect x="6" y="14" width="12" height="8"/>
-      </svg>
-      PDF
-    </button>
-    <button class="btn btn-solid no-print" onclick="exportDocx()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-      DOCX
-    </button>
+    <div class="export-menu-wrap no-print" id="exportMenuWrap">
+      <button class="btn btn-ghost export-trigger" id="exportTrigger" type="button"
+              onclick="toggleExportMenu(event)" aria-label="Options d’export" title="Exporter"
+              aria-haspopup="true" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 19h14"/>
+        </svg>
+      </button>
+      <div class="export-menu" id="exportMenu" role="menu" aria-label="Formats d’export">
+        <button class="export-option" type="button" role="menuitem" onclick="exportPdf()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M8 16h8M8 19h6"/>
+          </svg>
+          Exporter en PDF
+        </button>
+        <button class="export-option" type="button" role="menuitem" onclick="exportDocxFromMenu()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/>
+          </svg>
+          Exporter en DOCX
+        </button>
+      </div>
+    </div>
   </header>
 
   <!-- MAIN -->
@@ -1522,10 +1581,45 @@ function setSave(state) {
   const el  = document.getElementById('saveInd');
   const lbl = document.getElementById('saveTxt');
   el.className = 'save-ind no-print';
-  if      (state === 'saving') { el.classList.add('saving'); lbl.textContent = 'Enregistrement…'; }
+  if      (state === 'saving') { el.classList.add('saving'); lbl.textContent = 'En cours…'; }
   else if (state === 'saved')  { el.classList.add('saved');  lbl.textContent = 'Enregistré ✓'; }
   else lbl.textContent = 'Synchronisé';
+  el.setAttribute('aria-label', lbl.textContent);
+  el.title = lbl.textContent;
 }
+
+/* ═══════════════════════════════════════════════════════
+   MENU D’EXPORT
+═══════════════════════════════════════════════════════ */
+function toggleExportMenu(event) {
+  if (event) event.stopPropagation();
+  const wrap = document.getElementById('exportMenuWrap');
+  const trigger = document.getElementById('exportTrigger');
+  if (!wrap || !trigger) return;
+  const isOpen = wrap.classList.toggle('open');
+  trigger.setAttribute('aria-expanded', String(isOpen));
+}
+function closeExportMenu() {
+  const wrap = document.getElementById('exportMenuWrap');
+  const trigger = document.getElementById('exportTrigger');
+  if (wrap) wrap.classList.remove('open');
+  if (trigger) trigger.setAttribute('aria-expanded', 'false');
+}
+function exportPdf() {
+  closeExportMenu();
+  window.print();
+}
+function exportDocxFromMenu() {
+  closeExportMenu();
+  exportDocx();
+}
+document.addEventListener('click', event => {
+  const wrap = document.getElementById('exportMenuWrap');
+  if (wrap && !wrap.contains(event.target)) closeExportMenu();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeExportMenu();
+});
 
 /* ═══════════════════════════════════════════════════════
    EXPORT DOCX
