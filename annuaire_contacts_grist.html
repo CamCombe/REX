@@ -67,6 +67,38 @@
     .blank-text { color: var(--muted); font-size: 12px; line-height: 1.5; max-width: 420px; margin: 0 auto; }
     .status { color: var(--muted); font-size: 11px; margin-top: 12px; min-height: 15px; }
     .meta-foot { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 11px 22px; border-top: 1px solid var(--line); background: #FAFBFC; color: #8A96A2; font-size: 11px; }
+
+    .editable-field { width: 100%; min-width: 0; border: 1px solid transparent; border-radius: 6px; padding: 5px 7px; margin: -5px -7px; background: transparent; color: inherit; font: inherit; line-height: 1.4; transition: background .15s, border-color .15s; }
+    .editable-field:hover { background: rgba(40,119,184,.045); border-color: #D9E4ED; }
+    .editable-field:focus { outline: none; background: #fff; border-color: #80A9CC; box-shadow: 0 0 0 3px rgba(40,119,184,.10); color: var(--text); }
+    .editable-field::placeholder { color: #A0AAB4; font-weight: 400; opacity: 1; }
+    .name-fields { display: flex; align-items: baseline; gap: 5px; margin: 13px 0 6px; }
+    .name-fields .editable-field { font-size: clamp(23px, 4vw, 31px); line-height: 1.12; letter-spacing: -.035em; font-weight: 780; color: #fff; padding: 4px 6px; margin: -4px -6px; }
+    .name-fields .editable-field::placeholder { color: #B8C9D8; }
+    .org-edit-line { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .org-edit-line .editable-field { color: #F2F6FA; font-size: 15px; font-weight: 650; }
+    .org-open { color: #E6F0F8; display: inline-flex; padding: 5px; border-radius: 6px; opacity: .8; }
+    .org-open:hover { background: rgba(255,255,255,.12); opacity: 1; }
+    .role .editable-field { color: #C8D8E6; font-size: 13px; }
+    .contact-value-wrap { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .contact-value-wrap .editable-field { color: #273B4E; font-size: 13px; }
+    .copy-btn { width: 29px; height: 29px; flex: 0 0 29px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 7px; color: #718294; background: transparent; padding: 0; }
+    .copy-btn:hover { background: #EDF3F7; color: #315D80; }
+    .copy-btn.copied { color: var(--green); background: #EAF6EF; }
+    .copy-btn svg { width: 16px; height: 16px; }
+    .copy-feedback { color: var(--green); font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .comments-editor { display: block; width: 100%; min-height: 94px; resize: vertical; background: #F5F7F9; border: 1px solid #E6EBEF; border-radius: 10px; padding: 12px 14px; color: #465665; font: inherit; font-size: 13px; line-height: 1.6; }
+    .comments-editor:focus { outline: none; background: #fff; border-color: #80A9CC; box-shadow: 0 0 0 3px rgba(40,119,184,.10); }
+    .comments-editor::placeholder { color: #9AA6B1; }
+    .status-toggle { border: 0; color: #fff; border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 750; letter-spacing: .04em; }
+    .status-toggle.on { background: var(--green); }
+    .status-toggle.off { background: var(--red); }
+    .status-toggle.unknown { background: #738292; }
+    .status-toggle:hover { filter: brightness(1.06); }
+    .field-save { color: var(--green); font-size: 11px; margin-left: 6px; }
+    .edit-hint { color: rgba(255,255,255,.63); font-size: 10px; margin-top: 9px; }
+    .contact-row .contact-value-wrap { flex: 1; }
+
     @media (max-width: 560px) { .meta-foot { padding: 10px 16px; } .app { padding: 11px; } .banner { padding: 18px 16px; } .profile-body { padding: 17px 16px 19px; } }
   </style>
 </head>
@@ -88,7 +120,7 @@
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  const state = { contacts: [], selectedId: null, mapped: false };
+  const state = { contacts: [], selectedId: null, mapped: false, mappings: null, currentRecord: null, saving: false };
 
   const isBlank = (v) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
   const text = (v) => {
@@ -132,7 +164,7 @@
 
   function contactData(r) {
     return {
-      id: text(r.contactId), first: text(r.firstName), last: text(r.lastName),
+      rowId: r.id, id: text(r.contactId), first: text(r.firstName), last: text(r.lastName),
       organisation: text(r.organisation), orgUrl: safeUrl(r.organisationUrl),
       role: text(r.role), email: text(r.email), landline: text(r.landline), mobile: text(r.mobile),
       linkedin: safeUrl(r.linkedin), active: toBool(r.active), comments: text(r.comments),
@@ -156,45 +188,154 @@
     if (type === "linkedin") return `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="${LINKEDIN_PATH}"/></svg>`;
     return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[type]}</svg>`;
   }
-  function row(type, label, value, href, display) {
-    if (!value) return "";
-    const v = href
-      ? `<a class="contact-value" href="${escapeHtml(href)}" ${href.startsWith("http") ? 'target="_blank" rel="noopener noreferrer"' : ""}>${escapeHtml(display || value)}</a>`
-      : `<div class="contact-value">${escapeHtml(value)}</div>`;
-    return `<div class="contact-row"><div class="contact-icon ${type === "linkedin" ? "li" : ""}">${icon(type)}</div>
-      <div class="contact-copy"><span class="contact-label">${escapeHtml(label)}</span>${v}</div></div>`;
+  const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>';
+  const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
+  const EXTERNAL_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>';
+
+  function editable(alias, value, placeholder, extraClass = "", type = "text") {
+    return `<input class="editable-field ${extraClass}" type="${type}" data-field="${alias}" value="${escapeHtml(value || "")}" placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}" aria-label="${escapeHtml(placeholder || alias)}">`;
   }
-  const tel = (s) => s ? "tel:" + s.replace(/[^\d+]/g, "") : "";
+
+  function contactRow(type, label, alias, value, copyable = false, href = "") {
+    const copy = copyable && value
+      ? `<button class="copy-btn" type="button" data-copy="${escapeHtml(value)}" title="Copier" aria-label="Copier ${escapeHtml(label.toLowerCase())}">${COPY_ICON}</button><span class="copy-feedback" aria-live="polite"></span>`
+      : "";
+    const open = href
+      ? `<a class="org-open" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="Ouvrir le lien">${EXTERNAL_ICON}</a>`
+      : "";
+    return `<div class="contact-row"><div class="contact-icon ${type === "linkedin" ? "li" : ""}">${icon(type)}</div>
+      <div class="contact-copy"><span class="contact-label">${escapeHtml(label)}</span>
+        <div class="contact-value-wrap">${editable(alias, value, "Ajouter…")}${copy}${open}</div>
+      </div></div>`;
+  }
+
+  async function saveField(alias, value) {
+    const rec = state.currentRecord;
+    if (!rec || rec.id == null) return;
+    if (!Object.prototype.hasOwnProperty.call(rec, alias)) {
+      $("status").textContent = "Cette colonne n'est pas associée dans les options du widget.";
+      return;
+    }
+    if (state.saving) return;
+    state.saving = true;
+    $("status").textContent = "Enregistrement…";
+    try {
+      const mappedPatch = grist.mapColumnNamesBack({ [alias]: value }, { mappings: state.mappings });
+      await grist.getTable().update([{ id: rec.id, ...mappedPatch }]);
+      $("status").textContent = "Modification enregistrée.";
+    } catch (err) {
+      console.error("Erreur d'enregistrement Grist :", err);
+      $("status").textContent = "Enregistrement impossible : " + (err && err.message ? err.message : "vérifiez les droits et le mapping.");
+    } finally {
+      state.saving = false;
+    }
+  }
+
+  async function copyToClipboard(value, button) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        const ok = document.execCommand("copy");
+        helper.remove();
+        if (!ok) throw new Error("Copie non prise en charge par ce navigateur.");
+      }
+      button.classList.add("copied");
+      button.innerHTML = CHECK_ICON;
+      button.title = "Copié !";
+      const feedback = button.parentElement.querySelector(".copy-feedback");
+      if (feedback) feedback.textContent = "Copié !";
+      window.setTimeout(() => {
+        if (!button.isConnected) return;
+        button.classList.remove("copied");
+        button.innerHTML = COPY_ICON;
+        button.title = "Copier";
+        if (feedback) feedback.textContent = "";
+      }, 1500);
+    } catch (err) {
+      $("status").textContent = "Impossible de copier : " + (err.message || "erreur du navigateur.");
+    }
+  }
+
+  function bindProfileEvents() {
+    $("mainContent").querySelectorAll("[data-field]").forEach(field => {
+      const commit = () => {
+        const alias = field.dataset.field;
+        const value = field.value;
+        if (field.dataset.lastSaved === value) return;
+        field.dataset.lastSaved = value;
+        saveField(alias, value);
+      };
+      field.dataset.lastSaved = field.value;
+      field.addEventListener("change", commit);
+      if (field.tagName === "INPUT") {
+        field.addEventListener("keydown", e => {
+          if (e.key === "Enter") { e.preventDefault(); field.blur(); }
+        });
+      }
+    });
+    $("mainContent").querySelectorAll("[data-copy]").forEach(button => {
+      button.addEventListener("click", () => copyToClipboard(button.dataset.copy, button));
+    });
+    const active = $("mainContent").querySelector("[data-active-toggle]");
+    if (active) active.addEventListener("click", () => {
+      const next = active.dataset.value !== "true";
+      const raw = state.currentRecord && state.currentRecord.active;
+      let storedValue = next;
+      if (typeof raw === "string") {
+        const n = normalize(raw);
+        if (["oui", "non"].includes(n)) storedValue = next ? "Oui" : "Non";
+        else if (["yes", "no"].includes(n)) storedValue = next ? "Yes" : "No";
+        else if (["actif", "inactive", "active", "inactif"].includes(n)) storedValue = next ? "Actif" : "Inactif";
+      }
+      saveField("active", storedValue);
+    });
+  }
 
   function renderProfile(rec) {
+    state.currentRecord = rec;
     const c = contactData(rec);
-    const hasCoords = !!(c.email || c.landline || c.mobile || c.linkedin);
-    const pill = c.active === null ? "" : `<span class="pill ${c.active ? "on" : "off"}">${c.active ? "Actif" : "Inactif"}</span>`;
-    const org = c.organisation
-      ? (c.orgUrl
-          ? `<a class="org-link" href="${escapeHtml(c.orgUrl)}" target="_blank" rel="noopener noreferrer" title="Ouvrir la fiche de l'organisation">${escapeHtml(c.organisation)}</a>`
-          : escapeHtml(c.organisation))
-      : "";
+    const activeClass = c.active === null ? "unknown" : (c.active ? "on" : "off");
+    const activeLabel = c.active === null ? "Statut à renseigner" : (c.active ? "Actif" : "Inactif");
+    const orgHref = c.orgUrl ? safeUrl(c.orgUrl) : "";
     $("mainContent").innerHTML = `<article class="profile">
       <header class="banner">
         <div class="banner-meta"><span>Fiche contact</span>
-          <div class="banner-right">${c.id ? `<span class="contact-id">${escapeHtml(c.id)}</span>` : ""}${pill}</div></div>
-        <h1 class="person-name">${escapeHtml(fullName(c) || "Contact")}</h1>
-        ${org ? `<div class="org-name">${org}</div>` : ""}
-        ${c.role ? `<div class="role">${escapeHtml(c.role)}</div>` : ""}
+          <div class="banner-right">${c.id ? `<span class="contact-id">${escapeHtml(c.id)}</span>` : ""}
+            <button class="status-toggle ${activeClass}" type="button" data-active-toggle data-value="${c.active === true ? "true" : "false"}">${activeLabel}</button>
+          </div></div>
+        <div class="name-fields">
+          ${editable("firstName", c.first, "Prénom", "name-first")}
+          ${editable("lastName", c.last, "Nom", "name-last")}
+        </div>
+        <div class="org-edit-line">
+          ${editable("organisation", c.organisation, "Organisation", "org-edit")}
+          ${orgHref ? `<a class="org-open" href="${escapeHtml(orgHref)}" target="_blank" rel="noopener noreferrer" title="Ouvrir la fiche de l'organisation">${EXTERNAL_ICON}</a>` : ""}
+        </div>
+        <div class="role">${editable("role", c.role, "Fonction / rôle")}</div>
+        <div class="edit-hint">Cliquez sur un champ pour le modifier ; les changements sont enregistrés dans Grist.</div>
       </header>
       <div class="profile-body">
-        ${hasCoords ? `<section><h2 class="section-title">Coordonnées</h2><div>
-          ${row("mail", "Adresse e-mail", c.email, c.email ? "mailto:" + c.email : "")}
-          ${row("phone", "Téléphone fixe", c.landline, tel(c.landline))}
-          ${row("mobile", "Téléphone mobile", c.mobile, tel(c.mobile))}
-          ${row("linkedin", "LinkedIn", c.linkedin, c.linkedin, "Voir le profil LinkedIn")}
-        </div></section>` : ""}
-        ${c.comments ? `<section class="comments-section"><h2 class="section-title">Commentaires</h2><div class="comments">${escapeHtml(c.comments)}</div></section>` : ""}
-        ${!hasCoords && !c.comments ? `<div class="blank-text">Aucune coordonnée ni commentaire renseigné pour ce contact.</div>` : ""}
+        <section><h2 class="section-title">Coordonnées</h2><div>
+          ${contactRow("mail", "Adresse e-mail", "email", c.email, true)}
+          ${contactRow("phone", "Téléphone fixe", "landline", c.landline, true)}
+          ${contactRow("mobile", "Téléphone mobile", "mobile", c.mobile, true)}
+          ${contactRow("linkedin", "Profil LinkedIn", "linkedin", c.linkedin, false, c.linkedin ? safeUrl(c.linkedin) : "")}
+          ${contactRow("mail", "Lien de l'organisation", "organisationUrl", c.orgUrl, false, c.orgUrl ? safeUrl(c.orgUrl) : "")}
+        </div></section>
+        <section class="comments-section"><h2 class="section-title">Commentaires</h2>
+          <textarea class="comments-editor" data-field="comments" placeholder="Ajouter un commentaire…">${escapeHtml(c.comments)}</textarea>
+        </section>
       </div>
       ${c.created || c.updated ? `<footer class="meta-foot">${c.created ? `<span>Créée le ${escapeHtml(c.created)}</span>` : ""}${c.updated ? `<span>Modifiée le ${escapeHtml(c.updated)}</span>` : ""}</footer>` : ""}
       </article>`;
+    bindProfileEvents();
   }
 
   const sorted = () => state.contacts.slice().sort((a, b) => {
@@ -248,7 +389,7 @@
 
   // Mapping natif Grist : panneau de droite > « Colonnes » du widget.
   grist.ready({
-    requiredAccess: "read table",
+    requiredAccess: "full",
     columns: [
       { name: "firstName", title: "Prénom", type: "Any", description: "Prénom du contact" },
       { name: "lastName", title: "Nom", type: "Any", description: "Nom de famille du contact" },
@@ -267,7 +408,8 @@
     ]
   });
 
-  grist.onRecords((rawRecords) => {
+  grist.onRecords((rawRecords, mappings) => {
+    state.mappings = mappings || null;
     // Applique la correspondance définie dans le panneau « Colonnes » (null si elle est incomplète).
     const records = rawRecords ? grist.mapColumnNames(rawRecords) : null;
     if (!records) {
