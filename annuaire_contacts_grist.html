@@ -66,7 +66,8 @@
     .blank-title { color: #34495D; font-weight: 750; font-size: 15px; margin-bottom: 5px; }
     .blank-text { color: var(--muted); font-size: 12px; line-height: 1.5; max-width: 420px; margin: 0 auto; }
     .status { color: var(--muted); font-size: 11px; margin-top: 12px; min-height: 15px; }
-    @media (max-width: 560px) { .app { padding: 11px; } .banner { padding: 18px 16px; } .profile-body { padding: 17px 16px 19px; } }
+    .meta-foot { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 11px 22px; border-top: 1px solid var(--line); background: #FAFBFC; color: #8A96A2; font-size: 11px; }
+    @media (max-width: 560px) { .meta-foot { padding: 10px 16px; } .app { padding: 11px; } .banner { padding: 18px 16px; } .profile-body { padding: 17px 16px 19px; } }
   </style>
 </head>
 <body>
@@ -109,6 +110,24 @@
     if (isBlank(v)) return null;
     return ["true", "1", "oui", "yes", "vrai", "actif", "active", "x"].includes(normalize(v));
   };
+  // Dates Grist : secondes depuis l'époque (Date = minuit UTC, Date+Heure = heure locale). Les textes sont repris tels quels.
+  const fmtDate = (v) => {
+    if (isBlank(v)) return "";
+    let d = null, dateOnly = false;
+    if (typeof v === "number") {
+      const ms = v < 1e11 ? v * 1000 : v;
+      d = new Date(ms);
+      dateOnly = ms % 86400000 === 0;
+    } else {
+      const s = text(v);
+      if (/^\d{4}-\d{2}-\d{2}(T|\s|$)/.test(s)) { d = new Date(s); dateOnly = s.length === 10; }
+      else return s;
+    }
+    if (isNaN(d)) return text(v);
+    return dateOnly
+      ? d.toLocaleDateString("fr-FR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" })
+      : d.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", " à");
+  };
   const fullName = (c) => [c.first, c.last.toLocaleUpperCase("fr")].filter(Boolean).join(" ");
 
   function contactData(r) {
@@ -116,7 +135,8 @@
       id: text(r.contactId), first: text(r.firstName), last: text(r.lastName),
       organisation: text(r.organisation), orgUrl: safeUrl(r.organisationUrl),
       role: text(r.role), email: text(r.email), landline: text(r.landline), mobile: text(r.mobile),
-      linkedin: safeUrl(r.linkedin), active: toBool(r.active), comments: text(r.comments)
+      linkedin: safeUrl(r.linkedin), active: toBool(r.active), comments: text(r.comments),
+      created: fmtDate(r.createdAt), updated: fmtDate(r.updatedAt)
     };
   }
 
@@ -172,7 +192,9 @@
         </div></section>` : ""}
         ${c.comments ? `<section class="comments-section"><h2 class="section-title">Commentaires</h2><div class="comments">${escapeHtml(c.comments)}</div></section>` : ""}
         ${!hasCoords && !c.comments ? `<div class="blank-text">Aucune coordonnée ni commentaire renseigné pour ce contact.</div>` : ""}
-      </div></article>`;
+      </div>
+      ${c.created || c.updated ? `<footer class="meta-foot">${c.created ? `<span>Créée le ${escapeHtml(c.created)}</span>` : ""}${c.updated ? `<span>Modifiée le ${escapeHtml(c.updated)}</span>` : ""}</footer>` : ""}
+      </article>`;
   }
 
   const sorted = () => state.contacts.slice().sort((a, b) => {
@@ -239,7 +261,9 @@
       { name: "mobile", title: "Téléphone mobile", type: "Any", optional: true },
       { name: "linkedin", title: "Profil LinkedIn (URL)", type: "Any", optional: true },
       { name: "active", title: "Contact actif", type: "Any", optional: true, description: "Case à cocher (ou Oui/Non)" },
-      { name: "comments", title: "Commentaires", type: "Any", optional: true }
+      { name: "comments", title: "Commentaires", type: "Any", optional: true },
+      { name: "createdAt", title: "Date de création", type: "Any", optional: true, description: "Colonne Date ou Date+Heure" },
+      { name: "updatedAt", title: "Dernière modification", type: "Any", optional: true, description: "Colonne Date ou Date+Heure" }
     ]
   });
 
