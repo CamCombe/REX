@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annuaire des contacts – Grist</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    :root {
+      --navy: #193B60;
+      --navy-2: #244D75;
+      --text: #202B36;
+      --muted: #687684;
+      --line: #E2E7EC;
+      --soft: #F4F6F8;
+      --white: #FFFFFF;
+      --accent: #2877B8;
+      --danger: #A33A36;
+      --radius: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fff; font-size: 14px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: 100%; max-width: 920px; margin: 0 auto; padding: 16px; }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .eyebrow { color:var(--muted); font-size:11px; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+    .top-actions { display:flex; gap:8px; align-items:center; }
+    .icon-btn {
+      border:1px solid var(--line); background:#fff; color:#526171; border-radius:9px;
+      width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .icon-btn:hover { background:var(--soft); color:var(--navy); }
+    .search-wrap { position:relative; margin-bottom:14px; }
+    .search-box {
+      display:flex; align-items:center; gap:10px; border:1px solid #D6DEE6; border-radius:11px;
+      padding:0 12px; min-height:46px; background:#fff; transition:border .15s, box-shadow .15s;
+    }
+    .search-box:focus-within { border-color:#7FA8CB; box-shadow:0 0 0 3px rgba(40,119,184,.10); }
+    .search-icon { color:#778594; flex:0 0 auto; }
+    .search-box input { border:0; outline:0; width:100%; min-width:0; background:transparent; color:var(--text); }
+    .search-box input::placeholder { color:#8A96A2; }
+    .clear-btn { border:0; background:transparent; color:#778594; font-size:19px; padding:2px 4px; display:none; }
+    .results {
+      position:absolute; z-index:20; left:0; right:0; top:calc(100% + 6px); background:#fff;
+      border:1px solid var(--line); border-radius:11px; box-shadow:0 12px 30px rgba(20,39,58,.13);
+      max-height:300px; overflow:auto; display:none;
+    }
+    .results.open { display:block; }
+    .results-meta { padding:9px 12px; color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--line); }
+    .result-item { width:100%; display:block; text-align:left; border:0; border-bottom:1px solid #EEF1F4; background:#fff; padding:11px 13px; }
+    .result-item:last-child { border-bottom:0; }
+    .result-item:hover, .result-item.active { background:#F3F7FA; }
+    .result-name { display:block; color:#23384C; font-weight:750; margin-bottom:3px; }
+    .result-detail { display:block; color:var(--muted); font-size:12px; line-height:1.4; }
+    .empty-results { padding:16px 13px; color:var(--muted); }
+    .hint { color:var(--muted); font-size:12px; margin:0 2px 16px; }
+    .profile { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; }
+    .banner { background:var(--navy); color:#fff; padding:22px 22px 20px; }
+    .banner-meta { display:flex; justify-content:space-between; align-items:center; gap:12px; color:#C7D7E5; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+    .contact-id { font-variant-numeric:tabular-nums; letter-spacing:.02em; font-weight:600; }
+    .person-name { margin:13px 0 6px; font-size:clamp(23px, 4vw, 31px); line-height:1.12; letter-spacing:-.035em; font-weight:780; overflow-wrap:anywhere; }
+    .org-name { color:#F2F6FA; font-size:15px; font-weight:650; margin-top:3px; }
+    .role { color:#C8D8E6; font-size:13px; margin-top:5px; line-height:1.45; }
+    .profile-body { padding:21px 22px 23px; }
+    .section-title { margin:0 0 13px; color:#34495D; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.075em; }
+    .contact-list { display:flex; flex-direction:column; }
+    .contact-row { display:flex; align-items:center; gap:13px; padding:11px 0; border-bottom:1px solid #EDF0F3; min-width:0; }
+    .contact-row:first-child { padding-top:2px; }
+    .contact-row:last-child { border-bottom:0; padding-bottom:2px; }
+    .contact-icon { width:34px; height:34px; flex:0 0 34px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:#F0F3F6; color:#526A80; }
+    .contact-copy { min-width:0; flex:1; }
+    .contact-label { display:block; color:#7A8793; font-size:11px; margin-bottom:3px; }
+    .contact-value { color:#273B4E; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+    a.contact-value { text-decoration:none; }
+    a.contact-value:hover { color:var(--accent); text-decoration:underline; }
+    .comments-section { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+    .comments { background:#F5F7F9; border-radius:10px; padding:13px 14px; color:#465665; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .blank-state, .setup-state, .error-state {
+      border:1px dashed #CFD8E1; border-radius:14px; padding:34px 20px; text-align:center; background:#FAFBFC;
+    }
+    .blank-icon { width:44px; height:44px; border-radius:13px; margin:0 auto 13px; background:#EAF0F5; color:#47647F; display:flex; align-items:center; justify-content:center; }
+    .blank-title { color:#34495D; font-weight:750; font-size:15px; margin-bottom:5px; }
+    .blank-text { color:var(--muted); font-size:12px; line-height:1.5; max-width:390px; margin:0 auto; }
+    .primary-btn { border:0; border-radius:9px; padding:10px 14px; background:var(--navy); color:#fff; font-weight:700; margin-top:15px; }
+    .primary-btn:hover { background:var(--navy-2); }
+    .status { color:var(--muted); font-size:11px; margin-top:12px; min-height:15px; }
+    .status.error { color:var(--danger); }
+    .modal-backdrop { position:fixed; inset:0; z-index:100; background:rgba(16,30,44,.45); display:none; align-items:center; justify-content:center; padding:14px; }
+    .modal-backdrop.open { display:flex; }
+    .modal { width:min(760px,100%); max-height:92vh; overflow:auto; background:#fff; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.22); }
+    .modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:18px 20px; border-bottom:1px solid var(--line); }
+    .modal-head h2 { margin:0; color:#263D52; font-size:18px; }
+    .modal-head p { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+    .modal-body { padding:18px 20px 20px; }
+    .mapping-section { margin-bottom:22px; }
+    .mapping-section h3 { margin:0 0 11px; font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:#4B6074; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px 14px; }
+    .field { min-width:0; }
+    .field label { display:block; color:#4E5E6D; font-size:12px; font-weight:650; margin-bottom:5px; }
+    .field select { width:100%; border:1px solid #D6DEE6; border-radius:8px; padding:9px 10px; background:#fff; color:#263746; min-width:0; }
+    .field select:focus { outline:2px solid rgba(40,119,184,.2); border-color:#7FA8CB; }
+    .field small { display:block; margin-top:4px; color:#84909B; font-size:10px; line-height:1.35; }
+    .modal-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--line); padding:14px 20px; }
+    .secondary-btn { border:1px solid var(--line); border-radius:9px; padding:9px 12px; background:#fff; color:#526171; font-weight:650; }
+    .save-btn { border:0; border-radius:9px; padding:10px 15px; background:var(--navy); color:#fff; font-weight:750; }
+    .save-btn:disabled { opacity:.45; cursor:not-allowed; }
+    .config-note { color:#74818D; font-size:11px; line-height:1.5; max-width:430px; }
+    .loading { color:var(--muted); font-size:12px; padding:20px 0; text-align:center; }
+    @media (max-width:560px) {
+      .app { padding:11px; }
+      .banner { padding:18px 16px; }
+      .profile-body { padding:17px 16px 19px; }
+      .form-grid { grid-template-columns:1fr; }
+      .modal-head, .modal-body { padding-left:15px; padding-right:15px; }
+      .modal-foot { padding-left:15px; padding-right:15px; align-items:flex-start; flex-direction:column; }
+      .modal-foot > div:last-child { display:flex; width:100%; justify-content:flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topline">
+      <div class="eyebrow">Annuaire des contacts</div>
+      <div class="top-actions">
+        <button class="icon-btn" id="refreshBtn" title="Actualiser les données" aria-label="Actualiser les données">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" title="Configurer le mapping" aria-label="Configurer le mapping">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.6 2.8-.2-.1a1.7 1.7 0 0 0-1.8.1l-.2.1h-3.2l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.2.1-2.8-1.6.1-.2a1.7 1.7 0 0 0-.1-1.8l-.1-.2v-3.2l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.2 1.6-2.8.2.1a1.7 1.7 0 0 0 1.8-.1l.2-.1h3.2l.1.2a1.7 1.7 0 0 0 1.6 1l.2-.1 2.8 1.6-.1.2a1.7 1.7 0 0 0 .1 1.8l.1.2v3.2z" transform="translate(-1 -1) scale(1.08)"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="search-wrap" id="searchWrap">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="searchInput" type="search" autocomplete="off" placeholder="Rechercher par nom, prénom ou organisation…" aria-label="Rechercher un contact">
+        <button class="clear-btn" id="clearSearch" title="Effacer la recherche" aria-label="Effacer la recherche">×</button>
+      </div>
+      <div class="results" id="results" role="listbox" aria-label="Résultats de recherche"></div>
+    </div>
+
+    <div id="mainContent">
+      <div class="blank-state">
+        <div class="blank-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/><path d="M16 8h5M18.5 5.5v5"/></svg>
+        </div>
+        <div class="blank-title">Rechercher un contact</div>
+        <p class="blank-text">Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche.</p>
+      </div>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </main>
+
+  <div class="modal-backdrop" id="configModal" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2 id="configTitle">Configuration du mapping</h2>
+          <p>Associez les champs de la fiche aux colonnes de vos tables Grist. Les champs facultatifs peuvent rester non associés.</p>
+        </div>
+        <button class="icon-btn" id="closeConfig" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="mapping-section">
+          <h3>1. Tables sources</h3>
+          <div class="form-grid">
+            <div class="field">
+              <label for="contactsTable">Table des contacts</label>
+              <select id="contactsTable"></select>
+            </div>
+            <div class="field">
+              <label for="orgsTable">Table des organisations</label>
+              <select id="orgsTable"></select>
+            </div>
+          </div>
+        </div>
+        <div class="mapping-section">
+          <h3>2. Champs de la fiche contact</h3>
+          <div class="form-grid" id="contactFields"></div>
+        </div>
+        <div class="mapping-section">
+          <h3>3. Correspondance avec les organisations</h3>
+          <div class="form-grid" id="orgFields"></div>
+          <p class="config-note">La colonne « Organisation » dans Contacts doit contenir la référence Grist vers l'organisation. Pour la clé de correspondance, choisissez « Identifiant interne Grist (id) » si la colonne est une référence Grist standard ; sinon choisissez la colonne contenant la clé correspondante.</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <div class="config-note">Les choix sont enregistrés dans les options de cette instance du widget. Le widget lit les données mais ne les modifie pas.</div>
+        <div>
+          <button class="secondary-btn" id="cancelConfig">Annuler</button>
+          <button class="save-btn" id="saveConfig">Enregistrer le mapping</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    options: {},
+    tables: [],
+    contacts: [],
+    organisations: [],
+    selected: null,
+    configDraft: {},
+    configSchemas: {contacts: [], orgs: []},
+    isConfigured: false,
+    loading: false
+  };
+
+  const FIELD_DEFS = [
+    {key:"contactId", label:"Identifiant du contact", required:false},
+    {key:"firstName", label:"Prénom", required:true},
+    {key:"lastName", label:"Nom", required:true},
+    {key:"organisationRef", label:"Organisation (référence)", required:false},
+    {key:"role", label:"Fonction / rôle", required:false},
+    {key:"email", label:"Adresse e-mail", required:false},
+    {key:"landline", label:"Téléphone fixe", required:false},
+    {key:"mobile", label:"Téléphone mobile", required:false},
+    {key:"comments", label:"Commentaires", required:false}
+  ];
+  const ORG_FIELD_DEFS = [
+    {key:"orgKey", label:"Clé de correspondance de l'organisation", required:false, includeId:true},
+    {key:"orgName", label:"Nom de l'organisation", required:false}
+  ];
+
+  function setStatus(message, isError=false) {
+    $("status").textContent = message || "";
+    $("status").classList.toggle("error", !!isError);
+  }
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+    }[ch]));
+  }
+  function isBlank(value) {
+    return value === null || value === undefined || value === "" ||
+      (Array.isArray(value) && value.length === 0);
+  }
+  function displayValue(value) {
+    if (isBlank(value)) return "";
+    if (Array.isArray(value)) return value.map(displayValue).filter(Boolean).join(", ");
+    if (typeof value === "object") {
+      if (value.name) return String(value.name);
+      return "";
+    }
+    return String(value).trim();
+  }
+  function normalize(value) {
+    return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr").trim();
+  }
+  function splitName(first, last) {
+    const f = displayValue(first);
+    const l = displayValue(last).toLocaleUpperCase("fr");
+    return [f, l].filter(Boolean).join(" ");
+  }
+  function tableToRows(tableData) {
+    if (!tableData || typeof tableData !== "object") return [];
+    const ids = Array.isArray(tableData.id) ? tableData.id : [];
+    const keys = Object.keys(tableData).filter(k => k !== "id" && Array.isArray(tableData[k]));
+    return ids.map((id, index) => {
+      const row = {id};
+      for (const key of keys) row[key] = tableData[key][index];
+      return row;
+    });
+  }
+  async function getTableIds() {
+    const result = await grist.docApi.listTables();
+    if (Array.isArray(result)) return result;
+    if (result && Array.isArray(result.tables)) return result.tables;
+    return [];
+  }
+  async function fetchTableRows(tableId) {
+    if (!tableId) return [];
+    const data = await grist.docApi.fetchTable(tableId);
+    return tableToRows(data);
+  }
+  async function fetchSchema(tableId) {
+    if (!tableId) return [];
+    const data = await grist.docApi.fetchTable(tableId);
+    return Object.keys(data || {}).filter(k => k !== "id" && Array.isArray(data[k]));
+  }
+  function selectedColumn(row, key) {
+    const col = state.options[key];
+    if (!col || !row) return null;
+    return row[col];
+  }
+  function findOrganisation(contact) {
+    const refCol = state.options.organisationRef;
+    const keyCol = state.options.orgKey;
+    const nameCol = state.options.orgName;
+    if (!refCol || !nameCol) return "";
+    const ref = contact[refCol];
+    if (isBlank(ref)) return "";
+    const refValues = Array.isArray(ref) ? ref : [ref];
+    const found = [];
+    for (const value of refValues) {
+      let match = null;
+      if (keyCol === "__id__" || !keyCol) {
+        match = state.organisations.find(org => String(org.id) === String(value));
+      } else {
+        match = state.organisations.find(org => String(org[keyCol]) === String(value));
+        if (!match) match = state.organisations.find(org => String(org.id) === String(value));
+      }
+      if (match) {
+        const name = displayValue(match[nameCol]);
+        if (name) found.push(name);
+      }
+    }
+    return [...new Set(found)].join(", ");
+  }
+  function getContactData(row) {
+    return {
+      id: displayValue(selectedColumn(row, "contactId")),
+      first: displayValue(selectedColumn(row, "firstName")),
+      last: displayValue(selectedColumn(row, "lastName")),
+      organisation: findOrganisation(row),
+      role: displayValue(selectedColumn(row, "role")),
+      email: displayValue(selectedColumn(row, "email")),
+      landline: displayValue(selectedColumn(row, "landline")),
+      mobile: displayValue(selectedColumn(row, "mobile")),
+      comments: displayValue(selectedColumn(row, "comments"))
+    };
+  }
+  function renderBlank(title="Rechercher un contact", text="Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche.") {
+    $("mainContent").innerHTML = `
+      <div class="blank-state">
+        <div class="blank-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/><path d="M16 8h5M18.5 5.5v5"/></svg></div>
+        <div class="blank-title">${escapeHtml(title)}</div>
+        <p class="blank-text">${escapeHtml(text)}</p>
+      </div>`;
+  }
+  function renderSetup() {
+    renderBlank("Configurez votre annuaire", "Associez les tables et les colonnes de votre classeur pour activer la recherche des contacts.");
+    const btn = document.createElement("button");
+    btn.className = "primary-btn";
+    btn.textContent = "Configurer le mapping";
+    btn.addEventListener("click", openConfig);
+    $("mainContent").querySelector(".blank-state").appendChild(btn);
+  }
+  function iconSvg(type) {
+    const paths = {
+      mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+      phone:'<path d="M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2C10 21 3 14 3 5a2 2 0 0 1 2-2z"/>',
+      mobile:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'
+    };
+    return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${paths[type]}</svg>`;
+  }
+  function contactRow(type, label, value, href) {
+    if (!value) return "";
+    const valueHtml = href
+      ? `<a class="contact-value" href="${escapeHtml(href)}">${escapeHtml(value)}</a>`
+      : `<div class="contact-value">${escapeHtml(value)}</div>`;
+    return `<div class="contact-row">
+      <div class="contact-icon">${iconSvg(type)}</div>
+      <div class="contact-copy"><span class="contact-label">${escapeHtml(label)}</span>${valueHtml}</div>
+    </div>`;
+  }
+  function renderProfile(row) {
+    const c = getContactData(row);
+    const fullName = splitName(c.first, c.last) || "Contact";
+    const hasCoordinates = !!(c.email || c.landline || c.mobile);
+    const commentsHtml = c.comments ? `
+      <section class="comments-section">
+        <h2 class="section-title">Commentaires</h2>
+        <div class="comments">${escapeHtml(c.comments)}</div>
+      </section>` : "";
+    $("mainContent").innerHTML = `
+      <article class="profile">
+        <header class="banner">
+          <div class="banner-meta">
+            <span>Fiche contact</span>
+            ${c.id ? `<span class="contact-id">${escapeHtml(c.id)}</span>` : ""}
+          </div>
+          <h1 class="person-name">${escapeHtml(fullName)}</h1>
+          ${c.organisation ? `<div class="org-name">${escapeHtml(c.organisation)}</div>` : ""}
+          ${c.role ? `<div class="role">${escapeHtml(c.role)}</div>` : ""}
+        </header>
+        <div class="profile-body">
+          ${hasCoordinates ? `
+            <section>
+              <h2 class="section-title">Coordonnées</h2>
+              <div class="contact-list">
+                ${contactRow("mail", "Adresse e-mail", c.email, c.email ? `mailto:${c.email}` : "")}
+                ${contactRow("phone", "Téléphone fixe", c.landline, c.landline ? `tel:${c.landline.replace(/[^\d+]/g, "")}` : "")}
+                ${contactRow("mobile", "Téléphone mobile", c.mobile, c.mobile ? `tel:${c.mobile.replace(/[^\d+]/g, "")}` : "")}
+              </div>
+            </section>` : ""}
+          ${commentsHtml}
+          ${!hasCoordinates && !c.comments ? `<div class="blank-text">Aucune coordonnée ni commentaire renseigné pour ce contact.</div>` : ""}
+        </div>
+      </article>`;
+  }
+  function sortContacts(rows) {
+    return rows.slice().sort((a,b) => {
+      const A = getContactData(a), B = getContactData(b);
+      return normalize(A.last || A.first).localeCompare(normalize(B.last || B.first), "fr");
+    });
+  }
+  function searchableText(row) {
+    const c = getContactData(row);
+    return normalize([c.first, c.last, c.organisation].join(" "));
+  }
+  function closeResults() { $("results").classList.remove("open"); }
+  function renderResults() {
+    const query = $("searchInput").value;
+    $("clearSearch").style.display = query ? "block" : "none";
+    const q = normalize(query);
+    if (!q) { closeResults(); return; }
+    const matches = sortContacts(state.contacts).filter(row => searchableText(row).includes(q));
+    const results = $("results");
+    if (!matches.length) {
+      results.innerHTML = `<div class="empty-results">Aucun contact ne correspond à « ${escapeHtml(query)} ».</div>`;
+    } else {
+      results.innerHTML = `<div class="results-meta">${matches.length} résultat${matches.length > 1 ? "s" : ""}</div>` +
+        matches.slice(0,100).map((row,index) => {
+          const c = getContactData(row);
+          const name = splitName(c.first,c.last) || "Contact sans nom";
+          const detail = [c.organisation,c.role].filter(Boolean).join(" · ");
+          return `<button class="result-item" type="button" role="option" data-index="${index}">
+            <span class="result-name">${escapeHtml(name)}</span>
+            ${detail ? `<span class="result-detail">${escapeHtml(detail)}</span>` : ""}
+          </button>`;
+        }).join("");
+      results.querySelectorAll(".result-item").forEach((button,index) => {
+        button.addEventListener("click", () => {
+          const chosen = matches[index];
+          state.selected = chosen;
+          $("searchInput").value = splitName(getContactData(chosen).first,getContactData(chosen).last);
+          $("clearSearch").style.display = "block";
+          closeResults();
+          renderProfile(chosen);
+          setStatus("");
+        });
+      });
+    }
+    results.classList.add("open");
+  }
+  function option(value, label) {
+    const el = document.createElement("option");
+    el.value = value;
+    el.textContent = label;
+    return el;
+  }
+  function fillTableSelect(select, selected) {
+    select.innerHTML = "";
+    select.appendChild(option("", "Choisir une table…"));
+    state.tables.forEach(t => select.appendChild(option(t, t)));
+    select.value = selected || "";
+  }
+  function fillColumnSelect(container, field, columns, selected, required, includeId=false) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "field";
+    const label = document.createElement("label");
+    label.textContent = field.label + (required ? " *" : "");
+    const select = document.createElement("select");
+    select.dataset.key = field.key;
+    select.appendChild(option("", "— Non associé —"));
+    if (includeId) select.appendChild(option("__id__", "Identifiant interne Grist (id)"));
+    columns.forEach(col => select.appendChild(option(col, col)));
+    select.value = selected || "";
+    wrapper.append(label, select);
+    if (required) {
+      const small = document.createElement("small");
+      small.textContent = "Champ obligatoire pour afficher les fiches.";
+      wrapper.appendChild(small);
+    }
+    container.appendChild(wrapper);
+  }
+  async function loadSchemaFor(tableId, target) {
+    if (!tableId) return [];
+    try { return await fetchSchema(tableId); }
+    catch (err) { console.error(err); return []; }
+  }
+  async function openConfig() {
+    try {
+      setStatus("Chargement des tables et colonnes…");
+      state.tables = await getTableIds();
+      state.configDraft = {...state.options};
+      fillTableSelect($("contactsTable"), state.configDraft.contactsTable);
+      fillTableSelect($("orgsTable"), state.configDraft.orgsTable);
+      state.configSchemas.contacts = await loadSchemaFor(state.configDraft.contactsTable);
+      state.configSchemas.orgs = await loadSchemaFor(state.configDraft.orgsTable);
+      renderConfigFields();
+      $("configModal").classList.add("open");
+      setStatus("");
+    } catch (err) {
+      console.error(err);
+      setStatus("Impossible de lire la structure du document. Vérifiez l'autorisation d'accès du widget.", true);
+    }
+  }
+  function renderConfigFields() {
+    const c = $("contactFields"), o = $("orgFields");
+    c.innerHTML = ""; o.innerHTML = "";
+    FIELD_DEFS.forEach(field => fillColumnSelect(c, field, state.configSchemas.contacts, state.configDraft[field.key], field.required));
+    ORG_FIELD_DEFS.forEach(field => fillColumnSelect(o, field, state.configSchemas.orgs, state.configDraft[field.key], field.required, field.includeId));
+    c.querySelectorAll("select").forEach(sel => sel.addEventListener("change", () => state.configDraft[sel.dataset.key] = sel.value));
+    o.querySelectorAll("select").forEach(sel => sel.addEventListener("change", () => state.configDraft[sel.dataset.key] = sel.value));
+    $("saveConfig").disabled = !state.configDraft.contactsTable;
+  }
+  function closeConfig() { $("configModal").classList.remove("open"); }
+  async function refreshData() {
+    if (state.loading) return;
+    if (!state.options.contactsTable || !state.options.firstName || !state.options.lastName) {
+      state.isConfigured = false;
+      renderSetup();
+      return;
+    }
+    state.loading = true;
+    setStatus("Actualisation des contacts…");
+    try {
+      const [contacts, orgs] = await Promise.all([
+        fetchTableRows(state.options.contactsTable),
+        state.options.orgsTable ? fetchTableRows(state.options.orgsTable) : Promise.resolve([])
+      ]);
+      state.contacts = contacts;
+      state.organisations = orgs;
+      state.isConfigured = true;
+      if (state.selected) {
+        const selectedId = state.selected.id;
+        const updated = state.contacts.find(r => String(r.id) === String(selectedId));
+        if (updated) { state.selected = updated; renderProfile(updated); }
+        else { state.selected = null; renderBlank(); }
+      } else {
+        renderBlank();
+      }
+      setStatus(`${state.contacts.length} contact${state.contacts.length > 1 ? "s" : ""} chargé${state.contacts.length > 1 ? "s" : ""}.`);
+    } catch (err) {
+      console.error(err);
+      setStatus("Erreur de lecture des tables. Vérifiez les noms des tables et les autorisations du widget.", true);
+    } finally {
+      state.loading = false;
+    }
+  }
+  async function saveConfig() {
+    const draft = {...state.configDraft};
+    draft.contactsTable = $("contactsTable").value;
+    draft.orgsTable = $("orgsTable").value;
+    $("contactFields").querySelectorAll("select").forEach(sel => draft[sel.dataset.key] = sel.value);
+    $("orgFields").querySelectorAll("select").forEach(sel => draft[sel.dataset.key] = sel.value);
+    if (!draft.contactsTable || !draft.firstName || !draft.lastName) {
+      alert("Veuillez choisir la table Contacts, le prénom et le nom.");
+      return;
+    }
+    if (draft.organisationRef && (!draft.orgsTable || !draft.orgName)) {
+      const proceed = confirm("La colonne Organisation est associée, mais la table ou le nom d'organisation n'est pas configuré. La fiche pourra s'afficher sans le nom de l'organisation. Continuer ?");
+      if (!proceed) return;
+    }
+    try {
+      $("saveConfig").disabled = true;
+      await grist.setOptions(draft);
+      state.options = draft;
+      state.selected = null;
+      $("searchInput").value = "";
+      closeResults();
+      closeConfig();
+      await refreshData();
+    } catch (err) {
+      console.error(err);
+      alert("Le mapping n'a pas pu être enregistré. Vérifiez les options du widget dans Grist.");
+    } finally {
+      $("saveConfig").disabled = false;
+    }
+  }
+
+  $("searchInput").addEventListener("input", () => {
+    state.selected = null;
+    renderBlank();
+    renderResults();
+  });
+  $("searchInput").addEventListener("focus", () => { if ($("searchInput").value.trim()) renderResults(); });
+  $("clearSearch").addEventListener("click", () => {
+    $("searchInput").value = "";
+    state.selected = null;
+    closeResults();
+    renderBlank();
+    $("clearSearch").style.display = "none";
+    $("searchInput").focus();
+  });
+  document.addEventListener("click", (event) => {
+    if (!$("searchWrap").contains(event.target)) closeResults();
+  });
+  $("settingsBtn").addEventListener("click", openConfig);
+  $("refreshBtn").addEventListener("click", refreshData);
+  $("closeConfig").addEventListener("click", closeConfig);
+  $("cancelConfig").addEventListener("click", closeConfig);
+  $("configModal").addEventListener("click", (event) => { if (event.target === $("configModal")) closeConfig(); });
+  $("saveConfig").addEventListener("click", saveConfig);
+
+  $("contactsTable").addEventListener("change", async () => {
+    state.configDraft.contactsTable = $("contactsTable").value;
+    state.configSchemas.contacts = await loadSchemaFor(state.configDraft.contactsTable);
+    renderConfigFields();
+  });
+  $("orgsTable").addEventListener("change", async () => {
+    state.configDraft.orgsTable = $("orgsTable").value;
+    state.configSchemas.orgs = await loadSchemaFor(state.configDraft.orgsTable);
+    renderConfigFields();
+  });
+
+  // Le widget ne modifie aucune donnée. L'accès complet est demandé uniquement
+  // pour lire les deux tables choisies et résoudre la référence vers l'organisation.
+  grist.ready({
+    requiredAccess: "full",
+    onEditOptions: openConfig
+  });
+
+  grist.onOptions((options) => {
+    state.options = options || {};
+    state.selected = null;
+    $("searchInput").value = "";
+    closeResults();
+    if (state.options.contactsTable && state.options.firstName && state.options.lastName) {
+      refreshData();
+    } else {
+      renderSetup();
+    }
+  });
+
+  // Les changements dans la table sélectionnée déclenchent une nouvelle lecture.
+  grist.onRecords(() => refreshData());
+
+  // Chargement initial : attend la livraison des options par Grist.
+  renderBlank();
+})();
+</script>
+</body>
+</html>
