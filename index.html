@@ -1063,7 +1063,10 @@ function numericValue(v) {
 }
 function euroShort(v) {
   if (!v) return '0 €';
-  return new Intl.NumberFormat('fr-FR', {maximumFractionDigits:1, notation: Math.abs(v) >= 1000000 ? 'compact' : 'standard'}).format(v) + ' €';
+  return new Intl.NumberFormat('fr-FR', {
+    maximumFractionDigits: 1,
+    notation: Math.abs(v) >= 1000000 ? 'compact' : 'standard'
+  }).format(v).replace(/\u202F/g, '\u00A0') + ' €';
 }
 function renderDashboard() {
   const root = document.getElementById('dashboard');
@@ -1529,7 +1532,9 @@ function removeCLItem(containerId, value) {
 ═══════════════════════════════════════════════════════ */
 function fmtNum(n) {
   if (n == null || isNaN(n)) return '';
-  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(n);
+  return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 })
+    .format(n)
+    .replace(/\u202F/g, '\u00A0');
 }
 function parseNum(s) {
   if (!s && s !== 0) return null;
