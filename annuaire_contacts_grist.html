@@ -243,7 +243,9 @@
     ]
   });
 
-  grist.onRecords((records) => {
+  grist.onRecords((rawRecords) => {
+    // Applique la correspondance définie dans le panneau « Colonnes » (null si elle est incomplète).
+    const records = rawRecords ? grist.mapColumnNames(rawRecords) : null;
     if (!records) {
       state.mapped = false; state.contacts = [];
       renderBlank("Associez les colonnes", "Ouvrez le panneau de droite de Grist, rubrique « Colonnes », puis associez au minimum le prénom et le nom.");
