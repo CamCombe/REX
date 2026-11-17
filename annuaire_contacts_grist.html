@@ -946,56 +946,119 @@
       </div>`;
   }
 
-  /* SAUVEGARDE GRIST */
+  /* SAUVEGARDE GRIST SÉCURISÉE */
 
-  let saveChain = Promise.resolve();
+let saveChain = Promise.resolve();
 
-  /* Les enregistrements sont exécutés l'un après l'autre : aucun n'est perdu
-     si on en déclenche un pendant qu'un autre est en cours. */
-  function saveField(alias, value) {
-    const rec = state.currentRecord;          // fiche concernée au moment de la saisie
-    const run = () => writeField(rec, alias, value);
-    const result = saveChain.then(run, run);
-    saveChain = result.catch(() => {});
-    return result;
-  }
+/* Seuls ces champs peuvent être modifiés par le widget */
+const WRITABLE_ALIASES = new Set([
+  "firstName",
+  "lastName",
+  "role",
+  "email",
+  "phone",
+  "linkedin",
+  "active",
+  "comments"
+]);
 
-  async function writeField(rec, alias, value) {
+/* Conversion du mapping en excluant les colonnes non modifiables */
+function mapWritableFields(patch) {
 
-    if (!rec || rec.id == null) return false;
+  const cleanPatch = {};
 
-    if (!Object.prototype.hasOwnProperty.call(rec, alias)) {
-      $("status").textContent =
-        "Cette colonne n'est pas associée dans les options du widget.";
-      return false;
-    }
-
-    $("status").textContent = "Enregistrement…";
-
-    try {
-      const mappedPatch = grist.mapColumnNamesBack(
-        { [alias]: value },
-        { mappings: state.mappings }
-      );
-
-      /* Grist attend { id, fields: { Colonne: valeur } } :
-         sans « fields », la requête réussit mais n'écrit rien. */
-      await grist.getTable().update([
-        { id: rec.id, fields: mappedPatch }
-      ]);
-
-      $("status").textContent = "Modification enregistrée.";
-      return true;
-
-    } catch (err) {
-      console.error("Erreur d'enregistrement Grist :", err);
-
-      $("status").textContent =
-        "Enregistrement impossible : " +
-        (err && err.message ? err.message : "vérifiez les droits et le mapping.");
-      return false;
+  for (const [alias, value] of Object.entries(patch)) {
+    if (WRITABLE_ALIASES.has(alias)) {
+      cleanPatch[alias] = value;
     }
   }
+
+  if (!Object.keys(cleanPatch).length) {
+    throw new Error("Aucun champ modifiable à enregistrer.");
+  }
+
+  const mapped = grist.mapColumnNamesBack(
+    cleanPatch,
+    { mappings: state.mappings }
+  );
+
+  /* Liste blanche des véritables colonnes Grist autorisées */
+  const allowedColumns = new Set(
+    [...WRITABLE_ALIASES]
+      .map(alias => state.mappings?.[alias])
+      .filter(col => typeof col === "string" && col.length > 0)
+  );
+
+  const safePatch = {};
+
+  for (const [column, value] of Object.entries(mapped || {})) {
+    if (allowedColumns.has(column)) {
+      safePatch[column] = value;
+    }
+  }
+
+  if (!Object.keys(safePatch).length) {
+    throw new Error(
+      "Aucune colonne modifiable ne correspond au mapping Grist."
+    );
+  }
+
+  return safePatch;
+}
+
+/* Modification d'un contact existant */
+function saveField(alias, value) {
+
+  const rec = state.currentRecord;
+
+  const run = () => writeField(rec, alias, value);
+  const result = saveChain.then(run, run);
+
+  saveChain = result.catch(() => {});
+
+  return result;
+}
+
+async function writeField(rec, alias, value) {
+
+  if (!rec || rec.id == null) return false;
+
+  if (!WRITABLE_ALIASES.has(alias)) {
+    $("status").textContent =
+      "Ce champ est en lecture seule.";
+    return false;
+  }
+
+  $("status").textContent = "Enregistrement…";
+
+  try {
+
+    const mappedPatch = mapWritableFields({
+      [alias]: value
+    });
+
+    await grist.getTable().update([
+      {
+        id: rec.id,
+        fields: mappedPatch
+      }
+    ]);
+
+    $("status").textContent = "Modification enregistrée.";
+
+    return true;
+
+  } catch (err) {
+
+    console.error("Erreur Grist :", err);
+
+    $("status").textContent =
+      "Enregistrement impossible : " +
+      (err.message || "erreur inconnue.");
+
+    return false;
+  }
+}
 
   /* COPIE DANS LE PRESSE-PAPIERS */
 
