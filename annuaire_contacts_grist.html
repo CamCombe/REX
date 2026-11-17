@@ -525,6 +525,16 @@
 
     .contact-row .contact-value-wrap { flex: 1; }
 
+    /* BANNIÈRE : texte sombre quand le champ passe en édition (fond blanc) */
+
+    .banner input.editable-field:focus {
+      color: var(--text);
+    }
+
+    .banner input.editable-field:focus::placeholder {
+      color: #8A96A2;
+    }
+
     @media (max-width: 560px) {
       .meta-foot { padding: 10px 16px; }
       .app { padding: 11px; }
