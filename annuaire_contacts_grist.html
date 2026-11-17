@@ -978,8 +978,10 @@
         { mappings: state.mappings }
       );
 
+      /* Grist attend { id, fields: { Colonne: valeur } } :
+         sans « fields », la requête réussit mais n'écrit rien. */
       await grist.getTable().update([
-        { id: rec.id, ...mappedPatch }
+        { id: rec.id, fields: mappedPatch }
       ]);
 
       $("status").textContent = "Modification enregistrée.";
