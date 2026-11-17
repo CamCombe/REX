@@ -460,27 +460,55 @@
     ]
   });
 
+  // Grist peut renvoyer, pendant la propagation d'une modification, une version
+  // transitoire d'une ligne où certaines valeurs ne sont pas encore disponibles.
+  // On fusionne donc les nouvelles données avec le cache local au lieu de remplacer
+  // brutalement toute la fiche : une valeur déjà connue n'est pas effacée par un
+  // null/undefined transitoire. Une saisie volontairement vidée reste bien vide,
+  // car le cache local est mis à jour avant l'envoi à Grist.
+  function mergeIncomingRecords(incomingRecords) {
+    const previousById = new Map(state.contacts.map(record => [record.id, record]));
+    const aliases = [
+      "firstName", "lastName", "contactId", "organisation", "organisationUrl",
+      "role", "email", "landline", "mobile", "linkedin", "active", "comments",
+      "createdAt", "updatedAt"
+    ];
+    return incomingRecords.map(incoming => {
+      const previous = previousById.get(incoming.id);
+      if (!previous) return incoming;
+      const merged = { ...previous, ...incoming };
+      for (const alias of aliases) {
+        if ((incoming[alias] === null || incoming[alias] === undefined) &&
+            previous[alias] !== null && previous[alias] !== undefined) {
+          merged[alias] = previous[alias];
+        }
+      }
+      return merged;
+    });
+  }
+
   grist.onRecords((rawRecords, mappings) => {
     state.mappings = mappings || null;
     // Applique la correspondance définie dans le panneau « Colonnes » (null si elle est incomplète).
-    const records = rawRecords ? grist.mapColumnNames(rawRecords) : null;
-    if (!records) {
+    const mappedRecords = rawRecords ? grist.mapColumnNames(rawRecords) : null;
+    if (!mappedRecords) {
       state.mapped = false; state.contacts = [];
       renderBlank("Associez les colonnes", "Ouvrez le panneau de droite de Grist, rubrique « Colonnes », puis associez au minimum le prénom et le nom.");
       $("status").textContent = "";
       return;
     }
     state.mapped = true;
+    const records = mergeIncomingRecords(mappedRecords);
     state.contacts = records;
     const current = state.selectedId != null ? records.find(r => r.id === state.selectedId) : null;
     if (current) {
       const activeElement = document.activeElement;
       const profile = $("mainContent");
       const userIsEditing = !!(activeElement && profile.contains(activeElement) && activeElement.matches("[data-field]"));
-      // Toujours actualiser l'objet courant, mais ne pas reconstruire le HTML
-      // tant qu'un champ est en cours d'édition : cela évite d'effacer le champ voisin.
       state.currentRecord = current;
-      if (!userIsEditing) renderProfile(current);
+      // Ne jamais reconstruire la fiche au milieu d'une saisie ou d'une sauvegarde.
+      // Le prochain rafraîchissement utilisera la ligne fusionnée avec le cache.
+      if (!userIsEditing && state.pendingSaves === 0) renderProfile(current);
     } else {
       state.selectedId = null;
       renderBlank();
