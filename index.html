@@ -382,7 +382,7 @@
     .dash-card-label { color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:.65px; font-weight:700; }
     .dash-card-value { color:var(--bleu); font-size:25px; font-weight:700; line-height:1.25; margin-top:7px; }
     .dash-card-note { color:var(--text-sec); font-size:11px; margin-top:3px; }
-    .dash-columns { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); gap:14px; }
+    .dash-columns { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
     .dash-panel { background:white; border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow-sm); overflow:hidden; min-width:0; }
     .dash-panel-head { padding:14px 17px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .dash-panel-title { color:var(--bleu); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.55px; }
@@ -403,6 +403,9 @@
     .dash-project-status { flex-shrink:0; border-radius:20px; padding:3px 8px; font-size:10px; font-weight:700; background:#f1f3f7; color:#687386; }
     .dash-project-status.ok { background:var(--green-bg); color:var(--green); }
     .dash-empty { padding:22px 15px; color:var(--text-muted); font-size:12px; text-align:center; }
+    .dash-more-wrap { padding:10px 15px; border-top:1px solid #edf0f5; text-align:center; }
+    .dash-more { border:1px solid var(--bleu-border); background:var(--bleu-light); color:var(--bleu-mid); border-radius:6px; padding:7px 13px; font:inherit; font-size:11.5px; font-weight:600; cursor:pointer; }
+    .dash-more:hover { background:#e2ecfa; border-color:var(--bleu-mid); }
     .dash-action { color:var(--bleu-mid); font-size:11px; font-weight:600; white-space:nowrap; }
     @media(max-width:850px) {
       .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -522,7 +525,7 @@
       </svg>
       <div class="picker-drop" id="pickerDrop">
         <div class="picker-search-wrap">
-          <input class="picker-search" id="pickerSearch" type="text" placeholder="Rechercher…" oninput="filterPicker(this.value)"/>
+          <input class="picker-search" id="pickerSearch" type="text" placeholder="Rechercher un projet ou une entreprise…" oninput="filterPicker(this.value)"/>
         </div>
         <div class="picker-list" id="pickerList"></div>
       </div>
@@ -1089,12 +1092,15 @@ function renderDashboard() {
     const delta = numericValue(b.MontantAide) - numericValue(a.MontantAide);
     return delta || String(a.Projet).localeCompare(String(b.Projet),'fr',{sensitivity:'base',numeric:true});
   });
-  const projectList = projects.map((r, index) => {
+  const visibleProjects = showAllDashboardProjects ? projects : projects.slice(0, 10);
+  const projectList = visibleProjects.map((r, index) => {
     const key = getDemarcheKey(r), c = DEMARCHES[key] || DEMARCHES.OTHER;
-    const done = r.Tenue === true || r.Tenue === 1 || r.Tenue === 'Oui';
     const date = r.Debut ? fmtDate(r.Debut) : 'Date non renseignée';
     return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${index+1}. ${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur || 'Opérateur non renseigné')} · ${esc(date)}</span></span><span class="dash-project-status">${esc(euroShort(numericValue(r.MontantAide)))}</span></button>`;
   }).join('') || '<div class="dash-empty">Aucun projet à afficher pour cette démarche.</div>';
+  const projectMore = projects.length > 10
+    ? `<div class="dash-more-wrap"><button class="dash-more" type="button" onclick="toggleDashboardProjects()">${showAllDashboardProjects ? 'Réduire le classement' : `Voir les ${projects.length - 10} autres projets`}</button></div>`
+    : '';
   root.innerHTML = `
     <div class="dash-heading"><div><div class="dash-eyebrow">Retour d’expérience · Tableau de bord</div><div class="dash-title">${esc(scopeTitle)}</div><div class="dash-subtitle">Vue de synthèse des projets et des auditions recensés dans Grist.</div></div><div class="dash-action">${rows.length} projet${rows.length>1?'s':''} recensé${rows.length>1?'s':''}</div></div>
     <div class="dash-grid">
@@ -1104,7 +1110,7 @@ function renderDashboard() {
     </div>
     <div class="dash-columns">
       <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Répartition des projets</span></div><div class="dash-panel-body">${selectedScope==='ALL' ? bars : `<div class="dash-bar-row"><span class="dash-bar-label">${esc(scopeTitle)}</span><div class="dash-bar-track"><div class="dash-bar-fill" style="width:100%;background:${(DEMARCHES[selectedScope]||DEMARCHES.OTHER).color}"></div></div><span class="dash-bar-count">${rows.length}</span></div>`}<div style="margin-top:14px;padding-top:12px;border-top:1px solid #edf0f5;color:var(--text-muted);font-size:10.5px;">${scheduled} projet${scheduled>1?'s':''} avec une date d’audition renseignée.</div></div></section>
-      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Classement des projets par total d’aide</span><span class="dash-action">Du montant le plus élevé au plus faible</span></div><div class="dash-list">${projectList}</div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Classement des projets par total d’aide</span><span class="dash-action">Du montant le plus élevé au plus faible</span></div><div class="dash-list">${projectList}</div>${projectMore}</section>
     </div>
 `;
 }
@@ -1130,7 +1136,7 @@ function buildPicker() {
       : '';
     return `
     <div class="picker-item ${r.__id === currentRowId ? 'active' : ''}"
-         data-id="${r.__id}" onclick="selectRow(${r.__id})">
+         data-id="${r.__id}" data-search="${esc(normalizeText([r.Projet, r.Operateur, r.ChefDeFile, decodeChoiceList(r.Consortium).join(" ")].join(" ")))}" onclick="selectRow(${r.__id})">
       <div class="picker-item-dot" style="background:${colors.color}"></div>
       <span class="picker-item-name">${esc(r.Projet)}</span>
       ${topic}
@@ -1140,10 +1146,10 @@ function buildPicker() {
 }
 
 function filterPicker(q) {
-  q = q.toLowerCase();
+  const query = normalizeText(q);
   document.querySelectorAll('.picker-item').forEach(el => {
-    el.style.display =
-      el.querySelector('.picker-item-name').textContent.toLowerCase().includes(q) ? '' : 'none';
+    const searchable = el.dataset.search || normalizeText(el.querySelector('.picker-item-name').textContent);
+    el.style.display = searchable.includes(query) ? '' : 'none';
   });
 }
 
