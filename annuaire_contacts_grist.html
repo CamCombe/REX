@@ -387,6 +387,43 @@
       font-weight: 650;
     }
 
+    /* ORGANISATION : une ligne si court, deux (ou plus) si long */
+
+    .autogrow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      flex: 1 1 0;
+      min-width: 0;
+      margin: -5px -7px;
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    /* texte invisible qui impose la hauteur de la zone de texte */
+    .autogrow::after {
+      content: attr(data-value) " ";
+      grid-area: 1 / 1;
+      visibility: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 5px 7px;
+      border: 1px solid transparent;
+    }
+
+    .autogrow > textarea.editable-field {
+      grid-area: 1 / 1;
+      display: block;
+      width: 0;
+      min-width: 100%;
+      margin: 0;
+      resize: none;
+      overflow: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: inherit;
+    }
+
     .org-open {
       color: #E6F0F8;
       display: inline-flex;
@@ -527,11 +564,11 @@
 
     /* BANNIÈRE : texte sombre quand le champ passe en édition (fond blanc) */
 
-    .banner input.editable-field:focus {
+    .banner :is(input, textarea).editable-field:focus {
       color: var(--text);
     }
 
-    .banner input.editable-field:focus::placeholder {
+    .banner :is(input, textarea).editable-field:focus::placeholder {
       color: #8A96A2;
     }
 
@@ -787,6 +824,20 @@
       placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
       aria-label="${escapeHtml(placeholder || alias)}">`;
 
+    // Organisation : zone de texte qui passe sur 2 lignes (ou plus) si besoin
+    if (extraClass.includes("org-edit")) {
+      return `<span class="autogrow"
+        data-value="${escapeHtml(value || placeholder || "")}">
+        <textarea
+          class="editable-field ${extraClass}"
+          rows="1"
+          data-field="${alias}"
+          data-singleline
+          placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
+          aria-label="${escapeHtml(placeholder || alias)}">${escapeHtml(value || "")}</textarea>
+      </span>`;
+    }
+
     if (!extraClass.includes("name-")) return input;
 
     // Prénom / nom : conteneur dont la largeur s'adapte au texte saisi
@@ -986,8 +1037,19 @@
         });
       }
 
+      /* Organisation : la hauteur suit le texte (retours à la ligne ignorés) */
+      if (field.parentElement.classList.contains("autogrow")) {
+        field.addEventListener("input", () => {
+          if (/[\r\n]/.test(field.value)) {
+            field.value = field.value.replace(/\s*[\r\n]+\s*/g, " ");
+          }
+          field.parentElement.dataset.value = field.value || field.placeholder;
+        });
+      }
+
       field.addEventListener("keydown", e => {
-        if (e.key === "Enter" && field.tagName === "INPUT") {
+        if (e.key === "Enter" &&
+            (field.tagName === "INPUT" || field.hasAttribute("data-singleline"))) {
           e.preventDefault();
           field.blur();
         }
