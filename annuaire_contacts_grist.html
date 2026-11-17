@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Annuaire des contacts – Grist</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <!-- Règles de numérotation des pays étrangers (facultatif : sans elle, seuls les numéros français sont formatés) -->
+  <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11/bundle/libphonenumber-min.js"></script>
 
   <style>
     :root {
@@ -684,6 +686,42 @@
       : "https://" + s.replace(/^\/+/, "");
   };
 
+  /* FORMATAGE DES NUMÉROS DE TÉLÉPHONE
+     - France (0X XX XX XX XX ou +33 …) : affichage national, par groupes de 2
+     - Autres pays (+XX …) : format international propre au pays
+     - Tout le reste (texte, plusieurs numéros, poste…) : laissé tel quel */
+
+  function formatPhone(raw) {
+    const input = String(raw ?? "").trim();
+    if (!input) return "";
+
+    // Lettres, séparateurs de plusieurs numéros : on ne touche à rien
+    if (/[A-Za-z;,/]/.test(input)) return input;
+
+    // Retire espaces, points, tirets, parenthèses ; 00 devient +
+    const n = input.replace(/[\s.\-()]/g, "").replace(/^00/, "+");
+    if (!/^\+?\d+$/.test(n)) return input;
+
+    const pairs = (digits) => digits.replace(/(\d{2})(?=\d)/g, "$1 ");
+
+    // France : 0X XX XX XX XX
+    if (/^0[1-9]\d{8}$/.test(n)) return pairs(n);
+
+    // France en notation internationale : +33 6 12 34 56 78 (ou +33 (0)6…)
+    const fr = n.match(/^\+33(?:0)?([1-9]\d{8})$/);
+    if (fr) return pairs("0" + fr[1]);
+
+    // Autres pays : bibliothèque libphonenumber-js
+    if (n.startsWith("+") && typeof libphonenumber !== "undefined") {
+      try {
+        const p = libphonenumber.parsePhoneNumberFromString(n);
+        if (p && p.isPossible()) return p.formatInternational();
+      } catch (e) { /* on garde la saisie */ }
+    }
+
+    return input;
+  }
+
   const toBool = (v) => {
     if (v === true) return true;
     if (v === false) return false;
@@ -751,7 +789,7 @@
       orgUrl: safeUrl(r.organisationUrl),
       role: text(r.role),
       email: text(r.email),
-      phone: text(r.phone),
+      phone: formatPhone(text(r.phone)),
       linkedin: safeUrl(r.linkedin),
       active: toBool(r.active),
       comments: text(r.comments),
@@ -1065,7 +1103,13 @@
 
       const commit = () => {
         const alias = field.dataset.field;
-        const value = field.value;
+        let value = field.value;
+
+        /* Téléphone : le numéro saisi est mis en forme avant enregistrement */
+        if (alias === "phone") {
+          value = formatPhone(value);
+          field.value = value;
+        }
 
         if (field.dataset.lastSaved === value) return;
 
