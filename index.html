@@ -837,6 +837,7 @@ grist.ready({
    ÉTAT ET DÉMARCHES
 ═══════════════════════════════════════════════════════ */
 let allRecords   = [];
+let showAllDashboardProjects = false;
 const ROW_STORAGE_KEY = 'rex-last-row-v1:' + (location.pathname || 'default');
 function loadRow() { try { const n = Number(localStorage.getItem(ROW_STORAGE_KEY)); return Number.isFinite(n) && n > 0 ? n : null; } catch (e) { return null; } }
 function storeRow(id) { try { if (id == null) localStorage.removeItem(ROW_STORAGE_KEY); else localStorage.setItem(ROW_STORAGE_KEY, String(id)); } catch (e) {} }
@@ -1120,6 +1121,11 @@ function renderDashboard() {
       <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Classement des projets par total d’aide</span><span class="dash-action">Du montant le plus élevé au plus faible</span></div><div class="dash-list">${projectList}</div>${projectMore}</section>
     </div>
 `;
+}
+
+function toggleDashboardProjects() {
+  showAllDashboardProjects = !showAllDashboardProjects;
+  renderDashboard();
 }
 
 /* ═══════════════════════════════════════════════════════
