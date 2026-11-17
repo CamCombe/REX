@@ -357,8 +357,11 @@
 
     .name-fields .autosize > .editable-field {
       grid-area: 1 / 1;
-      width: 100%;
-      min-width: 0;
+      /* width:0 + min-width:100% : la largeur par défaut de l'input
+         (≈ 20 caractères) ne compte plus, seul le texte invisible
+         (::after) dicte la taille */
+      width: 0;
+      min-width: 100%;
       margin: 0;
       padding: 4px 6px;
       font: inherit;
