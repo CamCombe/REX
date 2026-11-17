@@ -619,8 +619,7 @@
     selectedId: null,
     mapped: false,
     mappings: null,
-    currentRecord: null,
-    saving: false
+    currentRecord: null
   };
 
   /* OUTILS */
@@ -924,8 +923,19 @@
 
   /* SAUVEGARDE GRIST */
 
-  async function saveField(alias, value) {
-    const rec = state.currentRecord;
+  let saveChain = Promise.resolve();
+
+  /* Les enregistrements sont exécutés l'un après l'autre : aucun n'est perdu
+     si on en déclenche un pendant qu'un autre est en cours. */
+  function saveField(alias, value) {
+    const rec = state.currentRecord;          // fiche concernée au moment de la saisie
+    const run = () => writeField(rec, alias, value);
+    const result = saveChain.then(run, run);
+    saveChain = result.catch(() => {});
+    return result;
+  }
+
+  async function writeField(rec, alias, value) {
 
     if (!rec || rec.id == null) return false;
 
@@ -935,9 +945,6 @@
       return false;
     }
 
-    if (state.saving) return false;
-
-    state.saving = true;
     $("status").textContent = "Enregistrement…";
 
     try {
@@ -960,9 +967,6 @@
         "Enregistrement impossible : " +
         (err && err.message ? err.message : "vérifiez les droits et le mapping.");
       return false;
-
-    } finally {
-      state.saving = false;
     }
   }
 
@@ -1048,10 +1052,18 @@
       }
 
       field.addEventListener("keydown", e => {
-        if (e.key === "Enter" &&
-            (field.tagName === "INPUT" || field.hasAttribute("data-singleline"))) {
+        if (e.key !== "Enter" || e.isComposing) return;
+
+        const enterSaves = field.hasAttribute("data-enter-saves");
+
+        /* Maj+Entrée : retour à la ligne dans les commentaires */
+        if (enterSaves && e.shiftKey) return;
+
+        if (field.tagName === "INPUT" ||
+            field.hasAttribute("data-singleline") ||
+            enterSaves) {
           e.preventDefault();
-          field.blur();
+          field.blur();          // déclenche l'enregistrement
         }
       });
     });
@@ -1264,7 +1276,8 @@
 
             <textarea class="comments-editor"
               data-field="comments"
-              placeholder="Ajouter un commentaire…">${escapeHtml(c.comments)}</textarea>
+              data-enter-saves
+              placeholder="Ajouter un commentaire…  (Entrée pour valider, Maj+Entrée pour aller à la ligne)">${escapeHtml(c.comments)}</textarea>
 
           </section>
 
