@@ -1089,6 +1089,7 @@ function renderDashboard() {
   const heldPercent = rows.length ? Math.round(held / rows.length * 100) : 0;
   const scheduled = rows.filter(r => r.Debut != null && r.Debut !== '').length;
   const scopeTitle = getScopeLabel(selectedScope);
+  const progressColor = selectedScope === 'ALL' ? '#687386' : (DEMARCHES[selectedScope]?.color || DEMARCHES.CORIFER.color);
   const byScope = ['CORIFER','VA','PROPULSE','OTHER'].map(key => ({key, rows:rows.filter(r => getDemarcheKey(r) === key)})).filter(x => x.rows.length);
   const maxCount = Math.max(1, ...byScope.map(x => x.rows.length));
   const bars = byScope.map(x => {
@@ -1117,7 +1118,7 @@ function renderDashboard() {
       <div class="dash-card"><div class="dash-card-label">Aides recensées</div><div class="dash-card-value">${esc(euroShort(totalAid))}</div><div class="dash-card-note">Somme des aides renseignées</div></div>
     </div>
     <div class="dash-columns">
-      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Répartition des projets</span></div><div class="dash-panel-body"><div class="dash-progress-summary"><span class="dash-progress-count">${held} / ${rows.length} projet${rows.length>1?'s':''} avec « Tenue de l’audition » activée</span><span class="dash-progress-percent">${heldPercent} %</span></div><div class="dash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${heldPercent}" aria-label="Part des projets avec audition tenue"><div class="dash-progress-fill" style="width:${heldPercent}%"></div></div><div class="dash-progress-note">${scheduled} projet${scheduled>1?'s':''} avec une date d’audition renseignée.</div></div></section>
+      <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Répartition des projets</span></div><div class="dash-panel-body"><div class="dash-progress-summary"><span class="dash-progress-count">${held} / ${rows.length} projet${rows.length>1?'s':''} avec « Tenue de l’audition » activée</span><span class="dash-progress-percent">${heldPercent} %</span></div><div class="dash-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${heldPercent}" aria-label="Part des projets avec audition tenue"><div class="dash-progress-fill" style="width:${heldPercent}%;background:${progressColor}"></div></div><div class="dash-progress-note">${scheduled} projet${scheduled>1?'s':''} avec une date d’audition renseignée.</div></div></section>
       <section class="dash-panel"><div class="dash-panel-head"><span class="dash-panel-title">Classement des projets par total d’aide</span><span class="dash-action">Du montant le plus élevé au plus faible</span></div><div class="dash-list">${projectList}</div>${projectMore}</section>
     </div>
 `;
