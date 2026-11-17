@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -698,6 +697,7 @@
       padding: 12px;
       color: var(--muted);
       font-size: 12px;
+      line-height: 1.5;
     }
 
     .organisation-selected {
@@ -789,7 +789,8 @@
 
     organisations: [],
     selectedOrganisationId: null,
-    organisationsLoaded: false
+    organisationsLoaded: false,
+    organisationsError: ""
   };
 
   /* OUTILS */
@@ -970,29 +971,50 @@
 
   async function loadOrganisations() {
     try {
-      const data = await grist.docApi.fetchTable("Organisations");
+      // Identifiant technique de la table Grist (et non son nom d'affichage).
+      const TABLE_ID = "ORGANISATIONS";
+      // Identifiant technique de la colonne contenant le nom de l'organisation.
+      const NAME_COLUMN = "Nom_de_l_organisation";
 
-      const ids = data && Array.isArray(data.id) ? data.id : [];
-      const names = data && Array.isArray(data.Nom_de_l_organisation)
-        ? data.Nom_de_l_organisation
-        : [];
+      const data = await grist.docApi.fetchTable(TABLE_ID);
 
-      state.organisations = ids
+      if (!data || !Array.isArray(data.id)) {
+        throw new Error(
+          `La table "${TABLE_ID}" n'a pas renvoyé ses identifiants de lignes.`
+        );
+      }
+
+      if (!Array.isArray(data[NAME_COLUMN])) {
+        throw new Error(
+          `La colonne "${NAME_COLUMN}" est introuvable dans la table "${TABLE_ID}". ` +
+          "Vérifiez son identifiant technique (ColId)."
+        );
+      }
+
+      state.organisations = data.id
         .map((id, index) => ({
-          id: id,
-          name: text(names[index])
+          id: Number(id),
+          name: text(data[NAME_COLUMN][index])
         }))
-        .filter(org => org.id != null && org.name)
+        .filter(org =>
+          Number.isInteger(org.id) &&
+          org.id > 0 &&
+          org.name
+        )
         .sort((a, b) =>
           normalize(a.name).localeCompare(normalize(b.name), "fr")
         );
 
       state.organisationsLoaded = true;
+      state.organisationsError = "";
 
     } catch (err) {
       console.error("Erreur de chargement des organisations :", err);
+
       state.organisations = [];
       state.organisationsLoaded = false;
+      state.organisationsError =
+        err && err.message ? err.message : "Erreur inconnue lors du chargement.";
     }
   }
 
@@ -1004,18 +1026,19 @@
 
     const q = normalize(query);
 
-    const matches = state.organisations.filter(org =>
-      normalize(org.name).includes(q)
-    );
-
     if (!state.organisationsLoaded) {
       box.innerHTML = `
         <div class="organisation-empty">
-          Impossible de charger les organisations. Vérifiez l'accès à la table Organisations.
+          <strong>Impossible de charger les organisations.</strong><br>
+          ${escapeHtml(state.organisationsError || "Erreur inconnue.")}
         </div>`;
       box.classList.add("open");
       return;
     }
+
+    const matches = state.organisations.filter(org =>
+      normalize(org.name).includes(q)
+    );
 
     if (!matches.length) {
       box.innerHTML = `
@@ -1273,7 +1296,7 @@
       if (typeof colId === "string" && colId) fields[colId] = v;
     }
 
-    /* Association à la table Organisations via une véritable référence Grist */
+    /* Association à la table ORGANISATIONS via une véritable référence Grist */
 
     if (state.selectedOrganisationId != null) {
 
@@ -1283,8 +1306,8 @@
 
       if (typeof organisationRefCol !== "string" || !organisationRefCol) {
         $("status").textContent =
-          "La colonne « Organisation » n'est pas associée dans les options du widget. " +
-          "Associez le champ « Organisation (référence) » à la colonne de référence Organisation.";
+          "La colonne « Organisation (référence) » n'est pas associée dans les options du widget. " +
+          "Associez ce champ à la colonne de Contacts de type Ref vers ORGANISATIONS.";
         return;
       }
 
@@ -2048,7 +2071,7 @@
         title: "Organisation (référence)",
         type: "Ref",
         optional: true,
-        description: "Référence vers une ligne de la table Organisations. Utilisée lors de la création d'un contact."
+        description: "Référence vers une ligne de la table ORGANISATIONS. Utilisée lors de la création d'un contact."
       },
 
       {
