@@ -169,55 +169,6 @@
     .banner-right { display: flex; align-items: center; gap: 10px; }
     .contact-id { font-variant-numeric: tabular-nums; font-weight: 600; }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 999px;
-      padding: 4px 11px;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 750;
-      letter-spacing: .04em;
-    }
-
-    .pill::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #fff;
-      opacity: .9;
-    }
-
-    .pill.on { background: var(--green); }
-    .pill.off { background: var(--red); }
-
-    .person-name {
-      margin: 13px 0 6px;
-      font-size: clamp(23px, 4vw, 31px);
-      line-height: 1.12;
-      letter-spacing: -.035em;
-      font-weight: 780;
-      overflow-wrap: anywhere;
-    }
-
-    .org-name {
-      color: #F2F6FA;
-      font-size: 15px;
-      font-weight: 650;
-      margin-top: 3px;
-    }
-
-    a.org-link {
-      color: #fff;
-      text-decoration: underline;
-      text-decoration-color: rgba(255,255,255,.45);
-      text-underline-offset: 3px;
-    }
-
-    a.org-link:hover { text-decoration-color: #fff; }
-
     .role {
       color: #C8D8E6;
       font-size: 13px;
@@ -274,33 +225,12 @@
       margin-bottom: 3px;
     }
 
-    .contact-value {
-      color: #273B4E;
-      font-size: 13px;
-      line-height: 1.45;
-      overflow-wrap: anywhere;
-    }
-
-    a.contact-value { text-decoration: none; }
-    a.contact-value:hover { color: var(--accent); text-decoration: underline; }
-
     /* COMMENTAIRES */
 
     .comments-section {
       margin-top: 22px;
       padding-top: 18px;
       border-top: 1px solid var(--line);
-    }
-
-    .comments {
-      background: #F5F7F9;
-      border-radius: 10px;
-      padding: 13px 14px;
-      color: #465665;
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
     }
 
     .blank-state {
@@ -391,38 +321,53 @@
       opacity: 1;
     }
 
-    /* CORRECTION ESPACEMENT PRENOM / NOM */
+    /* PRENOM / NOM : largeur ajustée au texte */
 
     .name-fields {
       display: flex;
       align-items: baseline;
-      gap: 8px;
+      gap: .28em;               /* espace standard entre prénom et nom */
       margin: 13px 0 6px;
       width: 100%;
-      min-width: 0;
-    }
-
-    .name-fields .editable-field {
-      flex: 0 1 auto;
-      width: auto;
       min-width: 0;
       font-size: clamp(23px, 4vw, 31px);
       line-height: 1.12;
       letter-spacing: -.035em;
       font-weight: 780;
-      color: #fff;
+    }
+
+    .name-fields .autosize {
+      display: inline-grid;
+      grid-template-columns: minmax(0, 1fr);
+      flex: 0 1 auto;
+      min-width: 0;
+      margin: -5px -7px;        /* compense le padding des champs */
+    }
+
+    /* texte invisible qui impose la largeur du champ */
+    .name-fields .autosize::after {
+      content: attr(data-value);
+      grid-area: 1 / 1;
+      visibility: hidden;
+      white-space: pre;
+      overflow: hidden;
       padding: 4px 6px;
-      margin: -4px -6px;
+      border: 1px solid transparent;
     }
 
-    .name-fields .name-first {
-      max-width: 48%;
+    .name-fields .autosize > .editable-field {
+      grid-area: 1 / 1;
+      width: 100%;
+      min-width: 0;
+      margin: 0;
+      padding: 4px 6px;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: #fff;
     }
 
-    .name-fields .name-last {
-      max-width: 52%;
-      text-transform: uppercase;
-    }
+    .name-fields .autosize-last { text-transform: uppercase; }
 
     .name-fields .editable-field::placeholder { color: #B8C9D8; }
 
@@ -732,8 +677,7 @@
       orgUrl: safeUrl(r.organisationUrl),
       role: text(r.role),
       email: text(r.email),
-      landline: text(r.landline),
-      mobile: text(r.mobile),
+      phone: text(r.phone),
       linkedin: safeUrl(r.linkedin),
       active: toBool(r.active),
       comments: text(r.comments),
@@ -768,8 +712,7 @@
 
   const ICONS = {
     mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-    phone: '<path d="M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2C10 21 3 14 3 5a2 2 0 0 1 2-2z"/>',
-    mobile: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'
+    phone: '<path d="M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2C10 21 3 14 3 5a2 2 0 0 1 2-2z"/>'
   };
 
   const LINKEDIN_PATH =
@@ -822,19 +765,20 @@
   /* CHAMPS MODIFIABLES */
 
   function editable(alias, value, placeholder, extraClass = "", type = "text") {
-    const isName = extraClass.includes("name-");
-    const size = isName
-      ? Math.max(3, String(value || placeholder || "").length)
-      : null;
 
-    return `<input
+    const input = `<input
       class="editable-field ${extraClass}"
       type="${type}"
       data-field="${alias}"
-      ${size ? `size="${size}"` : ""}
       value="${escapeHtml(value || "")}"
       placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
       aria-label="${escapeHtml(placeholder || alias)}">`;
+
+    if (!extraClass.includes("name-")) return input;
+
+    // Prénom / nom : conteneur dont la largeur s'adapte au texte saisi
+    return `<span class="autosize ${extraClass.replace("name-", "autosize-")}"
+      data-value="${escapeHtml(value || placeholder || "")}">${input}</span>`;
   }
 
   /* COORDONNÉES */
@@ -919,15 +863,15 @@
   async function saveField(alias, value) {
     const rec = state.currentRecord;
 
-    if (!rec || rec.id == null) return;
+    if (!rec || rec.id == null) return false;
 
     if (!Object.prototype.hasOwnProperty.call(rec, alias)) {
       $("status").textContent =
         "Cette colonne n'est pas associée dans les options du widget.";
-      return;
+      return false;
     }
 
-    if (state.saving) return;
+    if (state.saving) return false;
 
     state.saving = true;
     $("status").textContent = "Enregistrement…";
@@ -943,6 +887,7 @@
       ]);
 
       $("status").textContent = "Modification enregistrée.";
+      return true;
 
     } catch (err) {
       console.error("Erreur d'enregistrement Grist :", err);
@@ -950,6 +895,7 @@
       $("status").textContent =
         "Enregistrement impossible : " +
         (err && err.message ? err.message : "vérifiez les droits et le mapping.");
+      return false;
 
     } finally {
       state.saving = false;
@@ -1020,6 +966,13 @@
 
       field.addEventListener("change", commit);
 
+      /* Prénom / nom : la largeur suit le texte saisi */
+      if (field.parentElement.classList.contains("autosize")) {
+        field.addEventListener("input", () => {
+          field.parentElement.dataset.value = field.value || field.placeholder;
+        });
+      }
+
       field.addEventListener("keydown", e => {
         if (e.key === "Enter" && field.tagName === "INPUT") {
           e.preventDefault();
@@ -1030,54 +983,7 @@
 
     /* MODIFICATION DU LIEN LINKEDIN */
 
-    $("mainContent").querySelectorAll("[data-edit-link]").forEach(button => {
-
-      button.addEventListener("click", () => {
-
-        const alias = button.dataset.editLink;
-        const wrapper = $("linkedinWrapper");
-
-        const currentValue = state.currentRecord
-          ? text(state.currentRecord[alias])
-          : "";
-
-        wrapper.innerHTML = editable(
-          alias,
-          currentValue,
-          "Ajouter un lien LinkedIn…"
-        );
-
-        const field = wrapper.querySelector("[data-field]");
-
-        field.dataset.lastSaved = field.value;
-        field.focus();
-
-        const commitLinkedin = async () => {
-          const value = field.value.trim();
-
-          if (field.dataset.lastSaved === value) return;
-
-          field.dataset.lastSaved = value;
-
-          await saveField(alias, value);
-
-          /* Réaffichage du logo et du lien après sauvegarde */
-          if (field.isConnected) {
-            wrapper.innerHTML = linkedinDisplay(value);
-            bindLinkedinEditButton();
-          }
-        };
-
-        field.addEventListener("change", commitLinkedin);
-
-        field.addEventListener("keydown", e => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            field.blur();
-          }
-        });
-      });
-    });
+    bindLinkedinEditButton();
 
     /* BOUTONS DE COPIE */
 
@@ -1116,7 +1022,7 @@
     }
   }
 
-  /* RÉAFFICHAGE LINKEDIN APRÈS MODIFICATION */
+  /* LINKEDIN : MODIFICATION PUIS RETOUR À L'AFFICHAGE LOGO + LIEN */
 
   function bindLinkedinEditButton() {
 
@@ -1127,40 +1033,59 @@
     button.addEventListener("click", () => {
 
       const wrapper = $("linkedinWrapper");
-      const currentValue = state.currentRecord
+      const original = state.currentRecord
         ? text(state.currentRecord.linkedin)
         : "";
 
       wrapper.innerHTML = editable(
         "linkedin",
-        currentValue,
+        original,
         "Ajouter un lien LinkedIn…"
       );
 
       const field = wrapper.querySelector("[data-field]");
-      field.dataset.lastSaved = field.value;
       field.focus();
+      field.select();
 
-      const commit = async () => {
-        const value = field.value.trim();
+      let done = false;
 
-        if (field.dataset.lastSaved === value) return;
+      const finish = async (cancel) => {
+        if (done) return;
+        done = true;
 
-        field.dataset.lastSaved = value;
-        await saveField("linkedin", value);
+        let value = cancel ? original : field.value.trim();
 
-        if (field.isConnected) {
-          wrapper.innerHTML = linkedinDisplay(value);
-          bindLinkedinEditButton();
+        if (value !== original) {
+          const ok = await saveField("linkedin", value);
+          if (!ok) value = original;
+        }
+
+        if (!field.isConnected) return;
+
+        /* Retour à l'affichage « logo + lien » */
+        wrapper.innerHTML = linkedinDisplay(value);
+        bindLinkedinEditButton();
+
+        /* Lien vidé : le champ vide reste modifiable */
+        const empty = wrapper.querySelector("[data-field]");
+        if (empty) {
+          empty.addEventListener("change", () =>
+            saveField("linkedin", empty.value.trim())
+          );
         }
       };
 
-      field.addEventListener("change", commit);
+      /* Quitter le champ (clic ailleurs, Tab…) referme toujours le champ */
+      field.addEventListener("blur", () => finish(false));
 
       field.addEventListener("keydown", e => {
         if (e.key === "Enter") {
           e.preventDefault();
           field.blur();
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          finish(true);
         }
       });
     });
@@ -1242,9 +1167,7 @@
 
               ${contactRow("mail", "Adresse e-mail", "email", c.email, true)}
 
-              ${contactRow("phone", "Téléphone fixe", "landline", c.landline, true)}
-
-              ${contactRow("mobile", "Téléphone mobile", "mobile", c.mobile, true)}
+              ${contactRow("phone", "Téléphone", "phone", c.phone, true)}
 
               ${linkedinRow(c.linkedin)}
 
@@ -1486,15 +1409,8 @@
       },
 
       {
-        name: "landline",
-        title: "Téléphone fixe",
-        type: "Any",
-        optional: true
-      },
-
-      {
-        name: "mobile",
-        title: "Téléphone mobile",
+        name: "phone",
+        title: "Téléphone",
         type: "Any",
         optional: true
       },
