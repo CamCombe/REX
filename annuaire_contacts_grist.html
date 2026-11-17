@@ -141,6 +141,47 @@
 
     .empty-results { padding: 16px 13px; color: var(--muted); }
 
+    .create-item {
+      color: var(--accent);
+      font-weight: 700;
+      border-top: 1px solid #EEF1F4;
+    }
+
+    /* BOUTONS D'ACTION */
+
+    .btn {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 17px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.12); }
+    .btn-primary:disabled { opacity: .6; cursor: default; }
+
+    .btn-secondary { background: #EEF2F6; color: #34495D; }
+    .btn-secondary:hover { background: #E3E9EF; }
+
+    .blank-state .btn { margin-top: 17px; }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .form-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
     /* FICHE CONTACT */
 
     .profile {
@@ -646,7 +687,8 @@
     selectedId: null,
     mapped: false,
     mappings: null,
-    currentRecord: null
+    currentRecord: null,
+    creating: false
   };
 
   /* OUTILS */
@@ -802,7 +844,8 @@
 
   function renderBlank(
     title = "Rechercher un contact",
-    msg = "Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche."
+    msg = "Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche.",
+    canCreate = false
   ) {
     $("mainContent").innerHTML = `
       <div class="blank-state">
@@ -817,7 +860,190 @@
         </div>
         <div class="blank-title">${escapeHtml(title)}</div>
         <p class="blank-text">${escapeHtml(msg)}</p>
+        ${canCreate
+          ? `<button class="btn btn-primary" type="button" data-new-contact>
+              + Nouveau contact
+            </button>`
+          : ""}
       </div>`;
+
+    const newBtn = $("mainContent").querySelector("[data-new-contact]");
+    if (newBtn) newBtn.addEventListener("click", renderCreateForm);
+  }
+
+  /* Écran d'accueil (aucun contact sélectionné) */
+  const renderHome = () => renderBlank(undefined, undefined, true);
+
+  /* CRÉATION D'UN CONTACT */
+
+  function renderCreateForm() {
+
+    state.creating = true;
+    state.selectedId = null;
+    state.currentRecord = null;
+
+    $("searchInput").value = "";
+    $("clearSearch").style.display = "none";
+    closeResults();
+
+    $("mainContent").innerHTML = `
+      <article class="profile">
+
+        <header class="banner">
+          <div class="banner-meta"><span>Nouveau contact</span></div>
+
+          <div class="name-fields">
+            ${editable("firstName", "", "Prénom", "name-first")}
+            ${editable("lastName", "", "Nom", "name-last")}
+          </div>
+
+          <div class="role">
+            ${editable("role", "", "Fonction / rôle")}
+          </div>
+        </header>
+
+        <div class="profile-body">
+
+          <section>
+            <h2 class="section-title">Coordonnées</h2>
+            <div>
+              ${contactRow("mail", "Adresse e-mail", "email", "")}
+              ${contactRow("phone", "Téléphone", "phone", "")}
+              ${contactRow("linkedin", "Profil LinkedIn", "linkedin", "")}
+            </div>
+          </section>
+
+          <section class="comments-section">
+            <h2 class="section-title">Commentaires</h2>
+            <textarea class="comments-editor"
+              data-field="comments"
+              placeholder="Ajouter un commentaire…"></textarea>
+          </section>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="button" data-create>Créer le contact</button>
+            <button class="btn btn-secondary" type="button" data-cancel>Annuler</button>
+          </div>
+
+          <p class="form-note">
+            Entrée passe au champ suivant (Maj+Entrée : retour à la ligne dans les commentaires).
+            L'organisation se renseigne ensuite directement dans le tableau Grist.
+          </p>
+
+        </div>
+      </article>`;
+
+    $("status").textContent = "";
+    bindCreateEvents();
+  }
+
+  function bindCreateEvents() {
+
+    const root = $("mainContent");
+    const fields = Array.from(root.querySelectorAll("[data-field]"));
+
+    fields.forEach((field, i) => {
+
+      if (field.parentElement.classList.contains("autosize")) {
+        field.addEventListener("input", () => {
+          field.parentElement.dataset.value = field.value || field.placeholder;
+        });
+      }
+
+      if (field.dataset.field === "phone") {
+        field.addEventListener("blur", () => {
+          field.value = formatPhone(field.value);
+        });
+      }
+
+      field.addEventListener("keydown", e => {
+        if (e.key !== "Enter" || e.isComposing) return;
+        if (field.tagName === "TEXTAREA" && e.shiftKey) return;
+
+        e.preventDefault();
+
+        if (fields[i + 1]) fields[i + 1].focus();
+        else submitNewContact();
+      });
+    });
+
+    root.querySelector("[data-create]").addEventListener("click", submitNewContact);
+    root.querySelector("[data-cancel]").addEventListener("click", cancelCreate);
+
+    if (fields[0]) fields[0].focus();
+  }
+
+  function cancelCreate() {
+    state.creating = false;
+    $("status").textContent = "";
+    renderHome();
+  }
+
+  async function submitNewContact() {
+
+    const root = $("mainContent");
+    const button = root.querySelector("[data-create]");
+    const values = {};
+
+    root.querySelectorAll("[data-field]").forEach(f => {
+      values[f.dataset.field] = f.value.trim();
+    });
+
+    if (!values.firstName && !values.lastName) {
+      $("status").textContent = "Renseignez au moins un prénom ou un nom.";
+      const first = root.querySelector('[data-field="firstName"]');
+      if (first) first.focus();
+      return;
+    }
+
+    if (values.phone) values.phone = formatPhone(values.phone);
+
+    /* Traduction champ du widget -> colonne Grist associée */
+    const fields = {};
+
+    for (const [alias, v] of Object.entries(values)) {
+      if (v === "") continue;
+
+      const colId = state.mappings ? state.mappings[alias] : null;
+      if (typeof colId === "string" && colId) fields[colId] = v;
+    }
+
+    if (button) button.disabled = true;
+    $("status").textContent = "Création du contact…";
+
+    try {
+      const res = await grist.getTable().create({ fields });
+
+      const created = Array.isArray(res) ? res[0] : res;
+      const newId = created && created.id != null ? created.id : null;
+
+      state.creating = false;
+      state.selectedId = newId;
+
+      $("searchInput").value = fullName({
+        first: values.firstName || "",
+        last: values.lastName || ""
+      });
+      $("clearSearch").style.display = "block";
+
+      $("status").textContent = "Contact créé.";
+
+      const rec = newId != null
+        ? state.contacts.find(r => r.id === newId)
+        : null;
+
+      if (rec) renderProfile(rec);
+      else renderBlank("Contact créé", "Chargement de la fiche…");
+
+    } catch (err) {
+      console.error("Erreur de création Grist :", err);
+
+      $("status").textContent =
+        "Création impossible : " +
+        (err && err.message ? err.message : "vérifiez les droits et le mapping.");
+
+      if (button) button.disabled = false;
+    }
   }
 
   /* ICÔNES */
@@ -1428,7 +1654,12 @@
       box.innerHTML = `
         <div class="empty-results">
           Aucun contact ne correspond à « ${escapeHtml(query)} ».
-        </div>`;
+        </div>
+        <button class="result-item create-item" type="button" data-new-contact>
+          + Créer un nouveau contact
+        </button>`;
+
+      box.querySelector("[data-new-contact]").addEventListener("click", renderCreateForm);
 
     } else {
 
@@ -1468,6 +1699,7 @@
 
           const chosen = shown[Number(btn.dataset.i)];
 
+          state.creating = false;
           state.selectedId = chosen.id;
 
           $("searchInput").value = fullName(contactData(chosen));
@@ -1488,9 +1720,10 @@
 
   $("searchInput").addEventListener("input", () => {
 
-    state.selectedId = null;
-
-    if (state.mapped) renderBlank();
+    if (!state.creating) {
+      state.selectedId = null;
+      if (state.mapped) renderHome();
+    }
 
     renderResults();
   });
@@ -1504,11 +1737,13 @@
   $("clearSearch").addEventListener("click", () => {
 
     $("searchInput").value = "";
-    state.selectedId = null;
 
     closeResults();
 
-    if (state.mapped) renderBlank();
+    if (!state.creating) {
+      state.selectedId = null;
+      if (state.mapped) renderHome();
+    }
 
     $("clearSearch").style.display = "none";
     $("searchInput").focus();
@@ -1656,6 +1891,8 @@
     state.mapped = true;
     state.contacts = records;
 
+    if (state.creating) return;   // formulaire de création ouvert : on n'y touche pas
+
     const current = state.selectedId != null
       ? records.find(r => r.id === state.selectedId)
       : null;
@@ -1664,7 +1901,7 @@
       renderProfile(current);
     } else {
       state.selectedId = null;
-      renderBlank();
+      renderHome();
     }
 
     $("status").textContent =
