@@ -5,278 +5,1015 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Annuaire des contacts – Grist</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
   <style>
     :root {
-      --navy: #193B60; --text: #202B36; --muted: #687684; --line: #E2E7EC; --soft: #F4F6F8;
-      --accent: #2877B8; --green: #2E9E5B; --red: #C0453F;
+      --navy: #193B60;
+      --text: #202B36;
+      --muted: #687684;
+      --line: #E2E7EC;
+      --soft: #F4F6F8;
+      --accent: #2877B8;
+      --green: #2E9E5B;
+      --red: #C0453F;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text); background: #fff;
+      color: var(--text);
+      background: #fff;
     }
+
     * { box-sizing: border-box; }
     body { margin: 0; background: #fff; font-size: 14px; }
-    button, input { font: inherit; }
+    button, input, textarea { font: inherit; }
     button { cursor: pointer; }
-    .app { width: 100%; max-width: 920px; margin: 0 auto; padding: 16px; }
-    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; margin-bottom: 12px; }
+
+    .app {
+      width: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* RECHERCHE */
+
     .search-wrap { position: relative; margin-bottom: 14px; }
-    .search-box { display: flex; align-items: center; gap: 10px; border: 1px solid #D6DEE6; border-radius: 11px; padding: 0 12px; min-height: 46px; background: #fff; transition: border .15s, box-shadow .15s; }
-    .search-box:focus-within { border-color: #7FA8CB; box-shadow: 0 0 0 3px rgba(40,119,184,.10); }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #D6DEE6;
+      border-radius: 11px;
+      padding: 0 12px;
+      min-height: 46px;
+      background: #fff;
+      transition: border .15s, box-shadow .15s;
+    }
+
+    .search-box:focus-within {
+      border-color: #7FA8CB;
+      box-shadow: 0 0 0 3px rgba(40,119,184,.10);
+    }
+
     .search-icon { color: #778594; flex: 0 0 auto; }
-    .search-box input { border: 0; outline: 0; width: 100%; min-width: 0; background: transparent; color: var(--text); }
-    .clear-btn { border: 0; background: transparent; color: #778594; font-size: 19px; padding: 2px 4px; display: none; }
-    .results { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--line); border-radius: 11px; box-shadow: 0 12px 30px rgba(20,39,58,.13); max-height: 300px; overflow: auto; display: none; }
+
+    .search-box input {
+      border: 0;
+      outline: 0;
+      width: 100%;
+      min-width: 0;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .clear-btn {
+      border: 0;
+      background: transparent;
+      color: #778594;
+      font-size: 19px;
+      padding: 2px 4px;
+      display: none;
+    }
+
+    .results {
+      position: absolute;
+      z-index: 20;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      box-shadow: 0 12px 30px rgba(20,39,58,.13);
+      max-height: 300px;
+      overflow: auto;
+      display: none;
+    }
+
     .results.open { display: block; }
-    .results-meta { padding: 9px 12px; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--line); }
-    .result-item { width: 100%; display: block; text-align: left; border: 0; border-bottom: 1px solid #EEF1F4; background: #fff; padding: 11px 13px; }
+
+    .results-meta {
+      padding: 9px 12px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-item {
+      width: 100%;
+      display: block;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid #EEF1F4;
+      background: #fff;
+      padding: 11px 13px;
+    }
+
     .result-item:last-child { border-bottom: 0; }
     .result-item:hover { background: #F3F7FA; }
-    .result-name { display: block; color: #23384C; font-weight: 750; margin-bottom: 3px; }
-    .result-detail { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .result-name {
+      display: block;
+      color: #23384C;
+      font-weight: 750;
+      margin-bottom: 3px;
+    }
+
+    .result-detail {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
     .empty-results { padding: 16px 13px; color: var(--muted); }
-    .profile { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
-    .banner { background: var(--navy); color: #fff; padding: 22px 22px 20px; }
-    .banner-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #C7D7E5; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+
+    /* FICHE CONTACT */
+
+    .profile {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .banner {
+      background: var(--navy);
+      color: #fff;
+      padding: 22px 22px 20px;
+    }
+
+    .banner-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: #C7D7E5;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
     .banner-right { display: flex; align-items: center; gap: 10px; }
     .contact-id { font-variant-numeric: tabular-nums; font-weight: 600; }
-    .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 11px; color: #fff; font-size: 11px; font-weight: 750; letter-spacing: .04em; }
-    .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: .9; }
-    .pill.on { background: var(--green); }
-    .pill.off { background: var(--red); }
-    .person-name { margin: 13px 0 6px; font-size: clamp(23px, 4vw, 31px); line-height: 1.12; letter-spacing: -.035em; font-weight: 780; overflow-wrap: anywhere; }
-    .org-name { color: #F2F6FA; font-size: 15px; font-weight: 650; margin-top: 3px; }
-    a.org-link { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.45); text-underline-offset: 3px; }
-    a.org-link:hover { text-decoration-color: #fff; }
-    .role { color: #C8D8E6; font-size: 13px; margin-top: 5px; line-height: 1.45; }
+
+    .role {
+      color: #C8D8E6;
+      font-size: 13px;
+      margin-top: 5px;
+      line-height: 1.45;
+    }
+
     .profile-body { padding: 21px 22px 23px; }
-    .section-title { margin: 0 0 13px; color: #34495D; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .075em; }
-    .contact-row { display: flex; align-items: center; gap: 13px; padding: 11px 0; border-bottom: 1px solid #EDF0F3; min-width: 0; }
+
+    .section-title {
+      margin: 0 0 13px;
+      color: #34495D;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .075em;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 11px 0;
+      border-bottom: 1px solid #EDF0F3;
+      min-width: 0;
+    }
+
     .contact-row:first-child { padding-top: 2px; }
     .contact-row:last-child { border-bottom: 0; padding-bottom: 2px; }
-    .contact-icon { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: #F0F3F6; color: #526A80; }
-    .contact-icon.li { background: #EAF2FA; color: #0A66C2; }
-    .contact-copy { min-width: 0; flex: 1; }
-    .contact-label { display: block; color: #7A8793; font-size: 11px; margin-bottom: 3px; }
-    .contact-value { color: #273B4E; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
-    a.contact-value { text-decoration: none; }
-    a.contact-value:hover { color: var(--accent); text-decoration: underline; }
-    .comments-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
-    .comments { background: #F5F7F9; border-radius: 10px; padding: 13px 14px; color: #465665; font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .blank-state { border: 1px dashed #CFD8E1; border-radius: 14px; padding: 34px 20px; text-align: center; background: #FAFBFC; }
-    .blank-icon { width: 44px; height: 44px; border-radius: 13px; margin: 0 auto 13px; background: #EAF0F5; color: #47647F; display: flex; align-items: center; justify-content: center; }
-    .blank-title { color: #34495D; font-weight: 750; font-size: 15px; margin-bottom: 5px; }
-    .blank-text { color: var(--muted); font-size: 12px; line-height: 1.5; max-width: 420px; margin: 0 auto; }
-    .status { color: var(--muted); font-size: 11px; margin-top: 12px; min-height: 15px; }
-    .meta-foot { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 11px 22px; border-top: 1px solid var(--line); background: #FAFBFC; color: #8A96A2; font-size: 11px; }
 
-    .editable-field { width: 100%; min-width: 0; border: 1px solid transparent; border-radius: 6px; padding: 5px 7px; margin: -5px -7px; background: transparent; color: inherit; font: inherit; line-height: 1.4; transition: background .15s, border-color .15s; }
-    .editable-field:hover { background: rgba(40,119,184,.045); border-color: #D9E4ED; }
-    .editable-field:focus { outline: none; background: #fff; border-color: #80A9CC; box-shadow: 0 0 0 3px rgba(40,119,184,.10); color: var(--text); }
-    .editable-field::placeholder { color: #A0AAB4; font-weight: 400; opacity: 1; }
-    .name-fields { display: flex; align-items: baseline; justify-content: flex-start; gap: 7px; margin: 13px 0 6px; min-width: 0; }
-    .name-fields .editable-field { flex: 0 1 auto; width: auto; min-width: 2ch; max-width: 100%; font-size: clamp(23px, 4vw, 31px); line-height: 1.12; letter-spacing: -.035em; font-weight: 780; color: #fff; padding: 4px 6px; margin: -4px -6px; }
-    .name-fields .name-first { width: 11ch; }
-    .name-fields .name-last { width: 17ch; text-transform: uppercase; }
-    .name-fields .editable-field::placeholder { color: #B8C9D8; text-transform: none; }
-    .linkedin-logo-link { text-decoration: none; flex: 0 0 34px; }
-    .linkedin-logo-link:hover { background: #DCEBFA; }
-    .org-edit-line { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-    .org-edit-line .editable-field { color: #F2F6FA; font-size: 15px; font-weight: 650; }
-    .org-display { color: #F2F6FA; font-size: 15px; font-weight: 650; min-width: 0; overflow-wrap: anywhere; }
-    .readonly-value { color: #273B4E; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
-    .org-open { color: #E6F0F8; display: inline-flex; padding: 5px; border-radius: 6px; opacity: .8; }
+    .contact-icon {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F0F3F6;
+      color: #526A80;
+    }
+
+    .contact-icon.li {
+      background: #EAF2FA;
+      color: #0A66C2;
+    }
+
+    .contact-copy { min-width: 0; flex: 1; }
+
+    .contact-label {
+      display: block;
+      color: #7A8793;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    /* COMMENTAIRES */
+
+    .comments-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .blank-state {
+      border: 1px dashed #CFD8E1;
+      border-radius: 14px;
+      padding: 34px 20px;
+      text-align: center;
+      background: #FAFBFC;
+    }
+
+    .blank-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      margin: 0 auto 13px;
+      background: #EAF0F5;
+      color: #47647F;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .blank-title {
+      color: #34495D;
+      font-weight: 750;
+      font-size: 15px;
+      margin-bottom: 5px;
+    }
+
+    .blank-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 12px;
+      min-height: 15px;
+    }
+
+    .meta-foot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      padding: 11px 22px;
+      border-top: 1px solid var(--line);
+      background: #FAFBFC;
+      color: #8A96A2;
+      font-size: 11px;
+    }
+
+    /* CHAMPS MODIFIABLES */
+
+    .editable-field {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 5px 7px;
+      margin: -5px -7px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      line-height: 1.4;
+      transition: background .15s, border-color .15s;
+    }
+
+    .editable-field:hover {
+      background: rgba(40,119,184,.045);
+      border-color: #D9E4ED;
+    }
+
+    .editable-field:focus {
+      outline: none;
+      background: #fff;
+      border-color: #80A9CC;
+      box-shadow: 0 0 0 3px rgba(40,119,184,.10);
+      color: var(--text);
+    }
+
+    .editable-field::placeholder {
+      color: #A0AAB4;
+      font-weight: 400;
+      opacity: 1;
+    }
+
+    /* PRENOM / NOM : largeur ajustée au texte */
+
+    .name-fields {
+      display: flex;
+      align-items: baseline;
+      gap: .28em;               /* espace standard entre prénom et nom */
+      margin: 13px 0 6px;
+      width: 100%;
+      min-width: 0;
+      font-size: clamp(23px, 4vw, 31px);
+      line-height: 1.12;
+      letter-spacing: -.035em;
+      font-weight: 780;
+    }
+
+    .name-fields .autosize {
+      display: inline-grid;
+      grid-template-columns: minmax(0, 1fr);
+      flex: 0 1 auto;
+      min-width: 0;
+      margin: -5px -7px;        /* compense le padding des champs */
+    }
+
+    /* texte invisible qui impose la largeur du champ */
+    .name-fields .autosize::after {
+      content: attr(data-value);
+      grid-area: 1 / 1;
+      visibility: hidden;
+      white-space: pre;
+      overflow: hidden;
+      padding: 4px 6px;
+      border: 1px solid transparent;
+    }
+
+    .name-fields .autosize > .editable-field {
+      grid-area: 1 / 1;
+      /* width:0 + min-width:100% : la largeur par défaut de l'input
+         (≈ 20 caractères) ne compte plus, seul le texte invisible
+         (::after) dicte la taille */
+      width: 0;
+      min-width: 100%;
+      margin: 0;
+      padding: 4px 6px;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: #fff;
+    }
+
+    .name-fields .autosize-last { text-transform: uppercase; }
+
+    .name-fields .editable-field::placeholder { color: #B8C9D8; }
+
+    .org-edit-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .org-edit-line .editable-field {
+      color: #F2F6FA;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    /* ORGANISATION : nom en lecture seule, cliquable vers la fiche */
+
+    .org-name {
+      min-width: 0;
+      color: #F2F6FA;
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1.4;
+      overflow-wrap: anywhere;   /* un nom long passe sur plusieurs lignes */
+    }
+
+    a.org-name {
+      text-decoration: underline;
+      text-decoration-color: rgba(255,255,255,.4);
+      text-underline-offset: 3px;
+    }
+
+    a.org-name:hover { text-decoration-color: #fff; }
+
+    .org-name.empty {
+      color: #9FB4C8;
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    /* (zone de texte extensible, conservée au cas où) */
+
+    .autogrow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      flex: 1 1 0;
+      min-width: 0;
+      margin: -5px -7px;
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1.4;
+    }
+
+    /* texte invisible qui impose la hauteur de la zone de texte */
+    .autogrow::after {
+      content: attr(data-value) " ";
+      grid-area: 1 / 1;
+      visibility: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      padding: 5px 7px;
+      border: 1px solid transparent;
+    }
+
+    .autogrow > textarea.editable-field {
+      grid-area: 1 / 1;
+      display: block;
+      width: 0;
+      min-width: 100%;
+      margin: 0;
+      resize: none;
+      overflow: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: inherit;
+    }
+
+    .org-open {
+      color: #E6F0F8;
+      display: inline-flex;
+      padding: 5px;
+      border-radius: 6px;
+      opacity: .8;
+      flex: 0 0 auto;
+    }
+
     .org-open:hover { background: rgba(255,255,255,.12); opacity: 1; }
     .role .editable-field { color: #C8D8E6; font-size: 13px; }
-    .contact-value-wrap { display: flex; align-items: center; gap: 7px; min-width: 0; }
-    .contact-value-wrap .editable-field { color: #273B4E; font-size: 13px; }
-    .copy-btn { width: 29px; height: 29px; flex: 0 0 29px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 7px; color: #718294; background: transparent; padding: 0; }
+
+    .contact-value-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .contact-value-wrap .editable-field {
+      color: #273B4E;
+      font-size: 13px;
+    }
+
+    /* BOUTONS COPIE */
+
+    .copy-btn {
+      width: 29px;
+      height: 29px;
+      flex: 0 0 29px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 7px;
+      color: #718294;
+      background: transparent;
+      padding: 0;
+    }
+
     .copy-btn:hover { background: #EDF3F7; color: #315D80; }
     .copy-btn.copied { color: var(--green); background: #EAF6EF; }
     .copy-btn svg { width: 16px; height: 16px; }
-    .copy-feedback { color: var(--green); font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .comments-editor { display: block; width: 100%; min-height: 94px; resize: vertical; background: #F5F7F9; border: 1px solid #E6EBEF; border-radius: 10px; padding: 12px 14px; color: #465665; font: inherit; font-size: 13px; line-height: 1.6; }
-    .comments-editor:focus { outline: none; background: #fff; border-color: #80A9CC; box-shadow: 0 0 0 3px rgba(40,119,184,.10); }
+
+    .copy-feedback {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* LINKEDIN : AFFICHAGE DU LOGO ET DU LIEN */
+
+    .linkedin-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .linkedin-link {
+      color: #0A66C2;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .linkedin-link:hover { text-decoration: underline; }
+
+    .edit-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #718294;
+      cursor: pointer;
+    }
+
+    .edit-link-btn:hover { background: #EDF3F7; color: #315D80; }
+
+    /* COMMENTAIRES MODIFIABLES */
+
+    .comments-editor {
+      display: block;
+      width: 100%;
+      min-height: 94px;
+      resize: vertical;
+      background: #F5F7F9;
+      border: 1px solid #E6EBEF;
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #465665;
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .comments-editor:focus {
+      outline: none;
+      background: #fff;
+      border-color: #80A9CC;
+      box-shadow: 0 0 0 3px rgba(40,119,184,.10);
+    }
+
     .comments-editor::placeholder { color: #9AA6B1; }
-    .status-toggle { border: 0; color: #fff; border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 750; letter-spacing: .04em; }
+
+    /* STATUT */
+
+    .status-toggle {
+      border: 0;
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .04em;
+    }
+
     .status-toggle.on { background: var(--green); }
     .status-toggle.off { background: var(--red); }
     .status-toggle.unknown { background: #738292; }
     .status-toggle:hover { filter: brightness(1.06); }
-    .field-save { color: var(--green); font-size: 11px; margin-left: 6px; }
-    .edit-hint { color: rgba(255,255,255,.63); font-size: 10px; margin-top: 9px; }
+
+    .edit-hint {
+      color: rgba(255,255,255,.63);
+      font-size: 10px;
+      margin-top: 9px;
+    }
+
     .contact-row .contact-value-wrap { flex: 1; }
 
-    @media (max-width: 560px) { .meta-foot { padding: 10px 16px; } .app { padding: 11px; } .banner { padding: 18px 16px; } .profile-body { padding: 17px 16px 19px; } }
+    /* BANNIÈRE : texte sombre quand le champ passe en édition (fond blanc) */
+
+    .banner :is(input, textarea).editable-field:focus {
+      color: var(--text);
+    }
+
+    .banner :is(input, textarea).editable-field:focus::placeholder {
+      color: #8A96A2;
+    }
+
+    @media (max-width: 560px) {
+      .meta-foot { padding: 10px 16px; }
+      .app { padding: 11px; }
+      .banner { padding: 18px 16px; }
+      .profile-body { padding: 17px 16px 19px; }
+    }
   </style>
 </head>
+
 <body>
-  <main class="app">
-    <div class="eyebrow">Annuaire des contacts</div>
-    <div class="search-wrap" id="searchWrap">
-      <div class="search-box">
-        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-        <input id="searchInput" type="search" autocomplete="off" placeholder="Rechercher par nom, prénom ou organisation…" aria-label="Rechercher un contact">
-        <button class="clear-btn" id="clearSearch" title="Effacer la recherche" aria-label="Effacer la recherche">×</button>
-      </div>
-      <div class="results" id="results" role="listbox"></div>
+<main class="app">
+
+  <div class="eyebrow">Annuaire des contacts</div>
+
+  <div class="search-wrap" id="searchWrap">
+    <div class="search-box">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m20 20-4-4"/>
+      </svg>
+
+      <input id="searchInput" type="search" autocomplete="off"
+        placeholder="Rechercher par nom, prénom ou organisation…"
+        aria-label="Rechercher un contact">
+
+      <button class="clear-btn" id="clearSearch"
+        title="Effacer la recherche" aria-label="Effacer la recherche">×</button>
     </div>
-    <div id="mainContent"></div>
-    <div class="status" id="status" aria-live="polite"></div>
-  </main>
+
+    <div class="results" id="results" role="listbox"></div>
+  </div>
+
+  <div id="mainContent"></div>
+  <div class="status" id="status" aria-live="polite"></div>
+
+</main>
 
 <script>
 (() => {
-  const $ = (id) => document.getElementById(id);
-  const state = { contacts: [], selectedId: null, mapped: false, mappings: null, currentRecord: null, saveChain: Promise.resolve(), pendingSaves: 0 };
 
-  const isBlank = (v) => v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0);
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    contacts: [],
+    selectedId: null,
+    mapped: false,
+    mappings: null,
+    currentRecord: null
+  };
+
+  /* OUTILS */
+
+  const isBlank = (v) =>
+    v === null || v === undefined || v === "" ||
+    (Array.isArray(v) && v.length === 0);
+
   const text = (v) => {
     if (isBlank(v)) return "";
     if (Array.isArray(v)) return v.map(text).filter(Boolean).join(", ");
     if (typeof v === "object") return v.name ? String(v.name) : "";
     return String(v).trim();
   };
-  const escapeHtml = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const normalize = (v) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr").trim();
+
+  const escapeHtml = (v) =>
+    String(v ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[c]));
+
+  const normalize = (v) =>
+    String(v ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("fr")
+      .trim();
+
   const safeUrl = (v) => {
     const s = text(v);
     if (!s) return "";
-    return /^https?:\/\//i.test(s) ? s : "https://" + s.replace(/^\/+/, "");
+    return /^https?:\/\//i.test(s)
+      ? s
+      : "https://" + s.replace(/^\/+/, "");
   };
+
   const toBool = (v) => {
-    if (v === true || v === 1) return true;
-    if (v === false || v === 0) return false;
+    if (v === true) return true;
+    if (v === false) return false;
     if (isBlank(v)) return null;
-    const value = normalize(v);
-    if (["true", "1", "oui", "yes", "vrai", "actif", "active", "x", "on"].includes(value)) return true;
-    if (["false", "0", "non", "no", "faux", "inactif", "inactive", "off"].includes(value)) return false;
-    // Une valeur inattendue ne doit surtout pas être interprétée comme « inactif ».
-    return null;
+
+    return ["true", "1", "oui", "yes", "vrai", "actif", "active", "x"]
+      .includes(normalize(v));
   };
-  // Dates Grist : secondes depuis l'époque (Date = minuit UTC, Date+Heure = heure locale). Les textes sont repris tels quels.
+
+  /* DATES GRIST */
+
   const fmtDate = (v) => {
     if (isBlank(v)) return "";
-    let d = null, dateOnly = false;
+
+    let d = null;
+    let dateOnly = false;
+
     if (typeof v === "number") {
       const ms = v < 1e11 ? v * 1000 : v;
       d = new Date(ms);
       dateOnly = ms % 86400000 === 0;
     } else {
       const s = text(v);
-      if (/^\d{4}-\d{2}-\d{2}(T|\s|$)/.test(s)) { d = new Date(s); dateOnly = s.length === 10; }
-      else return s;
+
+      if (/^\d{4}-\d{2}-\d{2}(T|\s|$)/.test(s)) {
+        d = new Date(s);
+        dateOnly = s.length === 10;
+      } else {
+        return s;
+      }
     }
+
     if (isNaN(d)) return text(v);
+
     return dateOnly
-      ? d.toLocaleDateString("fr-FR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" })
-      : d.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", " à");
+      ? d.toLocaleDateString("fr-FR", {
+          timeZone: "UTC",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        })
+      : d.toLocaleString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).replace(",", " à");
   };
-  const fullName = (c) => [c.first, c.last.toLocaleUpperCase("fr")].filter(Boolean).join(" ");
+
+  const fullName = (c) =>
+    [c.first, c.last.toLocaleUpperCase("fr")]
+      .filter(Boolean)
+      .join(" ");
+
+  /* NORMALISATION DES ENREGISTREMENTS */
 
   function contactData(r) {
     return {
-      rowId: r.id, id: text(r.contactId), first: text(r.firstName), last: text(r.lastName),
-      organisation: text(r.organisation), orgUrl: safeUrl(r.organisationUrl),
-      role: text(r.role), email: text(r.email), landline: text(r.landline), mobile: text(r.mobile),
-      linkedin: safeUrl(r.linkedin), active: toBool(r.active), comments: text(r.comments),
-      created: fmtDate(r.createdAt), updated: fmtDate(r.updatedAt)
+      rowId: r.id,
+      id: text(r.contactId),
+      first: text(r.firstName),
+      last: text(r.lastName),
+      organisation: text(r.organisation),
+      orgUrl: safeUrl(r.organisationUrl),
+      role: text(r.role),
+      email: text(r.email),
+      phone: text(r.phone),
+      linkedin: safeUrl(r.linkedin),
+      active: toBool(r.active),
+      comments: text(r.comments),
+      created: fmtDate(r.createdAt),
+      updated: fmtDate(r.updatedAt)
     };
   }
 
-  function renderBlank(title = "Rechercher un contact", msg = "Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche.") {
-    $("mainContent").innerHTML = `<div class="blank-state">
-      <div class="blank-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/><path d="M16 8h5M18.5 5.5v5"/></svg></div>
-      <div class="blank-title">${escapeHtml(title)}</div><p class="blank-text">${escapeHtml(msg)}</p></div>`;
+  /* ÉTAT VIDE */
+
+  function renderBlank(
+    title = "Rechercher un contact",
+    msg = "Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche."
+  ) {
+    $("mainContent").innerHTML = `
+      <div class="blank-state">
+        <div class="blank-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="9" cy="8" r="3.5"/>
+            <path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/>
+            <path d="M16 8h5M18.5 5.5v5"/>
+          </svg>
+        </div>
+        <div class="blank-title">${escapeHtml(title)}</div>
+        <p class="blank-text">${escapeHtml(msg)}</p>
+      </div>`;
   }
+
+  /* ICÔNES */
 
   const ICONS = {
     mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
-    phone: '<path d="M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2C10 21 3 14 3 5a2 2 0 0 1 2-2z"/>',
-    mobile: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'
+    phone: '<path d="M5 3h4l2 5-3 2a15 15 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2C10 21 3 14 3 5a2 2 0 0 1 2-2z"/>'
   };
-  const LINKEDIN_PATH = "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z";
+
+  const LINKEDIN_PATH =
+    "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z";
+
   function icon(type) {
-    if (type === "linkedin") return `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="${LINKEDIN_PATH}"/></svg>`;
-    return `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[type]}</svg>`;
+    if (type === "linkedin") {
+      return `<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+        <path d="${LINKEDIN_PATH}"/>
+      </svg>`;
+    }
+
+    return `<svg width="17" height="17" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" stroke-width="1.7"
+      stroke-linecap="round" stroke-linejoin="round">
+      ${ICONS[type]}
+    </svg>`;
   }
-  const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>';
-  const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
-  const EXTERNAL_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/></svg>';
+
+  const COPY_ICON = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="8" y="8" width="13" height="13" rx="2"/>
+      <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
+    </svg>`;
+
+  const CHECK_ICON = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m5 12 4 4L19 6"/>
+    </svg>`;
+
+  const EXTERNAL_ICON = `
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+      stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3h7v7"/>
+      <path d="M10 14 21 3"/>
+      <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"/>
+    </svg>`;
+
+  const EDIT_ICON = `
+    <svg width="15" height="15" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="m16 4 4 4"/>
+      <path d="M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15z"/>
+    </svg>`;
+
+  /* CHAMPS MODIFIABLES */
 
   function editable(alias, value, placeholder, extraClass = "", type = "text") {
-    return `<input class="editable-field ${extraClass}" type="${type}" data-field="${alias}" value="${escapeHtml(value || "")}" placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}" aria-label="${escapeHtml(placeholder || alias)}">`;
+
+    const input = `<input
+      class="editable-field ${extraClass}"
+      type="${type}"
+      data-field="${alias}"
+      value="${escapeHtml(value || "")}"
+      placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
+      aria-label="${escapeHtml(placeholder || alias)}">`;
+
+    // Organisation : zone de texte qui passe sur 2 lignes (ou plus) si besoin
+    if (extraClass.includes("org-edit")) {
+      return `<span class="autogrow"
+        data-value="${escapeHtml(value || placeholder || "")}">
+        <textarea
+          class="editable-field ${extraClass}"
+          rows="1"
+          data-field="${alias}"
+          data-singleline
+          placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
+          aria-label="${escapeHtml(placeholder || alias)}">${escapeHtml(value || "")}</textarea>
+      </span>`;
+    }
+
+    if (!extraClass.includes("name-")) return input;
+
+    // Prénom / nom : conteneur dont la largeur s'adapte au texte saisi
+    return `<span class="autosize ${extraClass.replace("name-", "autosize-")}"
+      data-value="${escapeHtml(value || placeholder || "")}">${input}</span>`;
   }
 
-  function contactRow(type, label, alias, value, copyable = false, href = "", readOnly = false) {
+  /* COORDONNÉES */
+
+  function contactRow(type, label, alias, value, copyable = false, href = "") {
+
     const copy = copyable && value
-      ? `<button class="copy-btn" type="button" data-copy="${escapeHtml(value)}" title="Copier" aria-label="Copier ${escapeHtml(label.toLowerCase())}">${COPY_ICON}</button><span class="copy-feedback" aria-live="polite"></span>`
+      ? `<button class="copy-btn" type="button"
+          data-copy="${escapeHtml(value)}"
+          title="Copier"
+          aria-label="Copier ${escapeHtml(label.toLowerCase())}">
+          ${COPY_ICON}
+        </button>
+        <span class="copy-feedback" aria-live="polite"></span>`
       : "";
-    const iconHtml = type === "linkedin" && href
-      ? `<a class="contact-icon li linkedin-logo-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="Ouvrir le profil LinkedIn" aria-label="Ouvrir le profil LinkedIn">${icon(type)}</a>`
-      : `<div class="contact-icon ${type === "linkedin" ? "li" : ""}">${icon(type)}</div>`;
-    const open = href && type !== "linkedin"
-      ? `<a class="org-open" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="Ouvrir le lien">${EXTERNAL_ICON}</a>`
+
+    const open = href
+      ? `<a class="org-open" href="${escapeHtml(href)}"
+          target="_blank" rel="noopener noreferrer"
+          title="Ouvrir le lien">${EXTERNAL_ICON}</a>`
       : "";
-    const valueHtml = readOnly
-      ? (href ? `<a class="contact-value" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(value || href)}</a>` : `<span class="readonly-value">${escapeHtml(value || "—")}</span>`)
-      : editable(alias, value, type === "linkedin" ? "URL du profil LinkedIn" : "Ajouter…");
-    return `<div class="contact-row">${iconHtml}
-      <div class="contact-copy"><span class="contact-label">${escapeHtml(label)}</span>
-        <div class="contact-value-wrap">${valueHtml}${copy}${open}</div>
-      </div></div>`;
+
+    return `
+      <div class="contact-row">
+        <div class="contact-icon ${type === "linkedin" ? "li" : ""}">
+          ${icon(type)}
+        </div>
+        <div class="contact-copy">
+          <span class="contact-label">${escapeHtml(label)}</span>
+          <div class="contact-value-wrap">
+            ${editable(alias, value, "Ajouter…")}
+            ${copy}
+            ${open}
+          </div>
+        </div>
+      </div>`;
   }
 
-  // Seules les colonnes de saisie sont modifiables. Les identifiants, dates et
-  // champs issus de formules/liens Grist restent en lecture seule.
-  const WRITABLE_FIELDS = new Set(["firstName", "lastName", "role", "email", "landline", "mobile", "linkedin", "active", "comments"]);
+  /* LINKEDIN */
 
-  function updateLocalValue(rowId, alias, value) {
-    const row = state.contacts.find(item => item.id === rowId);
-    if (row) row[alias] = value;
-    if (state.currentRecord && state.currentRecord.id === rowId) state.currentRecord[alias] = value;
+  function linkedinDisplay(value) {
+    const url = safeUrl(value);
+
+    if (!url) {
+      return editable("linkedin", "", "Ajouter un lien LinkedIn…");
+    }
+
+    return `
+      <div class="linkedin-display">
+        <a class="linkedin-link"
+          href="${escapeHtml(url)}"
+          target="_blank"
+          rel="noopener noreferrer">
+          Voir le profil LinkedIn ↗
+        </a>
+
+        <button class="edit-link-btn"
+          type="button"
+          data-edit-link="linkedin"
+          title="Modifier le lien"
+          aria-label="Modifier le lien LinkedIn">
+          ${EDIT_ICON}
+        </button>
+      </div>`;
   }
 
+  function linkedinRow(value) {
+    return `
+      <div class="contact-row">
+        <div class="contact-icon li">${icon("linkedin")}</div>
+        <div class="contact-copy">
+          <span class="contact-label">Profil LinkedIn</span>
+          <div class="contact-value-wrap" id="linkedinWrapper">
+            ${linkedinDisplay(value)}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* SAUVEGARDE GRIST */
+
+  const FIELD_LABELS = {
+    firstName: "Prénom",
+    lastName: "Nom",
+    organisation: "Organisation",
+    role: "Fonction / rôle",
+    email: "Adresse e-mail",
+    phone: "Téléphone",
+    linkedin: "Profil LinkedIn",
+    active: "Contact actif",
+    comments: "Commentaires"
+  };
+
+  let saveChain = Promise.resolve();
+
+  /* Les enregistrements sont exécutés l'un après l'autre : aucun n'est perdu
+     si on en déclenche un pendant qu'un autre est en cours. */
   function saveField(alias, value) {
-    const rec = state.currentRecord;
-    if (!rec || rec.id == null) return Promise.resolve();
-    if (!WRITABLE_FIELDS.has(alias)) {
-      $("status").textContent = "Ce champ est calculé par Grist et ne peut pas être modifié ici.";
-      return Promise.resolve();
-    }
-    if (!Object.prototype.hasOwnProperty.call(rec, alias)) {
-      $("status").textContent = "Cette colonne n'est pas associée dans les options du widget.";
-      return Promise.resolve();
+    const rec = state.currentRecord;          // fiche concernée au moment de la saisie
+    const run = () => writeField(rec, alias, value);
+    const result = saveChain.then(run, run);
+    saveChain = result.catch(() => {});
+    return result;
+  }
+
+  async function writeField(rec, alias, value) {
+
+    if (!rec || rec.id == null) return false;
+
+    /* Colonne Grist réellement associée à ce champ du widget */
+    const colId = state.mappings ? state.mappings[alias] : null;
+    const label = FIELD_LABELS[alias] || alias;
+
+    if (typeof colId !== "string" || !colId) {
+      $("status").textContent =
+        `Le champ « ${label} » n'est associé à aucune colonne dans les options du widget.`;
+      return false;
     }
 
-    const rowId = rec.id;
-    const mappings = state.mappings;
-    const previous = rec[alias];
-    // Mise à jour immédiate du cache : les autres champs ne repartent pas d'une
-    // ancienne version de la fiche pendant que Grist synchronise les données.
-    updateLocalValue(rowId, alias, value);
-    state.pendingSaves += 1;
     $("status").textContent = "Enregistrement…";
 
-    const task = async () => {
-      try {
-        const mappedPatch = grist.mapColumnNamesBack({ [alias]: value }, { mappings });
-        await grist.getTable().update([{ id: rowId, ...mappedPatch }]);
-        $("status").textContent = "Modification enregistrée.";
-      } catch (err) {
-        console.error("Erreur d'enregistrement Grist :", err);
-        // Ne restaure l'ancienne valeur que si aucune saisie plus récente ne l'a remplacée.
-        const current = state.contacts.find(item => item.id === rowId);
-        if (current && current[alias] === value) updateLocalValue(rowId, alias, previous);
-        $("status").textContent = "Enregistrement impossible : " + (err && err.message ? err.message : "vérifiez les droits et le mapping.");
-      } finally {
-        state.pendingSaves = Math.max(0, state.pendingSaves - 1);
-      }
-    };
+    try {
+      /* Grist attend { id, fields: { Colonne: valeur } } :
+         sans « fields », la requête réussit mais n'écrit rien. */
+      await grist.getTable().update([
+        { id: rec.id, fields: { [colId]: value } }
+      ]);
 
-    // Les modifications successives sont exécutées dans l'ordre, sans en ignorer
-    // une lorsqu'un deuxième champ est modifié avant la fin du premier enregistrement.
-    state.saveChain = state.saveChain.then(task, task);
-    return state.saveChain;
+      $("status").textContent = "Modification enregistrée.";
+      return true;
+
+    } catch (err) {
+      console.error("Erreur d'enregistrement Grist :", err, { alias, colId });
+
+      const msg = err && err.message ? err.message : "";
+
+      $("status").textContent = /formula column/i.test(msg)
+        ? `Modification impossible : le champ « ${label} » est associé à la colonne ` +
+          `« ${colId} », qui est une colonne de formule. Associez-le à une colonne ` +
+          "de données dans les options du widget."
+        : `Enregistrement impossible (champ « ${label} », colonne « ${colId} ») : ` +
+          (msg || "vérifiez les droits et le mapping.");
+      return false;
+    }
   }
+
+  /* COPIE DANS LE PRESSE-PAPIERS */
 
   async function copyToClipboard(value, button) {
     try {
@@ -287,237 +1024,617 @@
         helper.value = value;
         helper.style.position = "fixed";
         helper.style.opacity = "0";
+
         document.body.appendChild(helper);
         helper.select();
+
         const ok = document.execCommand("copy");
         helper.remove();
+
         if (!ok) throw new Error("Copie non prise en charge par ce navigateur.");
       }
+
       button.classList.add("copied");
       button.innerHTML = CHECK_ICON;
       button.title = "Copié !";
+
       const feedback = button.parentElement.querySelector(".copy-feedback");
       if (feedback) feedback.textContent = "Copié !";
+
       window.setTimeout(() => {
         if (!button.isConnected) return;
+
         button.classList.remove("copied");
         button.innerHTML = COPY_ICON;
         button.title = "Copier";
+
         if (feedback) feedback.textContent = "";
       }, 1500);
+
     } catch (err) {
-      $("status").textContent = "Impossible de copier : " + (err.message || "erreur du navigateur.");
+      $("status").textContent =
+        "Impossible de copier : " + (err.message || "erreur du navigateur.");
     }
   }
 
+  /* ÉVÉNEMENTS DE LA FICHE */
+
   function bindProfileEvents() {
+
     $("mainContent").querySelectorAll("[data-field]").forEach(field => {
+
       const commit = () => {
         const alias = field.dataset.field;
         const value = field.value;
+
         if (field.dataset.lastSaved === value) return;
+
         field.dataset.lastSaved = value;
         saveField(alias, value);
       };
+
       field.dataset.lastSaved = field.value;
+
       field.addEventListener("change", commit);
-      if (field.tagName === "INPUT") {
-        field.addEventListener("keydown", e => {
-          if (e.key === "Enter") { e.preventDefault(); field.blur(); }
+
+      /* Prénom / nom : la largeur suit le texte saisi */
+      if (field.parentElement.classList.contains("autosize")) {
+        field.addEventListener("input", () => {
+          field.parentElement.dataset.value = field.value || field.placeholder;
         });
       }
-    });
-    $("mainContent").querySelectorAll("[data-copy]").forEach(button => {
-      button.addEventListener("click", () => copyToClipboard(button.dataset.copy, button));
-    });
-    const active = $("mainContent").querySelector("[data-active-toggle]");
-    if (active) active.addEventListener("click", () => {
-      const next = active.dataset.value !== "true";
-      const raw = state.currentRecord && state.currentRecord.active;
-      let storedValue = next;
-      if (typeof raw === "string") {
-        const n = normalize(raw);
-        if (["oui", "non"].includes(n)) storedValue = next ? "Oui" : "Non";
-        else if (["yes", "no"].includes(n)) storedValue = next ? "Yes" : "No";
-        else if (["actif", "inactive", "active", "inactif"].includes(n)) storedValue = next ? "Actif" : "Inactif";
+
+      /* Organisation : la hauteur suit le texte (retours à la ligne ignorés) */
+      if (field.parentElement.classList.contains("autogrow")) {
+        field.addEventListener("input", () => {
+          if (/[\r\n]/.test(field.value)) {
+            field.value = field.value.replace(/\s*[\r\n]+\s*/g, " ");
+          }
+          field.parentElement.dataset.value = field.value || field.placeholder;
+        });
       }
-      active.dataset.value = next ? "true" : "false";
-      active.classList.toggle("on", next);
-      active.classList.toggle("off", !next);
-      active.classList.remove("unknown");
-      active.textContent = next ? "Actif" : "Inactif";
-      saveField("active", storedValue);
+
+      field.addEventListener("keydown", e => {
+        if (e.key !== "Enter" || e.isComposing) return;
+
+        const enterSaves = field.hasAttribute("data-enter-saves");
+
+        /* Maj+Entrée : retour à la ligne dans les commentaires */
+        if (enterSaves && e.shiftKey) return;
+
+        if (field.tagName === "INPUT" ||
+            field.hasAttribute("data-singleline") ||
+            enterSaves) {
+          e.preventDefault();
+          field.blur();          // déclenche l'enregistrement
+        }
+      });
+    });
+
+    /* MODIFICATION DU LIEN LINKEDIN */
+
+    bindLinkedinEditButton();
+
+    /* BOUTONS DE COPIE */
+
+    $("mainContent").querySelectorAll("[data-copy]").forEach(button => {
+      button.addEventListener("click", () =>
+        copyToClipboard(button.dataset.copy, button)
+      );
+    });
+
+    /* STATUT ACTIF / INACTIF */
+
+    const active = $("mainContent").querySelector("[data-active-toggle]");
+
+    if (active) {
+      active.addEventListener("click", () => {
+
+        const next = active.dataset.value !== "true";
+        const raw = state.currentRecord && state.currentRecord.active;
+
+        let storedValue = next;
+
+        if (typeof raw === "string") {
+          const n = normalize(raw);
+
+          if (["oui", "non"].includes(n)) {
+            storedValue = next ? "Oui" : "Non";
+          } else if (["yes", "no"].includes(n)) {
+            storedValue = next ? "Yes" : "No";
+          } else if (["actif", "inactive", "active", "inactif"].includes(n)) {
+            storedValue = next ? "Actif" : "Inactif";
+          }
+        }
+
+        saveField("active", storedValue);
+      });
+    }
+  }
+
+  /* LINKEDIN : MODIFICATION PUIS RETOUR À L'AFFICHAGE LOGO + LIEN */
+
+  function bindLinkedinEditButton() {
+
+    const button = $("mainContent").querySelector("[data-edit-link]");
+
+    if (!button) return;
+
+    button.addEventListener("click", () => {
+
+      const wrapper = $("linkedinWrapper");
+      const original = state.currentRecord
+        ? text(state.currentRecord.linkedin)
+        : "";
+
+      wrapper.innerHTML = editable(
+        "linkedin",
+        original,
+        "Ajouter un lien LinkedIn…"
+      );
+
+      const field = wrapper.querySelector("[data-field]");
+      field.focus();
+      field.select();
+
+      let done = false;
+
+      const finish = async (cancel) => {
+        if (done) return;
+        done = true;
+
+        let value = cancel ? original : field.value.trim();
+
+        if (value !== original) {
+          const ok = await saveField("linkedin", value);
+          if (!ok) value = original;
+        }
+
+        if (!field.isConnected) return;
+
+        /* Retour à l'affichage « logo + lien » */
+        wrapper.innerHTML = linkedinDisplay(value);
+        bindLinkedinEditButton();
+
+        /* Lien vidé : le champ vide reste modifiable */
+        const empty = wrapper.querySelector("[data-field]");
+        if (empty) {
+          empty.addEventListener("change", () =>
+            saveField("linkedin", empty.value.trim())
+          );
+        }
+      };
+
+      /* Quitter le champ (clic ailleurs, Tab…) referme toujours le champ */
+      field.addEventListener("blur", () => finish(false));
+
+      field.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          field.blur();
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          finish(true);
+        }
+      });
     });
   }
 
+  /* AFFICHAGE DE LA FICHE */
+
   function renderProfile(rec) {
+
     state.currentRecord = rec;
+
     const c = contactData(rec);
-    const activeClass = c.active === null ? "unknown" : (c.active ? "on" : "off");
-    const activeLabel = c.active === null ? "Statut à renseigner" : (c.active ? "Actif" : "Inactif");
+
+    const activeClass =
+      c.active === null ? "unknown" : (c.active ? "on" : "off");
+
+    const activeLabel =
+      c.active === null ? "Statut à renseigner" : (c.active ? "Actif" : "Inactif");
+
     const orgHref = c.orgUrl ? safeUrl(c.orgUrl) : "";
-    $("mainContent").innerHTML = `<article class="profile">
-      <header class="banner">
-        <div class="banner-meta"><span>Fiche contact</span>
-          <div class="banner-right">${c.id ? `<span class="contact-id">${escapeHtml(c.id)}</span>` : ""}
-            <button class="status-toggle ${activeClass}" type="button" data-active-toggle data-value="${c.active === true ? "true" : "false"}">${activeLabel}</button>
-          </div></div>
-        <div class="name-fields">
-          ${editable("firstName", c.first, "Prénom", "name-first")}
-          ${editable("lastName", c.last, "Nom", "name-last")}
+
+    $("mainContent").innerHTML = `
+      <article class="profile">
+
+        <header class="banner">
+
+          <div class="banner-meta">
+            <span>Fiche contact</span>
+
+            <div class="banner-right">
+              ${c.id
+                ? `<span class="contact-id">${escapeHtml(c.id)}</span>`
+                : ""}
+
+              <button class="status-toggle ${activeClass}"
+                type="button"
+                data-active-toggle
+                data-value="${c.active === true ? "true" : "false"}">
+                ${activeLabel}
+              </button>
+            </div>
+          </div>
+
+          <div class="name-fields">
+            ${editable("firstName", c.first, "Prénom", "name-first")}
+            ${editable("lastName", c.last, "Nom", "name-last")}
+          </div>
+
+          <div class="org-edit-line">
+            ${orgHref && c.organisation
+              ? `<a class="org-name"
+                  href="${escapeHtml(orgHref)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Ouvrir la fiche de l'organisation">${escapeHtml(c.organisation)}</a>`
+              : `<span class="org-name ${c.organisation ? "" : "empty"}">${escapeHtml(c.organisation || "Aucune organisation")}</span>`}
+
+            ${orgHref
+              ? `<a class="org-open"
+                  href="${escapeHtml(orgHref)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Ouvrir la fiche de l'organisation">
+                  ${EXTERNAL_ICON}
+                </a>`
+              : ""}
+          </div>
+
+          <div class="role">
+            ${editable("role", c.role, "Fonction / rôle")}
+          </div>
+
+          <div class="edit-hint">
+            Cliquez sur un champ pour le modifier ; les changements sont enregistrés dans Grist.
+          </div>
+
+        </header>
+
+        <div class="profile-body">
+
+          <section>
+            <h2 class="section-title">Coordonnées</h2>
+
+            <div>
+
+              ${contactRow("mail", "Adresse e-mail", "email", c.email, true)}
+
+              ${contactRow("phone", "Téléphone", "phone", c.phone, true)}
+
+              ${linkedinRow(c.linkedin)}
+
+            </div>
+          </section>
+
+          <section class="comments-section">
+
+            <h2 class="section-title">Commentaires</h2>
+
+            <textarea class="comments-editor"
+              data-field="comments"
+              data-enter-saves
+              placeholder="Ajouter un commentaire…  (Entrée pour valider, Maj+Entrée pour aller à la ligne)">${escapeHtml(c.comments)}</textarea>
+
+          </section>
+
         </div>
-        <div class="org-edit-line">
-          <div class="org-display">${escapeHtml(c.organisation || "Organisation non renseignée")}</div>
-          ${orgHref ? `<a class="org-open" href="${escapeHtml(orgHref)}" target="_blank" rel="noopener noreferrer" title="Ouvrir la fiche de l'organisation">${EXTERNAL_ICON}</a>` : ""}
-        </div>
-        <div class="role">${editable("role", c.role, "Fonction / rôle")}</div>
-        <div class="edit-hint">Cliquez sur un champ modifiable pour le mettre à jour ; les changements sont enregistrés dans Grist. Les champs calculés restent en lecture seule.</div>
-      </header>
-      <div class="profile-body">
-        <section><h2 class="section-title">Coordonnées</h2><div>
-          ${contactRow("mail", "Adresse e-mail", "email", c.email, true)}
-          ${contactRow("phone", "Téléphone fixe", "landline", c.landline, true)}
-          ${contactRow("mobile", "Téléphone mobile", "mobile", c.mobile, true)}
-          ${contactRow("linkedin", "Profil LinkedIn", "linkedin", c.linkedin, false, c.linkedin ? safeUrl(c.linkedin) : "")}
-          ${contactRow("mail", "Lien de l'organisation", "organisationUrl", c.orgUrl, false, c.orgUrl ? safeUrl(c.orgUrl) : "", true)}
-        </div></section>
-        <section class="comments-section"><h2 class="section-title">Commentaires</h2>
-          <textarea class="comments-editor" data-field="comments" placeholder="Ajouter un commentaire…">${escapeHtml(c.comments)}</textarea>
-        </section>
-      </div>
-      ${c.created || c.updated ? `<footer class="meta-foot">${c.created ? `<span>Créée le ${escapeHtml(c.created)}</span>` : ""}${c.updated ? `<span>Modifiée le ${escapeHtml(c.updated)}</span>` : ""}</footer>` : ""}
+
+        ${c.created || c.updated
+          ? `<footer class="meta-foot">
+              ${c.created
+                ? `<span>Créée le ${escapeHtml(c.created)}</span>`
+                : ""}
+              ${c.updated
+                ? `<span>Modifiée le ${escapeHtml(c.updated)}</span>`
+                : ""}
+            </footer>`
+          : ""}
+
       </article>`;
+
     bindProfileEvents();
   }
 
-  const sorted = () => state.contacts.slice().sort((a, b) => {
-    const A = contactData(a), B = contactData(b);
-    return normalize(A.last || A.first).localeCompare(normalize(B.last || B.first), "fr");
-  });
-  const closeResults = () => $("results").classList.remove("open");
+  /* CLASSEMENT DES CONTACTS */
+
+  const sorted = () =>
+    state.contacts.slice().sort((a, b) => {
+      const A = contactData(a);
+      const B = contactData(b);
+
+      return normalize(A.last || A.first)
+        .localeCompare(normalize(B.last || B.first), "fr");
+    });
+
+  const closeResults = () =>
+    $("results").classList.remove("open");
+
+  /* RÉSULTATS DE RECHERCHE */
 
   function renderResults() {
+
     const query = $("searchInput").value;
+
     $("clearSearch").style.display = query ? "block" : "none";
+
     const q = normalize(query);
+
     if (!q) return closeResults();
+
     const matches = sorted().filter(r => {
+
       const c = contactData(r);
-      return normalize([c.first, c.last, c.organisation].join(" ")).includes(q);
+
+      return normalize([
+        c.first,
+        c.last,
+        c.organisation
+      ].join(" ")).includes(q);
+
     });
+
     const box = $("results");
+
     if (!matches.length) {
-      box.innerHTML = `<div class="empty-results">Aucun contact ne correspond à « ${escapeHtml(query)} ».</div>`;
+
+      box.innerHTML = `
+        <div class="empty-results">
+          Aucun contact ne correspond à « ${escapeHtml(query)} ».
+        </div>`;
+
     } else {
+
       const shown = matches.slice(0, 100);
-      box.innerHTML = `<div class="results-meta">${matches.length} résultat${matches.length > 1 ? "s" : ""}</div>` +
+
+      box.innerHTML = `
+        <div class="results-meta">
+          ${matches.length} résultat${matches.length > 1 ? "s" : ""}
+        </div>` +
+
         shown.map((r, i) => {
+
           const c = contactData(r);
           const detail = [c.organisation, c.role].filter(Boolean).join(" · ");
-          return `<button class="result-item" type="button" role="option" data-i="${i}">
-            <span class="result-name">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
-            ${detail ? `<span class="result-detail">${escapeHtml(detail)}</span>` : ""}</button>`;
+
+          return `
+            <button class="result-item"
+              type="button"
+              role="option"
+              data-i="${i}">
+
+              <span class="result-name">
+                ${escapeHtml(fullName(c) || "Contact sans nom")}
+              </span>
+
+              ${detail
+                ? `<span class="result-detail">${escapeHtml(detail)}</span>`
+                : ""}
+
+            </button>`;
+
         }).join("");
-      box.querySelectorAll(".result-item").forEach(btn => btn.addEventListener("click", () => {
-        const chosen = shown[Number(btn.dataset.i)];
-        state.selectedId = chosen.id;
-        $("searchInput").value = fullName(contactData(chosen));
-        $("clearSearch").style.display = "block";
-        closeResults();
-        renderProfile(chosen);
-      }));
+
+      box.querySelectorAll(".result-item").forEach(btn => {
+
+        btn.addEventListener("click", () => {
+
+          const chosen = shown[Number(btn.dataset.i)];
+
+          state.selectedId = chosen.id;
+
+          $("searchInput").value = fullName(contactData(chosen));
+          $("clearSearch").style.display = "block";
+
+          closeResults();
+          renderProfile(chosen);
+
+        });
+
+      });
     }
+
     box.classList.add("open");
   }
 
-  $("searchInput").addEventListener("input", () => { state.selectedId = null; if (state.mapped) renderBlank(); renderResults(); });
-  $("searchInput").addEventListener("focus", () => { if ($("searchInput").value.trim()) renderResults(); });
-  $("clearSearch").addEventListener("click", () => {
-    $("searchInput").value = ""; state.selectedId = null; closeResults();
+  /* ÉVÉNEMENTS DE RECHERCHE */
+
+  $("searchInput").addEventListener("input", () => {
+
+    state.selectedId = null;
+
     if (state.mapped) renderBlank();
-    $("clearSearch").style.display = "none"; $("searchInput").focus();
-  });
-  document.addEventListener("click", (e) => { if (!$("searchWrap").contains(e.target)) closeResults(); });
 
-  // Mapping natif Grist : panneau de droite > « Colonnes » du widget.
+    renderResults();
+  });
+
+  $("searchInput").addEventListener("focus", () => {
+
+    if ($("searchInput").value.trim()) renderResults();
+
+  });
+
+  $("clearSearch").addEventListener("click", () => {
+
+    $("searchInput").value = "";
+    state.selectedId = null;
+
+    closeResults();
+
+    if (state.mapped) renderBlank();
+
+    $("clearSearch").style.display = "none";
+    $("searchInput").focus();
+
+  });
+
+  document.addEventListener("click", (e) => {
+
+    if (!$("searchWrap").contains(e.target)) closeResults();
+
+  });
+
+  /* CONFIGURATION NATIVE GRIST */
+
   grist.ready({
+
     requiredAccess: "full",
+
     columns: [
-      { name: "firstName", title: "Prénom", type: "Any", description: "Prénom du contact" },
-      { name: "lastName", title: "Nom", type: "Any", description: "Nom de famille du contact" },
-      { name: "contactId", title: "Identifiant du contact", type: "Any", optional: true },
-      { name: "organisation", title: "Organisation (nom)", type: "Any", optional: true, description: "Colonne texte ou formule, ex. $Organisation.Nom" },
-      { name: "organisationUrl", title: "Lien vers la fiche organisation", type: "Any", optional: true, description: "URL complète ouverte au clic sur le nom de l'organisation" },
-      { name: "role", title: "Fonction / rôle", type: "Any", optional: true },
-      { name: "email", title: "Adresse e-mail", type: "Any", optional: true },
-      { name: "landline", title: "Téléphone fixe", type: "Any", optional: true },
-      { name: "mobile", title: "Téléphone mobile", type: "Any", optional: true },
-      { name: "linkedin", title: "Profil LinkedIn (URL)", type: "Any", optional: true },
-      { name: "active", title: "Contact actif", type: "Any", optional: true, description: "Case à cocher (ou Oui/Non)" },
-      { name: "comments", title: "Commentaires", type: "Any", optional: true },
-      { name: "createdAt", title: "Date de création", type: "Any", optional: true, description: "Colonne Date ou Date+Heure" },
-      { name: "updatedAt", title: "Dernière modification", type: "Any", optional: true, description: "Colonne Date ou Date+Heure" }
+
+      {
+        name: "firstName",
+        title: "Prénom",
+        type: "Any",
+        description: "Prénom du contact"
+      },
+
+      {
+        name: "lastName",
+        title: "Nom",
+        type: "Any",
+        description: "Nom de famille du contact"
+      },
+
+      {
+        name: "contactId",
+        title: "Identifiant du contact",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "organisation",
+        title: "Organisation (nom)",
+        type: "Any",
+        optional: true,
+        description: "Colonne formule (lecture seule), ex. $Organisation.Nom_de_l_organisation"
+      },
+
+      {
+        name: "organisationUrl",
+        title: "Lien vers la fiche organisation",
+        type: "Any",
+        optional: true,
+        description: "Colonne formule : lien d'ancrage vers la fiche de l'organisation"
+      },
+
+      {
+        name: "role",
+        title: "Fonction / rôle",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "email",
+        title: "Adresse e-mail",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "phone",
+        title: "Téléphone",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "linkedin",
+        title: "Profil LinkedIn (URL)",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "active",
+        title: "Contact actif",
+        type: "Any",
+        optional: true,
+        description: "Case à cocher (ou Oui/Non)"
+      },
+
+      {
+        name: "comments",
+        title: "Commentaires",
+        type: "Any",
+        optional: true
+      },
+
+      {
+        name: "createdAt",
+        title: "Date de création",
+        type: "Any",
+        optional: true,
+        description: "Colonne Date ou Date+Heure"
+      },
+
+      {
+        name: "updatedAt",
+        title: "Dernière modification",
+        type: "Any",
+        optional: true,
+        description: "Colonne Date ou Date+Heure"
+      }
+
     ]
+
   });
 
-  // Grist peut renvoyer, pendant la propagation d'une modification, une version
-  // transitoire d'une ligne où certaines valeurs ne sont pas encore disponibles.
-  // On fusionne donc les nouvelles données avec le cache local au lieu de remplacer
-  // brutalement toute la fiche : une valeur déjà connue n'est pas effacée par un
-  // null/undefined transitoire. Une saisie volontairement vidée reste bien vide,
-  // car le cache local est mis à jour avant l'envoi à Grist.
-  function mergeIncomingRecords(incomingRecords) {
-    const previousById = new Map(state.contacts.map(record => [record.id, record]));
-    const aliases = [
-      "firstName", "lastName", "contactId", "organisation", "organisationUrl",
-      "role", "email", "landline", "mobile", "linkedin", "active", "comments",
-      "createdAt", "updatedAt"
-    ];
-    return incomingRecords.map(incoming => {
-      const previous = previousById.get(incoming.id);
-      if (!previous) return incoming;
-      const merged = { ...previous, ...incoming };
-      for (const alias of aliases) {
-        if ((incoming[alias] === null || incoming[alias] === undefined) &&
-            previous[alias] !== null && previous[alias] !== undefined) {
-          merged[alias] = previous[alias];
-        }
-      }
-      return merged;
-    });
-  }
+  /* RÉCEPTION DES DONNÉES GRIST */
 
   grist.onRecords((rawRecords, mappings) => {
+
     state.mappings = mappings || null;
-    // Applique la correspondance définie dans le panneau « Colonnes » (null si elle est incomplète).
-    const mappedRecords = rawRecords ? grist.mapColumnNames(rawRecords) : null;
-    if (!mappedRecords) {
-      state.mapped = false; state.contacts = [];
-      renderBlank("Associez les colonnes", "Ouvrez le panneau de droite de Grist, rubrique « Colonnes », puis associez au minimum le prénom et le nom.");
+
+    const records = rawRecords
+      ? grist.mapColumnNames(rawRecords)
+      : null;
+
+    if (!records) {
+
+      state.mapped = false;
+      state.contacts = [];
+
+      renderBlank(
+        "Associez les colonnes",
+        "Ouvrez le panneau de droite de Grist, rubrique « Colonnes », puis associez au minimum le prénom et le nom."
+      );
+
       $("status").textContent = "";
       return;
     }
+
     state.mapped = true;
-    const records = mergeIncomingRecords(mappedRecords);
     state.contacts = records;
-    const current = state.selectedId != null ? records.find(r => r.id === state.selectedId) : null;
+
+    const current = state.selectedId != null
+      ? records.find(r => r.id === state.selectedId)
+      : null;
+
     if (current) {
-      const activeElement = document.activeElement;
-      const profile = $("mainContent");
-      const userIsEditing = !!(activeElement && profile.contains(activeElement) && activeElement.matches("[data-field]"));
-      state.currentRecord = current;
-      // Ne jamais reconstruire la fiche au milieu d'une saisie ou d'une sauvegarde.
-      // Le prochain rafraîchissement utilisera la ligne fusionnée avec le cache.
-      if (!userIsEditing && state.pendingSaves === 0) renderProfile(current);
+      renderProfile(current);
     } else {
       state.selectedId = null;
       renderBlank();
     }
-    if (state.pendingSaves === 0) $("status").textContent = `${records.length} contact${records.length > 1 ? "s" : ""} chargé${records.length > 1 ? "s" : ""}.`;
+
+    $("status").textContent =
+      `${records.length} contact${records.length > 1 ? "s" : ""} chargé${records.length > 1 ? "s" : ""}.`;
+
   });
 
-  renderBlank("Chargement…", "En attente des données de Grist.");
+  renderBlank(
+    "Chargement…",
+    "En attente des données de Grist."
+  );
+
 })();
 </script>
+
 </body>
 </html>
