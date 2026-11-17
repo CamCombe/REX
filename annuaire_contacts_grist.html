@@ -387,7 +387,32 @@
       font-weight: 650;
     }
 
-    /* ORGANISATION : une ligne si court, deux (ou plus) si long */
+    /* ORGANISATION : nom en lecture seule, cliquable vers la fiche */
+
+    .org-name {
+      min-width: 0;
+      color: #F2F6FA;
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1.4;
+      overflow-wrap: anywhere;   /* un nom long passe sur plusieurs lignes */
+    }
+
+    a.org-name {
+      text-decoration: underline;
+      text-decoration-color: rgba(255,255,255,.4);
+      text-underline-offset: 3px;
+    }
+
+    a.org-name:hover { text-decoration-color: #fff; }
+
+    .org-name.empty {
+      color: #9FB4C8;
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    /* (zone de texte extensible, conservée au cas où) */
 
     .autogrow {
       display: grid;
@@ -1222,7 +1247,13 @@
           </div>
 
           <div class="org-edit-line">
-            ${editable("organisation", c.organisation, "Organisation", "org-edit")}
+            ${orgHref && c.organisation
+              ? `<a class="org-name"
+                  href="${escapeHtml(orgHref)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Ouvrir la fiche de l'organisation">${escapeHtml(c.organisation)}</a>`
+              : `<span class="org-name ${c.organisation ? "" : "empty"}">${escapeHtml(c.organisation || "Aucune organisation")}</span>`}
 
             ${orgHref
               ? `<a class="org-open"
@@ -1257,15 +1288,6 @@
               ${contactRow("phone", "Téléphone", "phone", c.phone, true)}
 
               ${linkedinRow(c.linkedin)}
-
-              ${contactRow(
-                "mail",
-                "Lien de l'organisation",
-                "organisationUrl",
-                c.orgUrl,
-                false,
-                c.orgUrl ? safeUrl(c.orgUrl) : ""
-              )}
 
             </div>
           </section>
@@ -1471,7 +1493,7 @@
         title: "Organisation (nom)",
         type: "Any",
         optional: true,
-        description: "Colonne texte ou formule, ex. $Organisation.Nom"
+        description: "Colonne formule (lecture seule), ex. $Organisation.Nom_de_l_organisation"
       },
 
       {
@@ -1479,7 +1501,7 @@
         title: "Lien vers la fiche organisation",
         type: "Any",
         optional: true,
-        description: "URL complète ouverte au clic sur le lien de l'organisation"
+        description: "Colonne formule : lien d'ancrage vers la fiche de l'organisation"
       },
 
       {
