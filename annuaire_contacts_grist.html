@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Annuaire des contacts – Grist</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <!-- Règles de numérotation des pays étrangers (facultatif : sans elle, seuls les numéros français sont formatés) -->
   <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1.11/bundle/libphonenumber-min.js"></script>
 
   <style>
@@ -146,7 +147,113 @@
       border-top: 1px solid #EEF1F4;
     }
 
-    /* BOUTONS */
+    /* FICHE ORGANISATION */
+
+    button.org-name {
+      background: none;
+      border: 0;
+      padding: 0;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(255,255,255,.4);
+      text-underline-offset: 3px;
+    }
+
+    button.org-name:hover { text-decoration-color: #fff; }
+
+    .back-btn {
+      border: 0;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border-radius: 8px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .back-btn:hover { background: rgba(255,255,255,.22); }
+
+    .org-title-line { margin: 13px 0 4px; display: flex; }
+
+    .org-title-line .autogrow {
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 780;
+      letter-spacing: -.03em;
+      line-height: 1.15;
+    }
+
+    .org-title-line .editable-field { color: #fff; }
+    .org-title-line .editable-field::placeholder { color: #B8C9D8; }
+
+    .org-summary { color: #C8D8E6; font-size: 13px; margin-top: 6px; line-height: 1.45; }
+
+    .org-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 18px 26px;
+    }
+
+    .org-field { min-width: 0; padding: 0 2px; }
+
+    .org-readonly {
+      color: #273B4E;
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .org-field select.editable-field { font-size: 13px; color: #273B4E; }
+
+    .org-open-dark {
+      color: #718294;
+      display: inline-flex;
+      padding: 5px;
+      border-radius: 6px;
+      flex: 0 0 auto;
+    }
+
+    .org-open-dark:hover { background: #EDF3F7; color: #315D80; }
+
+    .org-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+
+    .tag {
+      background: #EAF0F5;
+      color: #34495D;
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .muted-note { color: var(--muted); font-size: 12px; }
+
+    .org-contact {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid #EDF0F3;
+      background: #fff;
+      padding: 10px 4px;
+    }
+
+    .org-contact:last-child { border-bottom: 0; }
+    .org-contact:hover { background: #F3F7FA; }
+    .org-contact .n { font-weight: 700; color: #23384C; }
+    .org-contact .r { color: var(--muted); font-size: 12px; text-align: right; }
+
+    /* BOUTONS D'ACTION */
 
     .btn {
       border: 0;
@@ -363,12 +470,12 @@
       opacity: 1;
     }
 
-    /* PRÉNOM / NOM */
+    /* PRENOM / NOM : largeur ajustée au texte */
 
     .name-fields {
       display: flex;
       align-items: baseline;
-      gap: .28em;
+      gap: .28em;               /* espace standard entre prénom et nom */
       margin: 13px 0 6px;
       width: 100%;
       min-width: 0;
@@ -383,9 +490,10 @@
       grid-template-columns: minmax(0, 1fr);
       flex: 0 1 auto;
       min-width: 0;
-      margin: -5px -7px;
+      margin: -5px -7px;        /* compense le padding des champs */
     }
 
+    /* texte invisible qui impose la largeur du champ */
     .name-fields .autosize::after {
       content: attr(data-value);
       grid-area: 1 / 1;
@@ -398,6 +506,9 @@
 
     .name-fields .autosize > .editable-field {
       grid-area: 1 / 1;
+      /* width:0 + min-width:100% : la largeur par défaut de l'input
+         (≈ 20 caractères) ne compte plus, seul le texte invisible
+         (::after) dicte la taille */
       width: 0;
       min-width: 100%;
       margin: 0;
@@ -409,6 +520,7 @@
     }
 
     .name-fields .autosize-last { text-transform: uppercase; }
+
     .name-fields .editable-field::placeholder { color: #B8C9D8; }
 
     .org-edit-line {
@@ -424,13 +536,15 @@
       font-weight: 650;
     }
 
+    /* ORGANISATION : nom en lecture seule, cliquable vers la fiche */
+
     .org-name {
       min-width: 0;
       color: #F2F6FA;
       font-size: 15px;
       font-weight: 650;
       line-height: 1.4;
-      overflow-wrap: anywhere;
+      overflow-wrap: anywhere;   /* un nom long passe sur plusieurs lignes */
     }
 
     a.org-name {
@@ -447,6 +561,8 @@
       font-style: italic;
     }
 
+    /* (zone de texte extensible, conservée au cas où) */
+
     .autogrow {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -458,6 +574,7 @@
       line-height: 1.4;
     }
 
+    /* texte invisible qui impose la hauteur de la zone de texte */
     .autogrow::after {
       content: attr(data-value) " ";
       grid-area: 1 / 1;
@@ -532,7 +649,7 @@
       white-space: nowrap;
     }
 
-    /* LINKEDIN */
+    /* LINKEDIN : AFFICHAGE DU LOGO ET DU LIEN */
 
     .linkedin-display {
       display: flex;
@@ -619,6 +736,8 @@
 
     .contact-row .contact-value-wrap { flex: 1; }
 
+    /* BANNIÈRE : texte sombre quand le champ passe en édition (fond blanc) */
+
     .banner :is(input, textarea).editable-field:focus {
       color: var(--text);
     }
@@ -627,12 +746,9 @@
       color: #8A96A2;
     }
 
-    /* SÉLECTEUR D'ORGANISATION */
+    /* SÉLECTEUR D'ORGANISATION (création de contact) */
 
-    .organisation-create {
-      margin-bottom: 22px;
-      position: relative;
-    }
+    .organisation-create { margin-bottom: 22px; position: relative; }
 
     .organisation-create label {
       display: block;
@@ -693,12 +809,7 @@
     .organisation-option:last-child { border-bottom: 0; }
     .organisation-option:hover { background: #F3F7FA; }
 
-    .organisation-empty {
-      padding: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
+    .organisation-empty { padding: 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
     .organisation-selected {
       display: flex;
@@ -714,10 +825,7 @@
       font-size: 13px;
     }
 
-    .organisation-selected strong {
-      font-weight: 700;
-      overflow-wrap: anywhere;
-    }
+    .organisation-selected strong { font-weight: 700; overflow-wrap: anywhere; }
 
     .organisation-clear {
       flex: 0 0 auto;
@@ -730,12 +838,7 @@
 
     .organisation-clear:hover { color: var(--red); }
 
-    .organisation-help {
-      margin-top: 7px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.45;
-    }
+    .organisation-help { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.45; }
 
     @media (max-width: 560px) {
       .meta-foot { padding: 10px 16px; }
@@ -786,6 +889,8 @@
     mappings: null,
     currentRecord: null,
     creating: false,
+    pendingCursorId: null,
+    view: "contact",
 
     organisations: [],
     selectedOrganisationId: null,
@@ -830,29 +935,37 @@
       : "https://" + s.replace(/^\/+/, "");
   };
 
-  /* FORMATAGE DES NUMÉROS */
+  /* FORMATAGE DES NUMÉROS DE TÉLÉPHONE
+     - France (0X XX XX XX XX ou +33 …) : affichage national, par groupes de 2
+     - Autres pays (+XX …) : format international propre au pays
+     - Tout le reste (texte, plusieurs numéros, poste…) : laissé tel quel */
 
   function formatPhone(raw) {
     const input = String(raw ?? "").trim();
     if (!input) return "";
 
+    // Lettres, séparateurs de plusieurs numéros : on ne touche à rien
     if (/[A-Za-z;,/]/.test(input)) return input;
 
+    // Retire espaces, points, tirets, parenthèses ; 00 devient +
     const n = input.replace(/[\s.\-()]/g, "").replace(/^00/, "+");
     if (!/^\+?\d+$/.test(n)) return input;
 
     const pairs = (digits) => digits.replace(/(\d{2})(?=\d)/g, "$1 ");
 
+    // France : 0X XX XX XX XX
     if (/^0[1-9]\d{8}$/.test(n)) return pairs(n);
 
+    // France en notation internationale : +33 6 12 34 56 78 (ou +33 (0)6…)
     const fr = n.match(/^\+33(?:0)?([1-9]\d{8})$/);
     if (fr) return pairs("0" + fr[1]);
 
+    // Autres pays : bibliothèque libphonenumber-js
     if (n.startsWith("+") && typeof libphonenumber !== "undefined") {
       try {
         const p = libphonenumber.parsePhoneNumberFromString(n);
         if (p && p.isPossible()) return p.formatInternational();
-      } catch (e) {}
+      } catch (e) { /* on garde la saisie */ }
     }
 
     return input;
@@ -923,6 +1036,7 @@
       last: text(r.lastName),
       organisation: text(r.organisation),
       orgUrl: safeUrl(r.organisationUrl),
+      orgRef: toRowId(r.organisationRef),
       role: text(r.role),
       email: text(r.email),
       phone: formatPhone(text(r.phone)),
@@ -965,150 +1079,21 @@
     if (newBtn) newBtn.addEventListener("click", renderCreateForm);
   }
 
-  const renderHome = () => renderBlank(undefined, undefined, true);
-
-  /* ORGANISATIONS : RÉCUPÉRATION DE LA TABLE GRIST */
-
-  async function loadOrganisations() {
+  /* Place le curseur de Grist sur la ligne du contact : les widgets liés à
+     celui-ci (« Sélectionner par ») affichent alors l'organisation correspondante. */
+  function focusInGrist(rowId) {
+    if (rowId == null) return;
     try {
-      // Identifiant technique de la table Grist (et non son nom d'affichage).
-      const TABLE_ID = "ORGANISATIONS";
-      // Identifiant technique de la colonne contenant le nom de l'organisation.
-      const NAME_COLUMN = "Nom_de_l_organisation";
-
-      const data = await grist.docApi.fetchTable(TABLE_ID);
-
-      if (!data || !Array.isArray(data.id)) {
-        throw new Error(
-          `La table "${TABLE_ID}" n'a pas renvoyé ses identifiants de lignes.`
-        );
-      }
-
-      if (!Array.isArray(data[NAME_COLUMN])) {
-        throw new Error(
-          `La colonne "${NAME_COLUMN}" est introuvable dans la table "${TABLE_ID}". ` +
-          "Vérifiez son identifiant technique (ColId)."
-        );
-      }
-
-      state.organisations = data.id
-        .map((id, index) => ({
-          id: Number(id),
-          name: text(data[NAME_COLUMN][index])
-        }))
-        .filter(org =>
-          Number.isInteger(org.id) &&
-          org.id > 0 &&
-          org.name
-        )
-        .sort((a, b) =>
-          normalize(a.name).localeCompare(normalize(b.name), "fr")
-        );
-
-      state.organisationsLoaded = true;
-      state.organisationsError = "";
-
-    } catch (err) {
-      console.error("Erreur de chargement des organisations :", err);
-
-      state.organisations = [];
-      state.organisationsLoaded = false;
-      state.organisationsError =
-        err && err.message ? err.message : "Erreur inconnue lors du chargement.";
-    }
+      Promise.resolve(grist.setCursorPos({ rowId })).catch(() => {});
+    } catch (e) { /* sans effet si le lien n'est pas utilisé */ }
   }
 
-  /* AFFICHAGE DES RÉSULTATS DU SÉLECTEUR */
-
-  function renderOrganisationResults(query = "") {
-    const box = $("organisationOptions");
-    if (!box) return;
-
-    const q = normalize(query);
-
-    if (!state.organisationsLoaded) {
-      box.innerHTML = `
-        <div class="organisation-empty">
-          <strong>Impossible de charger les organisations.</strong><br>
-          ${escapeHtml(state.organisationsError || "Erreur inconnue.")}
-        </div>`;
-      box.classList.add("open");
-      return;
-    }
-
-    const matches = state.organisations.filter(org =>
-      normalize(org.name).includes(q)
-    );
-
-    if (!matches.length) {
-      box.innerHTML = `
-        <div class="organisation-empty">
-          Aucune organisation ne correspond à votre recherche.
-        </div>`;
-      box.classList.add("open");
-      return;
-    }
-
-    box.innerHTML = matches.slice(0, 100).map(org => `
-      <button
-        type="button"
-        class="organisation-option"
-        data-organisation-id="${org.id}">
-        ${escapeHtml(org.name)}
-      </button>
-    `).join("");
-
-    box.querySelectorAll("[data-organisation-id]").forEach(button => {
-      button.addEventListener("click", () => {
-        const id = Number(button.dataset.organisationId);
-        const selected = state.organisations.find(org => org.id === id);
-
-        if (!selected) return;
-
-        state.selectedOrganisationId = selected.id;
-        $("organisationSearch").value = selected.name;
-        box.classList.remove("open");
-
-        renderSelectedOrganisation(selected);
-      });
-    });
-
-    box.classList.add("open");
-  }
-
-  /* AFFICHAGE DE L'ORGANISATION SÉLECTIONNÉE */
-
-  function renderSelectedOrganisation(org) {
-    const container = $("organisationSelected");
-    if (!container) return;
-
-    if (!org) {
-      container.innerHTML = "";
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="organisation-selected">
-        <strong>${escapeHtml(org.name)}</strong>
-        <button
-          type="button"
-          class="organisation-clear"
-          id="clearOrganisation"
-          title="Retirer cette organisation"
-          aria-label="Retirer cette organisation">×</button>
-      </div>`;
-
-    $("clearOrganisation").addEventListener("click", () => {
-      state.selectedOrganisationId = null;
-      $("organisationSearch").value = "";
-      renderSelectedOrganisation(null);
-      $("organisationSearch").focus();
-    });
-  }
+  /* Écran d'accueil (aucun contact sélectionné) */
+  const renderHome = () => renderBlank(undefined, undefined, true);
 
   /* CRÉATION D'UN CONTACT */
 
-  async function renderCreateForm() {
+  function renderCreateForm() {
 
     state.creating = true;
     state.selectedId = null;
@@ -1118,8 +1103,6 @@
     $("searchInput").value = "";
     $("clearSearch").style.display = "none";
     closeResults();
-
-    await loadOrganisations();
 
     $("mainContent").innerHTML = `
       <article class="profile">
@@ -1143,20 +1126,16 @@
             <label for="organisationSearch">Organisation</label>
 
             <div class="organisation-search">
-              <input
-                id="organisationSearch"
-                type="search"
-                autocomplete="off"
+              <input id="organisationSearch" type="search" autocomplete="off"
                 placeholder="Rechercher une organisation…"
                 aria-label="Rechercher une organisation">
-
               <div id="organisationOptions" class="organisation-options"></div>
             </div>
 
             <div id="organisationSelected"></div>
 
             <p class="organisation-help">
-              Sélectionnez une organisation existante pour associer ce contact à sa fiche.
+              Sélectionnez une organisation existante pour rattacher ce contact à sa fiche.
               Ce champ est facultatif.
             </p>
           </section>
@@ -1178,12 +1157,8 @@
           </section>
 
           <div class="form-actions">
-            <button class="btn btn-primary" type="button" data-create>
-              Créer le contact
-            </button>
-            <button class="btn btn-secondary" type="button" data-cancel>
-              Annuler
-            </button>
+            <button class="btn btn-primary" type="button" data-create>Créer le contact</button>
+            <button class="btn btn-secondary" type="button" data-cancel>Annuler</button>
           </div>
 
           <p class="form-note">
@@ -1195,6 +1170,12 @@
 
     $("status").textContent = "";
     bindCreateEvents();
+
+    /* La liste des organisations se charge en arrière-plan */
+    loadOrganisationOptions().then(() => {
+      const box = $("organisationSearch");
+      if (box && document.activeElement === box) renderOrganisationResults(box.value);
+    });
   }
 
   function bindCreateEvents() {
@@ -1235,29 +1216,13 @@
       renderOrganisationResults(orgSearch.value);
     });
 
-    orgSearch.addEventListener("focus", () => {
-      renderOrganisationResults(orgSearch.value);
-    });
+    orgSearch.addEventListener("focus", () => renderOrganisationResults(orgSearch.value));
 
     root.querySelector("[data-create]").addEventListener("click", submitNewContact);
     root.querySelector("[data-cancel]").addEventListener("click", cancelCreate);
 
     if (fields[0]) fields[0].focus();
   }
-
-  /* FERMETURE DES LISTES OUVERTES EN CLIQUANT AILLEURS */
-
-  document.addEventListener("click", e => {
-    const orgSearch = $("organisationSearch");
-    const orgOptions = $("organisationOptions");
-
-    if (orgSearch && orgOptions &&
-        !orgSearch.parentElement.contains(e.target)) {
-      orgOptions.classList.remove("open");
-    }
-
-    if (!$("searchWrap").contains(e.target)) closeResults();
-  });
 
   function cancelCreate() {
     state.creating = false;
@@ -1286,7 +1251,6 @@
     if (values.phone) values.phone = formatPhone(values.phone);
 
     /* Traduction champ du widget -> colonne Grist associée */
-
     const fields = {};
 
     for (const [alias, v] of Object.entries(values)) {
@@ -1296,22 +1260,19 @@
       if (typeof colId === "string" && colId) fields[colId] = v;
     }
 
-    /* Association à la table ORGANISATIONS via une véritable référence Grist */
-
+    /* Rattachement à l'organisation : vraie référence Grist (identifiant de ligne) */
     if (state.selectedOrganisationId != null) {
 
-      const organisationRefCol = state.mappings
-        ? state.mappings.organisationRef
-        : null;
+      const refCol = state.mappings ? state.mappings.organisationRef : null;
 
-      if (typeof organisationRefCol !== "string" || !organisationRefCol) {
+      if (typeof refCol !== "string" || !refCol) {
         $("status").textContent =
-          "La colonne « Organisation (référence) » n'est pas associée dans les options du widget. " +
-          "Associez ce champ à la colonne de Contacts de type Ref vers ORGANISATIONS.";
+          "La colonne « Organisation (référence) » n'est pas associée dans les options du widget : " +
+          "associez-la à la colonne Référence de Contacts.";
         return;
       }
 
-      fields[organisationRefCol] = state.selectedOrganisationId;
+      fields[refCol] = state.selectedOrganisationId;
     }
 
     if (button) button.disabled = true;
@@ -1324,6 +1285,7 @@
       const newId = created && created.id != null ? created.id : null;
 
       state.creating = false;
+      state.selectedOrganisationId = null;
       state.selectedId = newId;
 
       $("searchInput").value = fullName({
@@ -1338,8 +1300,13 @@
         ? state.contacts.find(r => r.id === newId)
         : null;
 
-      if (rec) renderProfile(rec);
-      else renderBlank("Contact créé", "Chargement de la fiche…");
+      if (rec) {
+        renderProfile(rec);
+        focusInGrist(newId);
+      } else {
+        state.pendingCursorId = newId;     // appliqué dès que la ligne est reçue
+        renderBlank("Contact créé", "Chargement de la fiche…");
+      }
 
     } catch (err) {
       console.error("Erreur de création Grist :", err);
@@ -1418,6 +1385,7 @@
       placeholder="${escapeHtml(placeholder || "Cliquer pour renseigner…")}"
       aria-label="${escapeHtml(placeholder || alias)}">`;
 
+    // Organisation : zone de texte qui passe sur 2 lignes (ou plus) si besoin
     if (extraClass.includes("org-edit")) {
       return `<span class="autogrow"
         data-value="${escapeHtml(value || placeholder || "")}">
@@ -1433,6 +1401,7 @@
 
     if (!extraClass.includes("name-")) return input;
 
+    // Prénom / nom : conteneur dont la largeur s'adapte au texte saisi
     return `<span class="autosize ${extraClass.replace("name-", "autosize-")}"
       data-value="${escapeHtml(value || placeholder || "")}">${input}</span>`;
   }
@@ -1530,8 +1499,10 @@
 
   let saveChain = Promise.resolve();
 
+  /* Les enregistrements sont exécutés l'un après l'autre : aucun n'est perdu
+     si on en déclenche un pendant qu'un autre est en cours. */
   function saveField(alias, value) {
-    const rec = state.currentRecord;
+    const rec = state.currentRecord;          // fiche concernée au moment de la saisie
     const run = () => writeField(rec, alias, value);
     const result = saveChain.then(run, run);
     saveChain = result.catch(() => {});
@@ -1542,6 +1513,7 @@
 
     if (!rec || rec.id == null) return false;
 
+    /* Colonne Grist réellement associée à ce champ du widget */
     const colId = state.mappings ? state.mappings[alias] : null;
     const label = FIELD_LABELS[alias] || alias;
 
@@ -1554,6 +1526,8 @@
     $("status").textContent = "Enregistrement…";
 
     try {
+      /* Grist attend { id, fields: { Colonne: valeur } } :
+         sans « fields », la requête réussit mais n'écrit rien. */
       await grist.getTable().update([
         { id: rec.id, fields: { [colId]: value } }
       ]);
@@ -1572,7 +1546,6 @@
           "de données dans les options du widget."
         : `Enregistrement impossible (champ « ${label} », colonne « ${colId} ») : ` +
           (msg || "vérifiez les droits et le mapping.");
-
       return false;
     }
   }
@@ -1631,6 +1604,7 @@
         const alias = field.dataset.field;
         let value = field.value;
 
+        /* Téléphone : le numéro saisi est mis en forme avant enregistrement */
         if (alias === "phone") {
           value = formatPhone(value);
           field.value = value;
@@ -1646,12 +1620,14 @@
 
       field.addEventListener("change", commit);
 
+      /* Prénom / nom : la largeur suit le texte saisi */
       if (field.parentElement.classList.contains("autosize")) {
         field.addEventListener("input", () => {
           field.parentElement.dataset.value = field.value || field.placeholder;
         });
       }
 
+      /* Organisation : la hauteur suit le texte (retours à la ligne ignorés) */
       if (field.parentElement.classList.contains("autogrow")) {
         field.addEventListener("input", () => {
           if (/[\r\n]/.test(field.value)) {
@@ -1666,24 +1642,37 @@
 
         const enterSaves = field.hasAttribute("data-enter-saves");
 
+        /* Maj+Entrée : retour à la ligne dans les commentaires */
         if (enterSaves && e.shiftKey) return;
 
         if (field.tagName === "INPUT" ||
             field.hasAttribute("data-singleline") ||
             enterSaves) {
           e.preventDefault();
-          field.blur();
+          field.blur();          // déclenche l'enregistrement
         }
       });
     });
 
+    /* MODIFICATION DU LIEN LINKEDIN */
+
     bindLinkedinEditButton();
+
+    /* OUVERTURE DE LA FICHE ORGANISATION */
+
+    $("mainContent").querySelectorAll("[data-open-org]").forEach(b =>
+      b.addEventListener("click", () => openOrganisation(Number(b.dataset.openOrg)))
+    );
+
+    /* BOUTONS DE COPIE */
 
     $("mainContent").querySelectorAll("[data-copy]").forEach(button => {
       button.addEventListener("click", () =>
         copyToClipboard(button.dataset.copy, button)
       );
     });
+
+    /* STATUT ACTIF / INACTIF */
 
     const active = $("mainContent").querySelector("[data-active-toggle]");
 
@@ -1712,11 +1701,12 @@
     }
   }
 
-  /* LINKEDIN : MODIFICATION PUIS RETOUR À L'AFFICHAGE */
+  /* LINKEDIN : MODIFICATION PUIS RETOUR À L'AFFICHAGE LOGO + LIEN */
 
   function bindLinkedinEditButton() {
 
     const button = $("mainContent").querySelector("[data-edit-link]");
+
     if (!button) return;
 
     button.addEventListener("click", () => {
@@ -1751,9 +1741,11 @@
 
         if (!field.isConnected) return;
 
+        /* Retour à l'affichage « logo + lien » */
         wrapper.innerHTML = linkedinDisplay(value);
         bindLinkedinEditButton();
 
+        /* Lien vidé : le champ vide reste modifiable */
         const empty = wrapper.querySelector("[data-field]");
         if (empty) {
           empty.addEventListener("change", () =>
@@ -1762,6 +1754,7 @@
         }
       };
 
+      /* Quitter le champ (clic ailleurs, Tab…) referme toujours le champ */
       field.addEventListener("blur", () => finish(false));
 
       field.addEventListener("keydown", e => {
@@ -1821,7 +1814,11 @@
           </div>
 
           <div class="org-edit-line">
-            ${orgHref && c.organisation
+            ${c.orgRef
+              ? `<button class="org-name" type="button"
+                  data-open-org="${c.orgRef}"
+                  title="Ouvrir la fiche de l'organisation">${escapeHtml(c.organisation || "Voir l'organisation")}</button>`
+              : orgHref && c.organisation
               ? `<a class="org-name"
                   href="${escapeHtml(orgHref)}"
                   target="_blank"
@@ -1856,9 +1853,13 @@
             <h2 class="section-title">Coordonnées</h2>
 
             <div>
+
               ${contactRow("mail", "Adresse e-mail", "email", c.email, true)}
+
               ${contactRow("phone", "Téléphone", "phone", c.phone, true)}
+
               ${linkedinRow(c.linkedin)}
+
             </div>
           </section>
 
@@ -1889,6 +1890,567 @@
       </article>`;
 
     bindProfileEvents();
+  }
+
+  /* ORGANISATIONS
+     La fiche s'affiche dans ce widget. Il lit la table « Organisation » du document
+     (accès complet) et s'adapte à ses colonnes, reconnues d'après leur libellé. */
+
+  const orgState = { tableId: null, cols: [], roles: {}, rows: null, refs: {} };
+
+  const normKey = (v) => normalize(v).replace(/[^a-z0-9]+/g, " ").trim();
+
+  const toRowId = (v) => {
+    if (typeof v === "number" && v > 0) return v;
+    // formats éventuels : ["R", "Table", 12] ou { id: 12 }
+    if (Array.isArray(v) && typeof v[v.length - 1] === "number" && v[v.length - 1] > 0) return v[v.length - 1];
+    if (v && typeof v === "object" && typeof v.id === "number" && v.id > 0) return v.id;
+    return null;
+  };
+
+  const ORG_TYPES = ["Start-up", "PME", "Établissement public", "Grand groupe", "Université", "Administration"];
+
+  const formatSiret = (v) => {
+    const d = String(v ?? "").replace(/\s/g, "");
+    return /^\d{14}$/.test(d)
+      ? d.replace(/^(\d{3})(\d{3})(\d{3})(\d{5})$/, "$1 $2 $3 $4")
+      : String(v ?? "");
+  };
+
+  async function loadOrganisations() {
+
+    const api = grist.docApi;
+
+    const tables = await api.fetchTable("_grist_Tables");
+    const names = tables.tableId || [];
+
+    let t = names.findIndex(n => ["organisation", "organisations"].includes(normKey(n)));
+    if (t < 0) t = names.findIndex(n => normKey(n).includes("organisation"));
+    if (t < 0) throw new Error("Aucune table « Organisation » trouvée dans le document.");
+
+    const tableId = names[t];
+    const tableRowId = tables.id[t];
+
+    const meta = await api.fetchTable("_grist_Tables_column");
+    const cols = [];
+
+    for (let i = 0; i < meta.id.length; i++) {
+      if (meta.parentId[i] !== tableRowId) continue;
+
+      const colId = meta.colId[i];
+      if (colId === "manualSort" || String(colId).startsWith("gristHelper_")) continue;
+
+      let opts = {};
+      try { opts = JSON.parse(meta.widgetOptions[i] || "{}"); } catch (e) { /* ignoré */ }
+
+      cols.push({
+        rowId: meta.id[i],
+        colId,
+        label: meta.label[i] || colId,
+        type: meta.type[i] || "Any",
+        isFormula: !!meta.isFormula[i] && !!meta.formula[i],
+        choices: Array.isArray(opts.choices) ? opts.choices : [],
+        visibleCol: meta.visibleCol ? meta.visibleCol[i] : 0,
+        pos: meta.parentPos ? meta.parentPos[i] : i
+      });
+    }
+
+    cols.sort((a, b) => a.pos - b.pos);
+
+    const rows = await api.fetchTable(tableId);
+
+    /* Colonnes de type Référence : on retrouve le texte affiché */
+    const refs = {};
+
+    for (const col of cols) {
+      const m = /^Ref(?:List)?:(.+)$/.exec(col.type);
+      if (!m) continue;
+
+      try {
+        const k = meta.id.indexOf(col.visibleCol);
+        const visColId = k >= 0 ? meta.colId[k] : null;
+        if (!visColId) continue;
+
+        const target = await api.fetchTable(m[1]);
+        const map = new Map();
+        target.id.forEach((id, j) => map.set(id, target[visColId][j]));
+        refs[col.colId] = map;
+      } catch (e) { /* la valeur restera vide */ }
+    }
+
+    /* Rôles : on reconnaît les colonnes d'après leur libellé */
+    const find = (re, pred = () => true) =>
+      cols.find(c => re.test(normKey(c.label)) && pred(c));
+
+    const roles = {};
+    roles.id = find(/^(id|identifiant)\b/);
+    roles.name = find(/^nom/, c => c.type === "Text")
+      || cols.find(c => c.type === "Text" && !c.isFormula && c !== roles.id);
+    roles.type = find(/^type/);
+    roles.sectors = find(/secteur/);
+    roles.city = find(/ville|commune/);
+    roles.region = find(/region/);
+    roles.country = find(/pays/);
+    roles.website = find(/site|web|url/);
+    roles.siret = find(/siret/);
+    roles.comments = find(/comment|note|remarque/);
+    roles.contacts = find(/^contacts?\b/);
+
+    Object.assign(orgState, { tableId, cols, roles, rows, refs });
+  }
+
+  const canEditOrg = (col) =>
+    !col.isFormula && (col.type === "Text" || col.type === "Choice");
+
+  function orgDisplay(col, v) {
+
+    if (v === null || v === undefined || v === "" || v === 0) return "";
+
+    const list = Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : null;
+    const lookup = (x) => {
+      const m = orgState.refs[col.colId];
+      return m && m.has(x) ? text(m.get(x)) : "";
+    };
+
+    if (col.type.startsWith("RefList:")) return (list || []).map(lookup).filter(Boolean).join(", ");
+    if (col.type.startsWith("Ref:")) return lookup(v);
+    if (list) return list.join(", ");
+    if (col.type.startsWith("Date") && typeof v === "number") return fmtDate(v);
+    if (col.type === "Bool") return v ? "Oui" : "Non";
+    if (typeof v === "object") return text(v);
+
+    return String(v);
+  }
+
+  function orgFieldHtml(col, shown) {
+
+    const roles = orgState.roles;
+    const label = escapeHtml(col.label);
+    let control;
+
+    if (canEditOrg(col)) {
+
+      if (col.type === "Choice") {
+
+        const choices = col.choices.slice();
+        if (shown && !choices.includes(shown)) choices.push(shown);
+
+        control = `<select class="editable-field" data-org-col="${escapeHtml(col.colId)}">
+          <option value=""></option>
+          ${choices.map(c =>
+            `<option value="${escapeHtml(c)}" ${c === shown ? "selected" : ""}>${escapeHtml(c)}</option>`
+          ).join("")}
+        </select>`;
+
+      } else {
+
+        const isType = roles.type && roles.type.colId === col.colId;
+        const value = roles.siret && roles.siret.colId === col.colId ? formatSiret(shown) : shown;
+
+        control = `<input class="editable-field" type="text"
+          data-org-col="${escapeHtml(col.colId)}"
+          ${isType ? 'list="orgTypes"' : ""}
+          value="${escapeHtml(value)}"
+          placeholder="Ajouter…">`;
+      }
+
+    } else {
+      control = `<div class="org-readonly">${escapeHtml(shown) || "—"}</div>`;
+    }
+
+    const isSite = roles.website && roles.website.colId === col.colId;
+    const open = isSite && shown
+      ? `<a class="org-open-dark" href="${escapeHtml(safeUrl(shown))}" target="_blank"
+          rel="noopener noreferrer" title="Ouvrir le site">${EXTERNAL_ICON}</a>`
+      : "";
+
+    return `
+      <div class="org-field">
+        <span class="contact-label">${label}</span>
+        <div class="contact-value-wrap">${control}${open}</div>
+      </div>`;
+  }
+
+  function orgMessage(title, msg) {
+    $("mainContent").innerHTML = `
+      <div class="blank-state">
+        <div class="blank-title">${escapeHtml(title)}</div>
+        <p class="blank-text">${escapeHtml(msg)}</p>
+        <button class="btn btn-secondary" type="button" data-org-back>← Retour</button>
+      </div>`;
+
+    $("mainContent").querySelector("[data-org-back]")
+      .addEventListener("click", closeOrganisation);
+  }
+
+  async function openOrganisation(orgId) {
+
+    state.view = "org";
+    $("status").textContent = "";
+
+    renderBlank("Chargement…", "Lecture de la table Organisation.");
+
+    try {
+      await loadOrganisations();
+      renderOrganisation(orgId);
+    } catch (err) {
+      console.error("Organisation :", err);
+      orgMessage("Organisation indisponible", err && err.message ? err.message : "Lecture impossible.");
+    }
+  }
+
+  function closeOrganisation() {
+    state.view = "contact";
+
+    const rec = state.selectedId != null
+      ? state.contacts.find(r => r.id === state.selectedId)
+      : null;
+
+    if (rec) renderProfile(rec);
+    else renderHome();
+  }
+
+  function openContactFromOrg(id) {
+
+    const rec = state.contacts.find(r => r.id === id);
+    if (!rec) return;
+
+    state.view = "contact";
+    state.selectedId = id;
+
+    $("searchInput").value = fullName(contactData(rec));
+    $("clearSearch").style.display = "block";
+
+    focusInGrist(id);
+    renderProfile(rec);
+  }
+
+  function renderOrganisation(orgId) {
+
+    const { cols, roles, rows } = orgState;
+    const idx = rows.id.indexOf(orgId);
+
+    if (idx < 0) {
+      orgMessage("Organisation introuvable", "Cette organisation n'existe plus dans la table.");
+      return;
+    }
+
+    const raw = (col) => (col ? rows[col.colId][idx] : undefined);
+    const disp = (col) => (col ? orgDisplay(col, raw(col)) : "");
+
+    const used = new Set(
+      Object.values(roles).filter(Boolean).map(c => c.colId)
+    );
+
+    const nameCol = roles.name;
+    const name = disp(nameCol);
+
+    const summary = [
+      disp(roles.type),
+      [disp(roles.city), disp(roles.region), disp(roles.country)].filter(Boolean).join(", ")
+    ].filter(Boolean).join(" · ");
+
+    /* Informations générales */
+    const info = [roles.type, roles.website, roles.siret, roles.city, roles.region, roles.country]
+      .filter(Boolean)
+      .map(c => orgFieldHtml(c, disp(c)));
+
+    /* Secteurs (étiquettes) */
+    let sectorsHtml = "";
+    if (roles.sectors) {
+      const v = raw(roles.sectors);
+      const tags = Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : (v ? [String(v)] : []);
+
+      sectorsHtml = `
+        <section class="org-section">
+          <h2 class="section-title">${escapeHtml(roles.sectors.label)}</h2>
+          ${tags.length
+            ? `<div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>`
+            : `<span class="muted-note">Aucun secteur renseigné.</span>`}
+        </section>`;
+    }
+
+    /* Commentaires */
+    const commentsHtml = roles.comments
+      ? `<section class="org-section">
+          <h2 class="section-title">${escapeHtml(roles.comments.label)}</h2>
+          ${canEditOrg(roles.comments)
+            ? `<textarea class="comments-editor"
+                data-org-col="${escapeHtml(roles.comments.colId)}"
+                data-enter-saves
+                placeholder="Ajouter un commentaire…">${escapeHtml(disp(roles.comments))}</textarea>`
+            : `<div class="org-readonly">${escapeHtml(disp(roles.comments)) || "—"}</div>`}
+        </section>`
+      : "";
+
+    /* Autres colonnes de la table */
+    const others = cols.filter(c => !used.has(c.colId))
+      .map(c => orgFieldHtml(c, disp(c)));
+
+    const othersHtml = others.length
+      ? `<section class="org-section">
+          <h2 class="section-title">Autres informations</h2>
+          <div class="org-grid">${others.join("")}</div>
+        </section>`
+      : "";
+
+    /* Contacts rattachés : ceux dont la colonne Référence pointe vers cette organisation */
+    const refMapped = state.mappings && typeof state.mappings.organisationRef === "string";
+
+    const linked = refMapped
+      ? sorted().filter(r => toRowId(r.organisationRef) === orgId)
+      : [];
+
+    const contactsHtml = `
+      <section class="org-section">
+        <h2 class="section-title">Contacts rattachés${refMapped ? ` (${linked.length})` : ""}</h2>
+        ${!refMapped
+          ? `<span class="muted-note">Associez la colonne « Organisation (référence) » dans les options du widget pour voir les contacts rattachés.</span>`
+          : linked.length
+            ? linked.map(r => {
+                const c = contactData(r);
+                return `<button class="org-contact" type="button" data-open-contact="${r.id}">
+                  <span class="n">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
+                  <span class="r">${escapeHtml(c.role)}</span>
+                </button>`;
+              }).join("")
+            : `<span class="muted-note">Aucun contact rattaché à cette organisation.</span>`}
+      </section>`;
+
+    $("mainContent").innerHTML = `
+      <article class="profile">
+
+        <header class="banner">
+
+          <div class="banner-meta">
+            <button class="back-btn" type="button" data-org-back>← Retour</button>
+            <div class="banner-right">
+              <span>Fiche organisation</span>
+              ${roles.id ? `<span class="contact-id">${escapeHtml(disp(roles.id))}</span>` : ""}
+            </div>
+          </div>
+
+          <div class="org-title-line">
+            ${nameCol && canEditOrg(nameCol)
+              ? `<span class="autogrow" data-value="${escapeHtml(name || "Nom de l'organisation")}">
+                  <textarea class="editable-field" rows="1" data-singleline
+                    data-org-col="${escapeHtml(nameCol.colId)}"
+                    placeholder="Nom de l'organisation">${escapeHtml(name)}</textarea>
+                </span>`
+              : `<span class="org-name">${escapeHtml(name || "Organisation")}</span>`}
+          </div>
+
+          ${summary ? `<div class="org-summary">${escapeHtml(summary)}</div>` : ""}
+
+        </header>
+
+        <div class="profile-body">
+
+          ${info.length
+            ? `<section>
+                <h2 class="section-title">Informations</h2>
+                <div class="org-grid">${info.join("")}</div>
+              </section>`
+            : ""}
+
+          ${sectorsHtml}
+          ${commentsHtml}
+          ${othersHtml}
+          ${contactsHtml}
+
+        </div>
+
+        <datalist id="orgTypes">
+          ${ORG_TYPES.map(t => `<option value="${escapeHtml(t)}">`).join("")}
+        </datalist>
+
+      </article>`;
+
+    bindOrgEvents(orgId);
+  }
+
+  async function saveOrgField(orgId, colId, value) {
+
+    $("status").textContent = "Enregistrement…";
+
+    try {
+      await grist.getTable(orgState.tableId).update([
+        { id: orgId, fields: { [colId]: value } }
+      ]);
+
+      const i = orgState.rows.id.indexOf(orgId);
+      if (i >= 0) orgState.rows[colId][i] = value;
+
+      $("status").textContent = "Modification enregistrée.";
+
+    } catch (err) {
+      console.error("Erreur d'enregistrement (organisation) :", err);
+      const msg = err && err.message ? err.message : "";
+
+      $("status").textContent = /formula column/i.test(msg)
+        ? "Modification impossible : cette colonne est une colonne de formule."
+        : "Enregistrement impossible : " + (msg || "vérifiez les droits.");
+    }
+  }
+
+  function bindOrgEvents(orgId) {
+
+    const root = $("mainContent");
+
+    root.querySelector("[data-org-back]").addEventListener("click", closeOrganisation);
+
+    root.querySelectorAll("[data-open-contact]").forEach(b =>
+      b.addEventListener("click", () => openContactFromOrg(Number(b.dataset.openContact)))
+    );
+
+    const siretId = orgState.roles.siret ? orgState.roles.siret.colId : null;
+
+    root.querySelectorAll("[data-org-col]").forEach(field => {
+
+      const colId = field.dataset.orgCol;
+      field.dataset.lastSaved = field.value;
+
+      if (field.parentElement.classList.contains("autogrow")) {
+        field.addEventListener("input", () => {
+          if (/[\r\n]/.test(field.value)) {
+            field.value = field.value.replace(/\s*[\r\n]+\s*/g, " ");
+          }
+          field.parentElement.dataset.value = field.value || field.placeholder;
+        });
+      }
+
+      field.addEventListener("change", () => {
+
+        let value = field.value.trim();
+
+        if (colId === siretId) {
+          const digits = value.replace(/\s/g, "");
+          if (/^\d{14}$/.test(digits)) {
+            value = digits;
+            field.value = formatSiret(digits);
+          }
+        }
+
+        if (field.dataset.lastSaved === field.value) return;
+        field.dataset.lastSaved = field.value;
+
+        saveOrgField(orgId, colId, value);
+      });
+
+      field.addEventListener("keydown", e => {
+        if (e.key !== "Enter" || e.isComposing) return;
+
+        const enterSaves = field.hasAttribute("data-enter-saves");
+        if (enterSaves && e.shiftKey) return;
+
+        if (field.tagName === "INPUT" || field.hasAttribute("data-singleline") || enterSaves) {
+          e.preventDefault();
+          field.blur();
+        }
+      });
+    });
+  }
+
+  /* SÉLECTEUR D'ORGANISATION : liste, recherche, sélection
+     (réutilise la détection automatique de la table « Organisation ») */
+
+  async function loadOrganisationOptions() {
+    try {
+      await loadOrganisations();
+
+      const nameCol = orgState.roles.name;
+      if (!nameCol) throw new Error("Colonne du nom de l'organisation introuvable.");
+
+      state.organisations = orgState.rows.id
+        .map((id, i) => ({
+          id: Number(id),
+          name: orgDisplay(nameCol, orgState.rows[nameCol.colId][i])
+        }))
+        .filter(o => Number.isInteger(o.id) && o.id > 0 && o.name)
+        .sort((a, b) => normalize(a.name).localeCompare(normalize(b.name), "fr"));
+
+      state.organisationsLoaded = true;
+      state.organisationsError = "";
+
+    } catch (err) {
+      console.error("Erreur de chargement des organisations :", err);
+
+      state.organisations = [];
+      state.organisationsLoaded = false;
+      state.organisationsError = err && err.message ? err.message : "Erreur inconnue.";
+    }
+  }
+
+  function renderOrganisationResults(query = "") {
+
+    const box = $("organisationOptions");
+    if (!box) return;
+
+    if (!state.organisationsLoaded) {
+      box.innerHTML = `
+        <div class="organisation-empty">
+          ${state.organisationsError
+            ? `<strong>Impossible de charger les organisations.</strong><br>${escapeHtml(state.organisationsError)}`
+            : "Chargement des organisations…"}
+        </div>`;
+      box.classList.add("open");
+      return;
+    }
+
+    const q = normalize(query);
+    const matches = state.organisations.filter(o => normalize(o.name).includes(q));
+
+    if (!matches.length) {
+      box.innerHTML = `<div class="organisation-empty">Aucune organisation ne correspond à votre recherche.</div>`;
+      box.classList.add("open");
+      return;
+    }
+
+    box.innerHTML = matches.slice(0, 100).map(o => `
+      <button type="button" class="organisation-option" data-organisation-id="${o.id}">
+        ${escapeHtml(o.name)}
+      </button>`).join("");
+
+    box.querySelectorAll("[data-organisation-id]").forEach(button => {
+      button.addEventListener("click", () => {
+
+        const selected = state.organisations.find(o => o.id === Number(button.dataset.organisationId));
+        if (!selected) return;
+
+        state.selectedOrganisationId = selected.id;
+        $("organisationSearch").value = selected.name;
+        box.classList.remove("open");
+
+        renderSelectedOrganisation(selected);
+      });
+    });
+
+    box.classList.add("open");
+  }
+
+  function renderSelectedOrganisation(org) {
+
+    const container = $("organisationSelected");
+    if (!container) return;
+
+    if (!org) {
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="organisation-selected">
+        <strong>${escapeHtml(org.name)}</strong>
+        <button type="button" class="organisation-clear" id="clearOrganisation"
+          title="Retirer cette organisation" aria-label="Retirer cette organisation">×</button>
+      </div>`;
+
+    $("clearOrganisation").addEventListener("click", () => {
+      state.selectedOrganisationId = null;
+      $("organisationSearch").value = "";
+      renderSelectedOrganisation(null);
+      $("organisationSearch").focus();
+    });
   }
 
   /* CLASSEMENT DES CONTACTS */
@@ -1982,7 +2544,9 @@
           const chosen = shown[Number(btn.dataset.i)];
 
           state.creating = false;
+          state.view = "contact";
           state.selectedId = chosen.id;
+          focusInGrist(chosen.id);
 
           $("searchInput").value = fullName(contactData(chosen));
           $("clearSearch").style.display = "block";
@@ -2003,6 +2567,7 @@
   $("searchInput").addEventListener("input", () => {
 
     if (!state.creating) {
+      state.view = "contact";
       state.selectedId = null;
       if (state.mapped) renderHome();
     }
@@ -2011,7 +2576,9 @@
   });
 
   $("searchInput").addEventListener("focus", () => {
+
     if ($("searchInput").value.trim()) renderResults();
+
   });
 
   $("clearSearch").addEventListener("click", () => {
@@ -2027,6 +2594,20 @@
 
     $("clearSearch").style.display = "none";
     $("searchInput").focus();
+
+  });
+
+  document.addEventListener("click", (e) => {
+
+    const orgSearch = $("organisationSearch");
+    const orgOptions = $("organisationOptions");
+
+    if (orgSearch && orgOptions && !orgSearch.parentElement.contains(e.target)) {
+      orgOptions.classList.remove("open");
+    }
+
+    if (!$("searchWrap").contains(e.target)) closeResults();
+
   });
 
   /* CONFIGURATION NATIVE GRIST */
@@ -2034,6 +2615,8 @@
   grist.ready({
 
     requiredAccess: "full",
+
+    allowSelectBy: true,   // permet à d'autres widgets de se lier à celui-ci
 
     columns: [
 
@@ -2071,7 +2654,7 @@
         title: "Organisation (référence)",
         type: "Ref",
         optional: true,
-        description: "Référence vers une ligne de la table ORGANISATIONS. Utilisée lors de la création d'un contact."
+        description: "La colonne Référence de Contacts vers la table Organisation (pas la formule du nom) : ouvre la fiche, rattache les contacts, sert à la création"
       },
 
       {
@@ -2172,7 +2755,7 @@
     state.mapped = true;
     state.contacts = records;
 
-    if (state.creating) return;
+    if (state.creating || state.view === "org") return;   // formulaire ou fiche organisation ouverts : on n'y touche pas
 
     const current = state.selectedId != null
       ? records.find(r => r.id === state.selectedId)
@@ -2180,6 +2763,11 @@
 
     if (current) {
       renderProfile(current);
+
+      if (state.pendingCursorId === current.id) {
+        focusInGrist(current.id);
+        state.pendingCursorId = null;
+      }
     } else {
       state.selectedId = null;
       renderHome();
