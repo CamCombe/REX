@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard des systèmes d'information</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    :root{--navy:#17365d;--blue:#2563eb;--ink:#172033;--muted:#687386;--line:#e4e9f0;--surface:#f5f7fa;--white:#fff;--green:#16845b;--amber:#b7791f;--red:#c2413b;--shadow:0 8px 24px rgba(20,38,65,.07)}
+    *{box-sizing:border-box} body{margin:0;background:var(--surface);color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input{font:inherit} button{cursor:pointer} .app{max-width:1600px;margin:0 auto;padding:22px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.brand{display:flex;align-items:center;gap:12px}.brandmark{width:42px;height:42px;border-radius:13px;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:17px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:750}.brand h1{font-size:21px;margin:1px 0 0;letter-spacing:-.03em}.top-actions{display:flex;gap:8px;align-items:center}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:9px 13px;font-weight:650}.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn:hover{filter:brightness(.97)}
+    .tabs{display:flex;gap:5px;border-bottom:1px solid var(--line);margin-bottom:20px}.tab{border:0;background:transparent;padding:11px 15px;color:var(--muted);font-weight:700;border-bottom:3px solid transparent}.tab.active{color:var(--navy);border-color:var(--blue)}
+    .page-title{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:0 0 16px}.page-title h2{margin:0;font-size:22px;letter-spacing:-.03em}.sub{color:var(--muted);margin-top:4px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}.stat{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 17px;box-shadow:0 2px 8px rgba(20,38,65,.025)}.stat-label{font-size:12px;color:var(--muted);font-weight:650}.stat-value{font-size:27px;font-weight:800;letter-spacing:-.04em;margin-top:3px}.stat-foot{font-size:11px;color:var(--muted);margin-top:2px}
+    .status-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}.status-column{background:#edf1f6;border:1px solid #e2e7ee;border-radius:14px;padding:12px;min-height:180px}.column-head{display:flex;justify-content:space-between;align-items:center;padding:3px 3px 12px}.column-name{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px}.dot{width:9px;height:9px;border-radius:50%;background:#8290a4}.count{font-size:11px;font-weight:750;color:var(--muted);background:#fff;border-radius:20px;padding:3px 8px}.project-list{display:grid;gap:8px}.project-card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:12px;text-align:left;width:100%;box-shadow:0 2px 5px rgba(20,38,65,.025);transition:.15s}.project-card:hover{border-color:#9db5d7;transform:translateY(-1px);box-shadow:var(--shadow)}.project-name{font-weight:750;font-size:13px;line-height:1.35}.project-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;color:var(--muted);font-size:11px}.mini-tag{background:#f1f4f8;padding:3px 7px;border-radius:5px}.nis-dot{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:750;color:var(--green)}.nis-dot:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .detail-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}.selector{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;position:sticky;top:10px}.selector h3{font-size:14px;margin:0 0 10px}.search-wrap{position:relative;margin-bottom:10px}.search-wrap input{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px 10px 34px;outline:none;background:#fff}.search-wrap input:focus{border-color:#8ba9d3;box-shadow:0 0 0 3px rgba(37,99,235,.09)}.search-icon{position:absolute;left:11px;top:10px;color:#8993a3}.selector-hint{font-size:11px;color:var(--muted);margin:0 0 9px}.si-list{max-height:65vh;overflow:auto;display:grid;gap:4px}.si-item{border:0;background:transparent;text-align:left;border-radius:8px;padding:9px 10px;display:flex;justify-content:space-between;gap:8px;align-items:center;color:var(--ink)}.si-item:hover{background:#f4f7fb}.si-item.active{background:#eaf1fb;color:var(--navy);font-weight:750}.si-item-name{font-size:12px;font-weight:650}.si-item-status{font-size:10px;color:var(--muted);white-space:nowrap}.detail{min-width:0}.empty{background:#fff;border:1px dashed #cbd4e0;border-radius:14px;padding:45px 20px;text-align:center;color:var(--muted)}
+    .hero{background:linear-gradient(120deg,#17365d,#244e7d);color:#fff;border-radius:16px;padding:22px 24px;margin-bottom:14px;box-shadow:var(--shadow)}.hero-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.hero h2{font-size:23px;line-height:1.2;letter-spacing:-.035em;margin:5px 0 15px}.hero-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#c5d5e9;font-weight:750}.hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.hero-field label{display:block;color:#c5d5e9;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:750;margin-bottom:3px}.hero-field div{font-size:13px;font-weight:650}.nis-pill{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:7px 10px;background:rgba(255,255,255,.13);font-size:11px;font-weight:800;white-space:nowrap}.nis-pill:before{content:"";width:8px;height:8px;border-radius:50%;background:#62e0a5;box-shadow:0 0 0 3px rgba(98,224,165,.15)}.nis-pill.off:before{background:#f3b4ad;box-shadow:0 0 0 3px rgba(243,180,173,.15)}
+    .content-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px;min-width:0;box-shadow:0 2px 8px rgba(20,38,65,.025)}.panel.full{grid-column:1/-1}.panel-head{display:flex;align-items:center;gap:9px;margin-bottom:13px}.panel-icon{width:29px;height:29px;display:grid;place-items:center;border-radius:8px;background:#edf3fb;color:var(--navy);font-size:14px}.panel h3{font-size:14px;margin:0;font-weight:800}.field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 18px}.field label{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.065em;font-weight:750;margin-bottom:4px}.field-value{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.field-value.muted{color:#9aa3b1}.summary-text{line-height:1.65}.link{color:#2563eb;text-decoration:none;font-weight:700}.link:hover{text-decoration:underline}.badge{display:inline-flex;align-items:center;border-radius:6px;padding:5px 8px;background:#edf2f8;color:#34445c;font-size:11px;font-weight:750}.badge.green{background:#e6f5ed;color:#14734c}.badge.amber{background:#fff4df;color:#986314}.badge.red{background:#fdebea;color:#ae3932}.timeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 18px}.rating-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.rating{border:1px solid var(--line);border-radius:11px;padding:13px}.rating-head{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:750;margin-bottom:10px}.rating-number{color:var(--navy);font-weight:850}.rating-dots{display:flex;gap:6px}.rating-dots span{height:9px;flex:1;border-radius:20px;background:#e8edf3}.rating-dots span.filled{background:#3e76b8}.rating-note{font-size:10px;color:var(--muted);margin-top:8px}
+    .notice{background:#fff8e8;border:1px solid #f0dfb9;color:#79591c;border-radius:10px;padding:11px 13px;font-size:12px;margin-bottom:14px}.loading{padding:35px;text-align:center;color:var(--muted)}.hidden{display:none!important}.footer{font-size:10px;color:#8b95a5;text-align:right;margin-top:14px}
+    @media(max-width:950px){.detail-layout{grid-template-columns:250px minmax(0,1fr)}.status-groups{grid-template-columns:repeat(2,minmax(0,1fr))}.hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:700px){.app{padding:13px}.topbar{align-items:flex-start}.brand h1{font-size:17px}.top-actions{display:none}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.status-groups{grid-template-columns:1fr}.detail-layout{grid-template-columns:1fr}.selector{position:static}.si-list{max-height:220px;grid-template-columns:repeat(2,minmax(0,1fr))}.content-grid{grid-template-columns:1fr}.panel.full{grid-column:auto}.hero{padding:18px}.hero h2{font-size:20px}.hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.field-grid,.timeline,.rating-grid{grid-template-columns:1fr}.page-title{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brandmark">SI</div><div><div class="eyebrow">Pilotage du portefeuille</div><h1>Systèmes d'information</h1></div></div>
+    <div class="top-actions"><button class="btn" id="refreshBtn" type="button">↻ Actualiser</button></div>
+  </header>
+  <nav class="tabs" aria-label="Navigation principale">
+    <button class="tab active" data-page="overview" type="button">Vue d'ensemble</button>
+    <button class="tab" data-page="detail" type="button">Fiches SI</button>
+  </nav>
+  <main>
+    <section id="overviewPage">
+      <div class="page-title"><div><h2>Synthèse des projets</h2><div class="sub">Vue consolidée des systèmes d'information par statut</div></div><div class="sub" id="totalLabel">Chargement des projets…</div></div>
+      <div id="overviewContent"><div class="loading">Connexion à Grist et chargement des données…</div></div>
+    </section>
+    <section id="detailPage" class="hidden">
+      <div class="page-title"><div><h2>Fiches systèmes d'information</h2><div class="sub">Sélectionner un SI ou rechercher dans l'ensemble des informations disponibles</div></div></div>
+      <div class="detail-layout">
+        <aside class="selector">
+          <h3>Rechercher un SI</h3>
+          <div class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" type="search" placeholder="Nom, AMOA, financement…" autocomplete="off"></div>
+          <p class="selector-hint">Classement alphabétique · recherche dans tous les champs</p>
+          <div id="siList" class="si-list"></div>
+        </aside>
+        <div id="detailContent" class="detail"><div class="empty">Sélectionne un système d'information dans la liste.</div></div>
+      </div>
+    </section>
+  </main>
+  <div class="footer">Dashboard SI · Données issues du tableau Grist</div>
+</div>
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const fields = [
+    {name:'amoa',title:'AMOA',type:'Any',optional:true},
+    {name:'systemName',title:"Système d'information",type:'Text',optional:false,description:'Nom du SI affiché dans la bannière et les listes.'},
+    {name:'overviewStatus',title:'Statut',type:'Any',optional:true,description:'Colonne Statut : sert à regrouper les SI dans la synthèse.'},
+    {name:'dir',title:'DIR concernée',type:'Any',optional:true},
+    {name:'summary',title:'Objet résumé',type:'Any',optional:true},
+    {name:'nis1',title:'Essentiel (NIS1)',type:'Any',optional:true},
+    {name:'issues',title:'Enjeux',type:'Any',optional:true},
+    {name:'rgs',title:'Niveau RGS',type:'Any',optional:true},
+    {name:'internetUsers',title:'Utilisateurs via internet',type:'Any',optional:true},
+    {name:'siStatus',title:'Statut SI',type:'Any',optional:true},
+    {name:'homologStatus',title:'Statut homolog',type:'Any',optional:true},
+    {name:'homologPlanning',title:'Planning homolog par défaut',type:'Any',optional:true},
+    {name:'nextHomologDate',title:'Prochaine date homolog volontariste',type:'Any',optional:true},
+    {name:'mfaDate',title:'Date MFA',type:'Any',optional:true},
+    {name:'mfaComment',title:'Commentaire Méthode MFA',type:'Any',optional:true},
+    {name:'adminDupDate',title:'Date doublmt Poste admin',type:'Any',optional:true},
+    {name:'obsolescence',title:'Gestion obsolescence',type:'Any',optional:true},
+    {name:'funding',title:'Financement SI',type:'Any',optional:true},
+    {name:'lastHomologDate',title:'Date dernière homol',type:'Any',optional:true},
+    {name:'budgetDelta',title:'Delta budget K€',type:'Any',optional:true},
+    {name:'internalEtpDelta',title:'Delta ETP interne',type:'Any',optional:true},
+    {name:'rightsReviewDate',title:'Date revue des droits',type:'Any',optional:true},
+    {name:'backupTestDate',title:'Date test sauvegarde',type:'Any',optional:true},
+    {name:'homol',title:'HOMOL',type:'Any',optional:true},
+    {name:'obsolescenceCorrections',title:'Obsolescence et corrections',type:'Any',optional:true},
+    {name:'mfa',title:'MFA',type:'Any',optional:true},
+    {name:'adminDuplication',title:'Dédoublement postes admin',type:'Any',optional:true},
+    {name:'adminCount',title:'Nb admnistrateurs',type:'Any',optional:true},
+    {name:'userTypes',title:'Typologies utilisateurs',type:'Any',optional:true},
+    {name:'systemObject',title:'Objet du SI',type:'Any',optional:true},
+    {name:'ssiTrajectory',title:'Détails trajectoire SSI',type:'Any',optional:true},
+    {name:'techValue',title:'Valeur tech',type:'Any',optional:true},
+    {name:'businessValue',title:'Valeur métier',type:'Any',optional:true},
+    {name:'wikiName',title:'Nom WikiSI',type:'Any',optional:true},
+    {name:'wikiUrl',title:'URL WikiSI',type:'Any',optional:true},
+    {name:'direction',title:'Direction',type:'Any',optional:true},
+    {name:'amoaSubdir',title:'Sous-dir AMOA',type:'Any',optional:true},
+    {name:'subDirector',title:'Sous-directeur',type:'Any',optional:true},
+    {name:'deputySubDirector',title:'Adjoint Sous-dir',type:'Any',optional:true}
+  ];
+  let projects=[]; let selectedId=null; let activePage='overview'; let mappingsReady=false;
+  const norm = v => String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const esc = v => String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const clean = v => { if(v===null||v===undefined||v==='') return ''; if(Array.isArray(v)) return v.join(', '); if(typeof v==='object') return v.name||v.label||JSON.stringify(v); return String(v); };
+  function dateText(v){ if(v===null||v===undefined||v==='')return ''; let d=null; if(typeof v==='number'){d=new Date(v*1000); if(!Number.isFinite(d.getTime())||d.getFullYear()<1971)d=new Date(v);} else {d=new Date(v);} return d&&!isNaN(d.getTime())?new Intl.DateTimeFormat('fr-FR').format(d):clean(v); }
+  function value(p,k){return p[k]===undefined||p[k]===null?'':p[k];}
+  function display(p,k,placeholder='Non renseigné'){const v=clean(value(p,k));return v?esc(v):`<span class="field-value muted">${placeholder}</span>`;}
+  function field(label,html){return `<div class="field"><label>${esc(label)}</label><div class="field-value">${html||'<span class="muted">Non renseigné</span>'}</div></div>`;}
+  function statusClass(v){const s=norm(v);if(/termine|clos|homologue|conforme|oui|actif/.test(s))return 'green';if(/retard|bloque|risque|non conforme|refuse/.test(s))return 'red';if(/cours|attente|lance|en instruction|partiel/.test(s))return 'amber';return '';}
+  function statusBadge(v){const t=clean(v);return t?`<span class="badge ${statusClass(t)}">${esc(t)}</span>`:'<span class="field-value muted">Non renseigné</span>';}
+  function isOn(v){const s=norm(v);return v===true||v===1||['on','oui','true','yes','essentiel','x'].includes(s);}
+  function renderOverview(){
+    const total=projects.length; const nis=projects.filter(p=>isOn(p.nis1)).length; const withFunding=projects.filter(p=>clean(p.funding)).length;
+    const statuses=new Map(); projects.forEach(p=>{const s=clean(p.overviewStatus)||'Statut non renseigné';if(!statuses.has(s))statuses.set(s,[]);statuses.get(s).push(p);});
+    const ordered=[...statuses.entries()].sort((a,b)=>{const rank=s=>{const n=norm(s);if(n.includes('lancer')||n.includes('demarrer'))return 0;if(n.includes('cours'))return 1;if(n.includes('attente'))return 2;if(n.includes('termine')||n.includes('clos'))return 4;return 3;};return rank(a[0])-rank(b[0])||a[0].localeCompare(b[0],'fr');});
+    $('totalLabel').textContent=`${total} système${total>1?'s':''} d'information`;
+    if(!total){$('overviewContent').innerHTML='<div class="empty">Aucun projet reçu. Vérifie que le widget est connecté à la bonne table et que le champ « Système d’information » est mappé.</div>';return;}
+    const stats=`<div class="stats"><div class="stat"><div class="stat-label">Systèmes d'information</div><div class="stat-value">${total}</div><div class="stat-foot">Total des fiches disponibles</div></div><div class="stat"><div class="stat-label">Essentiels NIS1</div><div class="stat-value">${nis}</div><div class="stat-foot">${total?Math.round(nis/total*100):0}% du portefeuille</div></div><div class="stat"><div class="stat-label">Avec financement renseigné</div><div class="stat-value">${withFunding}</div><div class="stat-foot">Financement SI documenté</div></div><div class="stat"><div class="stat-label">Statuts différents</div><div class="stat-value">${statuses.size}</div><div class="stat-foot">Catégories de suivi</div></div></div>`;
+    const cols=ordered.map(([status,items])=>`<section class="status-column"><div class="column-head"><div class="column-name"><span class="dot" style="background:${statusColor(status)}"></span>${esc(status)}</div><span class="count">${items.length}</span></div><div class="project-list">${items.sort((a,b)=>clean(a.systemName).localeCompare(clean(b.systemName),'fr')).map(p=>`<button type="button" class="project-card" data-open="${esc(p._id)}"><div class="project-name">${esc(clean(p.systemName)||'SI sans nom')}</div><div class="project-meta">${clean(p.dir)?`<span class="mini-tag">${esc(clean(p.dir))}</span>`:''}${clean(p.amoa)?`<span class="mini-tag">AMOA : ${esc(clean(p.amoa))}</span>`:''}${isOn(p.nis1)?'<span class="nis-dot">NIS1 essentiel</span>':''}</div></button>`).join('')}</div></section>`).join('');
+    $('overviewContent').innerHTML=stats+`<div class="status-groups">${cols}</div>`;
+    $('overviewContent').querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openProject(b.dataset.open)));
+  }
+  function statusColor(s){const n=norm(s);if(n.includes('termine')||n.includes('clos'))return '#16845b';if(n.includes('cours'))return '#d39a2f';if(n.includes('retard')||n.includes('bloque'))return '#c2413b';if(n.includes('lancer'))return '#3978c5';return '#8290a4';}
+  function renderList(){const q=norm($('searchInput').value.trim());const filtered=projects.filter(p=>!q||Object.keys(p).filter(k=>k!=='_id').some(k=>norm(clean(p[k])).includes(q)));filtered.sort((a,b)=>clean(a.systemName).localeCompare(clean(b.systemName),'fr'));
+    $('siList').innerHTML=filtered.length?filtered.map(p=>`<button type="button" class="si-item ${String(p._id)===String(selectedId)?'active':''}" data-id="${esc(p._id)}"><span class="si-item-name">${esc(clean(p.systemName)||'SI sans nom')}</span><span class="si-item-status">${esc(clean(p.overviewStatus))}</span></button>`).join(''):'<div class="empty" style="padding:18px 8px">Aucun résultat.</div>';
+    $('siList').querySelectorAll('[data-id]').forEach(b=>b.addEventListener('click',()=>selectProject(b.dataset.id)));
+  }
+  function ratingBlock(label,v){let n=Number(v);const valid=clean(v)!==''&&Number.isFinite(n);n=valid?Math.max(0,Math.min(5,Math.round(n))):0;return `<div class="rating"><div class="rating-head"><span>${label}</span><span class="rating-number">${valid?`${esc(v)} / 5`:'— / 5'}</span></div><div class="rating-dots">${[1,2,3,4,5].map(i=>`<span class="${i<=n?'filled':''}"></span>`).join('')}</div><div class="rating-note">${valid?'Évaluation sur cinq niveaux':'Colonne à renseigner ou à mapper'}</div></div>`;}
+  function renderDetail(p){if(!p){$('detailContent').innerHTML='<div class="empty">Sélectionne un système d’information dans la liste.</div>';return;}
+    const nis=isOn(p.nis1);const sub=clean(p.amoaSubdir);const amoa=[clean(p.amoa),sub?`(${sub})`:'' ].filter(Boolean).join(' ');
+    const wiki=clean(p.wikiUrl);const wikiLink=wiki?`<a class="link" href="${esc(/^https?:\/\//i.test(wiki)?wiki:'https://'+wiki)}" target="_blank" rel="noopener noreferrer">Ouvrir WikiSI ↗</a>`:'<span class="muted">Non renseigné</span>';
+    const d=(k)=>dateText(p[k])?esc(dateText(p[k])):'<span class="muted">Non renseigné</span>';
+    $('detailContent').innerHTML=`<div class="hero"><div class="hero-top"><div><div class="hero-kicker">Fiche système d'information</div><h2>${esc(clean(p.systemName)||'SI sans nom')}</h2></div><span class="nis-pill ${nis?'':'off'}">${nis?'Essentiel NIS1':'Non essentiel NIS1'}</span></div><div class="hero-grid"><div class="hero-field"><label>DIR concernée</label><div>${display(p,'dir')}</div></div><div class="hero-field"><label>AMOA</label><div>${esc(amoa)||'<span style="opacity:.7">Non renseigné</span>'}</div></div><div class="hero-field"><label>Statut</label><div>${statusBadge(p.overviewStatus)}</div></div></div></div>
+    <div class="content-grid">
+      <section class="panel full"><div class="panel-head"><span class="panel-icon">▤</span><h3>Résumé</h3></div><div class="field-grid"><div class="field" style="grid-column:1/-1"><label>Objet résumé</label><div class="field-value summary-text">${display(p,'summary')}</div></div>${field('Objet du SI',display(p,'systemObject'))}${field('Nom WikiSI',display(p,'wikiName'))}${field('Lien WikiSI',wikiLink)}</div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">◇</span><h3>Enjeux et niveau RGS</h3></div><div class="field-grid"><div class="field" style="grid-column:1/-1"><label>Enjeux</label><div class="field-value summary-text">${display(p,'issues')}</div></div>${field('Niveau RGS',display(p,'rgs'))}${field('Utilisateurs via internet',display(p,'internetUsers'))}${field('Typologies utilisateurs',display(p,'userTypes'))}</div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">◷</span><h3>Statut et homologation</h3></div><div class="timeline">${field('Statut SI',statusBadge(p.siStatus))}${field('Statut homologation',statusBadge(p.homologStatus))}${field('Planning homologation par défaut',display(p,'homologPlanning'))}${field('Prochaine date homologation volontariste',d('nextHomologDate'))}${field('Date dernière homologation',d('lastHomologDate'))}${field('HOMOL',display(p,'homol'))}</div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">⌁</span><h3>Sécurité et conformité</h3></div><div class="field-grid">${field('Date MFA',d('mfaDate'))}${field('MFA',display(p,'mfa'))}${field('Commentaire méthode MFA',display(p,'mfaComment'))}${field('Date dédoublement postes admin',d('adminDupDate'))}${field('Dédoublement postes admin',display(p,'adminDuplication'))}${field('Nombre d’administrateurs',display(p,'adminCount'))}${field('Date revue des droits',d('rightsReviewDate'))}${field('Date test sauvegarde',d('backupTestDate'))}</div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">⚙</span><h3>Obsolescence et trajectoire SSI</h3></div><div class="field-grid">${field('Gestion obsolescence',display(p,'obsolescence'))}${field('Obsolescence et corrections',display(p,'obsolescenceCorrections'))}<div class="field" style="grid-column:1/-1"><label>Détails trajectoire SSI</label><div class="field-value summary-text">${display(p,'ssiTrajectory')}</div></div></div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">▥</span><h3>Financement et ressources</h3></div><div class="field-grid">${field('Financement SI',display(p,'funding'))}${field('Delta budget (K€)',display(p,'budgetDelta'))}${field('Delta ETP interne',display(p,'internalEtpDelta'))}</div></section>
+      <section class="panel"><div class="panel-head"><span class="panel-icon">♧</span><h3>Organisation</h3></div><div class="field-grid">${field('Direction',display(p,'direction'))}${field('Sous-dir AMOA',display(p,'amoaSubdir'))}${field('Sous-directeur',display(p,'subDirector'))}${field('Adjoint sous-direction',display(p,'deputySubDirector'))}</div></section>
+      <section class="panel full"><div class="panel-head"><span class="panel-icon">★</span><h3>Valeur du système d'information</h3></div><div class="rating-grid">${ratingBlock('Valeur technique',p.techValue)}${ratingBlock('Valeur métier',p.businessValue)}</div></section>
+    </div>`;
+  }
+  function selectProject(id){selectedId=id;const p=projects.find(x=>String(x._id)===String(id));renderList();renderDetail(p);}
+  function openProject(id){setPage('detail');selectProject(id);}
+  function setPage(page){activePage=page;$('overviewPage').classList.toggle('hidden',page!=='overview');$('detailPage').classList.toggle('hidden',page!=='detail');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.page===page));if(page==='detail'){renderList();if(selectedId)renderDetail(projects.find(p=>String(p._id)===String(selectedId)));}}
+  function normalizeRecord(raw,mappings){let mapped;try{mapped=grist.mapColumnNames(raw,{mappings});}catch(e){mapped=grist.mapColumnNames(raw);}if(!mapped)return null;return {...mapped,_id:raw.id??raw._id??Math.random().toString(36).slice(2)};}
+  function receive(records,mappings){const next=(records||[]).map(r=>normalizeRecord(r,mappings)).filter(Boolean);projects=next;if(!projects.some(p=>String(p._id)===String(selectedId)))selectedId=projects.length?projects[0]._id:null;renderOverview();renderList();renderDetail(projects.find(p=>String(p._id)===String(selectedId)));mappingsReady=true;}
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setPage(t.dataset.page)));
+  $('searchInput').addEventListener('input',renderList);$('refreshBtn').addEventListener('click',()=>{renderOverview();renderList();});
+  grist.ready({requiredAccess:'read table',columns:fields});
+  grist.onRecords(receive);
+  grist.onRecord(function(record,mappings){if(record){const p=normalizeRecord(record,mappings);if(p){const i=projects.findIndex(x=>String(x._id)===String(p._id));if(i>=0)projects[i]=p;else projects.push(p);renderOverview();renderList();if(String(selectedId)===String(p._id))renderDetail(p);}}});
+})();
+</script>
+</body>
+</html>
