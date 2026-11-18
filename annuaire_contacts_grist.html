@@ -1263,12 +1263,15 @@
     /* Rattachement à l'organisation : vraie référence Grist (identifiant de ligne) */
     if (state.selectedOrganisationId != null) {
 
-      const refCol = state.mappings ? state.mappings.organisationRef : null;
+      let refCol = state.mappings ? state.mappings.organisationRef : null;
 
       if (typeof refCol !== "string" || !refCol) {
+        refCol = (await detectContactsRef()).colId;
+      }
+
+      if (!refCol) {
         $("status").textContent =
-          "La colonne « Organisation (référence) » n'est pas associée dans les options du widget : " +
-          "associez-la à la colonne Référence de Contacts.";
+          "Impossible de trouver la colonne Référence vers les organisations dans la table Contacts.";
         return;
       }
 
@@ -1661,7 +1664,12 @@
     /* OUVERTURE DE LA FICHE ORGANISATION */
 
     $("mainContent").querySelectorAll("[data-open-org]").forEach(b =>
-      b.addEventListener("click", () => openOrganisation(Number(b.dataset.openOrg)))
+      b.addEventListener("click", () =>
+        openOrganisation(
+          Number(b.dataset.openOrg) || null,
+          b.dataset.orgName || "",
+          b.dataset.contactId ? Number(b.dataset.contactId) : null
+        ))
     );
 
     /* BOUTONS DE COPIE */
@@ -1814,9 +1822,11 @@
           </div>
 
           <div class="org-edit-line">
-            ${c.orgRef
+            ${c.orgRef || c.organisation
               ? `<button class="org-name" type="button"
-                  data-open-org="${c.orgRef}"
+                  data-open-org="${c.orgRef || ""}"
+                  data-org-name="${escapeHtml(c.organisation)}"
+                  data-contact-id="${c.rowId}"
                   title="Ouvrir la fiche de l'organisation">${escapeHtml(c.organisation || "Voir l'organisation")}</button>`
               : orgHref && c.organisation
               ? `<a class="org-name"
@@ -1903,7 +1913,10 @@
   const toRowId = (v) => {
     if (typeof v === "number" && v > 0) return v;
     // formats éventuels : ["R", "Table", 12] ou { id: 12 }
-    if (Array.isArray(v) && typeof v[v.length - 1] === "number" && v[v.length - 1] > 0) return v[v.length - 1];
+    if (Array.isArray(v)) {
+      const ids = v.filter(x => typeof x === "number" && x > 0);
+      return ids.length ? ids[0] : null;
+    }
     if (v && typeof v === "object" && typeof v.id === "number" && v.id > 0) return v.id;
     return null;
   };
@@ -1999,6 +2012,83 @@
     Object.assign(orgState, { tableId, cols, roles, rows, refs });
   }
 
+  /* Colonne Référence de Contacts vers Organisation : détectée automatiquement
+     (si elle n'est pas associée dans les options du widget) */
+
+  const contactsRef = { loaded: false, tableId: null, colId: null };
+
+  async function detectContactsRef() {
+
+    if (contactsRef.loaded) return contactsRef;
+
+    try {
+      if (!orgState.tableId) await loadOrganisations();
+
+      const api = grist.docApi;
+      const tables = await api.fetchTable("_grist_Tables");
+      const meta = await api.fetchTable("_grist_Tables_column");
+
+      const mapped = Object.values(state.mappings || {}).filter(v => typeof v === "string");
+      const byTable = new Map();
+
+      for (let i = 0; i < meta.id.length; i++) {
+        if (!byTable.has(meta.parentId[i])) byTable.set(meta.parentId[i], []);
+        byTable.get(meta.parentId[i]).push({
+          colId: meta.colId[i],
+          label: meta.label[i] || "",
+          type: meta.type[i] || ""
+        });
+      }
+
+      /* Table des contacts = celle qui contient toutes les colonnes associées au widget */
+      for (let t = 0; t < tables.id.length; t++) {
+        const cols = byTable.get(tables.id[t]) || [];
+        const ids = new Set(cols.map(c => c.colId));
+
+        if (!mapped.length || !mapped.every(m => ids.has(m))) continue;
+
+        const refs = cols.filter(c => c.type === `Ref:${orgState.tableId}`);
+        if (!refs.length) continue;
+
+        const pick = refs.find(c => /organisation/.test(normKey(c.label + " " + c.colId))) || refs[0];
+
+        contactsRef.tableId = tables.tableId[t];
+        contactsRef.colId = pick.colId;
+        break;
+      }
+
+      contactsRef.loaded = true;
+
+    } catch (err) {
+      console.error("Détection de la colonne Référence :", err);
+    }
+
+    return contactsRef;
+  }
+
+  /* Identifiant d'organisation de chaque contact : Map(ligne du contact -> ligne de l'organisation) */
+  async function detectedOrgIds() {
+
+    const result = new Map();
+
+    try {
+      const ref = await detectContactsRef();
+      if (!ref.tableId || !ref.colId) return result;
+
+      const data = await grist.docApi.fetchTable(ref.tableId);
+      const values = data[ref.colId] || [];
+
+      data.id.forEach((id, i) => {
+        const orgId = toRowId(values[i]);
+        if (orgId) result.set(id, orgId);
+      });
+    } catch (err) {
+      console.error("Lecture des organisations des contacts :", err);
+    }
+
+    return result;
+  }
+
   const canEditOrg = (col) =>
     !col.isFormula && (col.type === "Text" || col.type === "Choice");
 
@@ -2083,7 +2173,7 @@
       .addEventListener("click", closeOrganisation);
   }
 
-  async function openOrganisation(orgId) {
+  async function openOrganisation(orgId, name = "", contactId = null) {
 
     state.view = "org";
     $("status").textContent = "";
@@ -2092,7 +2182,37 @@
 
     try {
       await loadOrganisations();
-      renderOrganisation(orgId);
+
+      orgState.contactRefs = await detectedOrgIds();
+
+      let id = orgId
+        || (contactId != null ? orgState.contactRefs.get(contactId) : null)
+        || null;
+
+      /* Pas d'identifiant (colonne Référence non associée) : on cherche par le nom */
+      if (!id && name) {
+        const col = orgState.roles.name;
+        const target = normalize(name);
+
+        if (col) {
+          const i = orgState.rows.id.findIndex((_, k) =>
+            normalize(orgDisplay(col, orgState.rows[col.colId][k])) === target
+          );
+          if (i >= 0) id = orgState.rows.id[i];
+        }
+      }
+
+      if (!id) {
+        orgMessage(
+          "Organisation introuvable",
+          name
+            ? `Aucune organisation nommée « ${name} » dans la table Organisation.`
+            : "Aucune organisation n'est rattachée à ce contact."
+        );
+        return;
+      }
+
+      renderOrganisation(id);
     } catch (err) {
       console.error("Organisation :", err);
       orgMessage("Organisation indisponible", err && err.message ? err.message : "Lecture impossible.");
@@ -2195,26 +2315,37 @@
       : "";
 
     /* Contacts rattachés : ceux dont la colonne Référence pointe vers cette organisation */
-    const refMapped = state.mappings && typeof state.mappings.organisationRef === "string";
+    const detected = orgState.contactRefs || new Map();
+    const idOf = (r) => toRowId(r.organisationRef) || detected.get(r.id) || null;
 
-    const linked = refMapped
-      ? sorted().filter(r => toRowId(r.organisationRef) === orgId)
-      : [];
+    const refMapped =
+      (state.mappings && typeof state.mappings.organisationRef === "string") ||
+      detected.size > 0;
+
+    const linked = sorted().filter(r =>
+      refMapped
+        ? idOf(r) === orgId
+        : name && normalize(text(r.organisation)) === normalize(name)
+    );
 
     const contactsHtml = `
       <section class="org-section">
-        <h2 class="section-title">Contacts rattachés${refMapped ? ` (${linked.length})` : ""}</h2>
-        ${!refMapped
-          ? `<span class="muted-note">Associez la colonne « Organisation (référence) » dans les options du widget pour voir les contacts rattachés.</span>`
-          : linked.length
-            ? linked.map(r => {
-                const c = contactData(r);
-                return `<button class="org-contact" type="button" data-open-contact="${r.id}">
-                  <span class="n">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
-                  <span class="r">${escapeHtml(c.role)}</span>
-                </button>`;
-              }).join("")
-            : `<span class="muted-note">Aucun contact rattaché à cette organisation.</span>`}
+        <h2 class="section-title">Contacts rattachés (${linked.length})</h2>
+        ${linked.length
+          ? linked.map(r => {
+              const c = contactData(r);
+              return `<button class="org-contact" type="button" data-open-contact="${r.id}">
+                <span class="n">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
+                <span class="r">${escapeHtml(c.role)}</span>
+              </button>`;
+            }).join("")
+          : `<span class="muted-note">Aucun contact rattaché à cette organisation.</span>`}
+        ${refMapped
+          ? ""
+          : `<p class="muted-note" style="margin-top:10px">
+              Rattachement établi d'après le nom : la colonne Référence vers les organisations
+              n'a pas pu être détectée.
+            </p>`}
       </section>`;
 
     $("mainContent").innerHTML = `
@@ -2652,9 +2783,9 @@
       {
         name: "organisationRef",
         title: "Organisation (référence)",
-        type: "Ref",
+        type: "Any",
         optional: true,
-        description: "La colonne Référence de Contacts vers la table Organisation (pas la formule du nom) : ouvre la fiche, rattache les contacts, sert à la création"
+        description: "Colonne de la table Contacts qui pointe vers une organisation (type Référence), pas la formule du nom : ouvre la fiche, rattache les contacts, sert à la création"
       },
 
       {
