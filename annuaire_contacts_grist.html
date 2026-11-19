@@ -316,7 +316,14 @@
     }
 
     .banner-right { display: flex; align-items: center; gap: 10px; }
-    .contact-id { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .contact-id {
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      font-size: 9px;
+      letter-spacing: .02em;
+      text-transform: none;
+      opacity: .7;
+    }
 
     .role {
       color: #C8D8E6;
@@ -744,6 +751,193 @@
 
     .banner :is(input, textarea).editable-field:focus::placeholder {
       color: #8A96A2;
+    }
+
+    /* CODE COULEUR : fiche organisation (vert-bleu) / fiche contact (bleu marine) */
+
+    .profile.org .banner { background: #1F5F5B; }
+    .profile.org .banner-meta { color: #CDE6E2; }
+    .profile.org .section-title { color: #1F4F4C; }
+    .profile.org .tag { background: #E3F1EF; color: #1F5F5B; }
+    .profile.org .back-btn { background: rgba(255,255,255,.14); }
+
+    .tiny-id {
+      margin-top: 3px;
+      font-size: 9px;
+      letter-spacing: .02em;
+      font-variant-numeric: tabular-nums;
+      opacity: .7;
+    }
+
+    .org-title {
+      font-size: clamp(22px, 4vw, 28px);
+      font-weight: 780;
+      letter-spacing: -.03em;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .org-badges { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+
+    .badge-type, .badge-sector {
+      border-radius: 999px;
+      padding: 3px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-type {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.4);
+      color: #fff;
+    }
+
+    .badge-sector { background: rgba(255,255,255,.1); color: #E4F3F1; font-weight: 600; }
+
+    .edit-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+    }
+
+    .edit-toggle:hover { background: rgba(255,255,255,.26); }
+    .edit-toggle.on { background: #fff; color: #1F5F5B; }
+
+    .org-site { color: var(--accent); font-size: 13px; overflow-wrap: anywhere; text-decoration: none; }
+    .org-site:hover { text-decoration: underline; }
+
+    .org-comment { white-space: pre-wrap; }
+
+    /* Secteurs : édition */
+    .tag-x {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      opacity: .65;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 0 0 6px;
+    }
+
+    .tag-x:hover { opacity: 1; }
+
+    .sector-add { display: flex; gap: 8px; margin-top: 12px; }
+
+    .sector-add input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #D6DEE6;
+      border-radius: 9px;
+      padding: 9px 12px;
+      outline: none;
+      color: var(--text);
+    }
+
+    .sector-add input:focus {
+      border-color: #7FB3AE;
+      box-shadow: 0 0 0 3px rgba(31,95,91,.12);
+    }
+
+    /* Contacts rattachés : 2 colonnes, contact principal en tête */
+    .oc-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 28px;
+    }
+
+    .oc-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-bottom: 1px solid #EDF0F3;
+    }
+
+    .oc-open {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      padding: 9px 4px;
+      border-radius: 6px;
+    }
+
+    .oc-open:hover { background: #F1F7F6; }
+    .oc-open .n { font-weight: 700; color: #23384C; font-size: 13px; overflow-wrap: anywhere; }
+    .oc-open .r { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+
+    .oc-star {
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #C5CDD5;
+      border-radius: 6px;
+    }
+
+    .oc-star svg { width: 16px; height: 16px; }
+    .oc-star.on { color: #E0A100; }
+    button.oc-star:hover { background: #F4F1E4; color: #E0A100; }
+
+    /* Recherche : contacts et organisations */
+    .result-item.rich { display: flex; align-items: center; gap: 11px; }
+    .result-item.active, .organisation-option.active { background: #E6F0F8; }
+
+    .results-group {
+      padding: 8px 13px 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: #FAFBFC;
+    }
+
+    .result-icon {
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-icon svg { width: 17px; height: 17px; }
+    .result-icon.contact { background: #E7EEF5; color: #193B60; }
+    .result-icon.org { background: #E1F0EE; color: #1F5F5B; }
+
+    .result-body { min-width: 0; flex: 1; }
+
+    .result-tag {
+      display: inline-block;
+      margin-left: 7px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #E1F0EE;
+      color: #1F5F5B;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      vertical-align: 1px;
+    }
+
+    @media (max-width: 560px) {
+      .oc-grid { grid-template-columns: 1fr; }
     }
 
     /* SÉLECTEUR D'ORGANISATION (création de contact) */
@@ -1217,6 +1411,8 @@
     });
 
     orgSearch.addEventListener("focus", () => renderOrganisationResults(orgSearch.value));
+
+    enableListNav(orgSearch, $("organisationOptions"), ".organisation-option");
 
     root.querySelector("[data-create]").addEventListener("click", submitNewContact);
     root.querySelector("[data-cancel]").addEventListener("click", cancelCreate);
@@ -2008,6 +2204,7 @@
     roles.siret = find(/siret/);
     roles.comments = find(/comment|note|remarque/);
     roles.contacts = find(/^contacts?\b/);
+    roles.main = find(/principal/, c => c.type.startsWith("Ref:"));
 
     Object.assign(orgState, { tableId, cols, roles, rows, refs });
   }
@@ -2112,13 +2309,18 @@
     return String(v);
   }
 
-  function orgFieldHtml(col, shown) {
+  function orgFieldHtml(col, shown, editing) {
 
     const roles = orgState.roles;
     const label = escapeHtml(col.label);
+
+    const isSite = roles.website && roles.website.colId === col.colId;
+    const isSiret = roles.siret && roles.siret.colId === col.colId;
+    const isType = roles.type && roles.type.colId === col.colId;
+
     let control;
 
-    if (canEditOrg(col)) {
+    if (editing && canEditOrg(col)) {
 
       if (col.type === "Choice") {
 
@@ -2134,8 +2336,7 @@
 
       } else {
 
-        const isType = roles.type && roles.type.colId === col.colId;
-        const value = roles.siret && roles.siret.colId === col.colId ? formatSiret(shown) : shown;
+        const value = isSiret ? formatSiret(shown) : shown;
 
         control = `<input class="editable-field" type="text"
           data-org-col="${escapeHtml(col.colId)}"
@@ -2145,19 +2346,19 @@
       }
 
     } else {
-      control = `<div class="org-readonly">${escapeHtml(shown) || "—"}</div>`;
-    }
 
-    const isSite = roles.website && roles.website.colId === col.colId;
-    const open = isSite && shown
-      ? `<a class="org-open-dark" href="${escapeHtml(safeUrl(shown))}" target="_blank"
-          rel="noopener noreferrer" title="Ouvrir le site">${EXTERNAL_ICON}</a>`
-      : "";
+      const value = isSiret ? formatSiret(shown) : shown;
+
+      control = isSite && value
+        ? `<a class="org-site" href="${escapeHtml(safeUrl(value))}" target="_blank"
+            rel="noopener noreferrer">${escapeHtml(value)}</a>`
+        : `<div class="org-readonly">${escapeHtml(value) || "—"}</div>`;
+    }
 
     return `
       <div class="org-field">
         <span class="contact-label">${label}</span>
-        <div class="contact-value-wrap">${control}${open}</div>
+        <div class="contact-value-wrap">${control}</div>
       </div>`;
   }
 
@@ -2176,6 +2377,7 @@
   async function openOrganisation(orgId, name = "", contactId = null) {
 
     state.view = "org";
+    orgState.editing = false;
     $("status").textContent = "";
 
     renderBlank("Chargement…", "Lecture de la table Organisation.");
@@ -2255,66 +2457,73 @@
       return;
     }
 
+    orgState.currentId = orgId;
+
+    const editing = !!orgState.editing;
+
     const raw = (col) => (col ? rows[col.colId][idx] : undefined);
     const disp = (col) => (col ? orgDisplay(col, raw(col)) : "");
 
-    const used = new Set(
-      Object.values(roles).filter(Boolean).map(c => c.colId)
-    );
+    const tagsOf = (v) =>
+      Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : (v ? [String(v)] : []);
 
     const nameCol = roles.name;
     const name = disp(nameCol);
 
-    const summary = [
-      disp(roles.type),
-      [disp(roles.city), disp(roles.region), disp(roles.country)].filter(Boolean).join(", ")
-    ].filter(Boolean).join(" · ");
+    const type = disp(roles.type);
+    const sectors = roles.sectors ? tagsOf(raw(roles.sectors)) : [];
+    const sectorsCol = roles.sectors && roles.sectors.type === "ChoiceList" ? roles.sectors : null;
 
-    /* Informations générales */
-    const info = [roles.type, roles.website, roles.siret, roles.city, roles.region, roles.country]
-      .filter(Boolean)
-      .map(c => orgFieldHtml(c, disp(c)));
+    /* ----- Informations (le type s'édite ici ; en lecture il est dans la bannière) ----- */
+    const infoCols = [
+      editing ? roles.type : null,
+      roles.website, roles.siret, roles.city, roles.region, roles.country,
+      editing && roles.sectors && !sectorsCol ? roles.sectors : null
+    ].filter(Boolean);
 
-    /* Secteurs (étiquettes) */
+    const infoHtml = infoCols.length
+      ? `<section>
+          <h2 class="section-title">Informations</h2>
+          <div class="org-grid">${infoCols.map(c => orgFieldHtml(c, disp(c), editing)).join("")}</div>
+        </section>`
+      : "";
+
+    /* ----- Secteurs d'activité : ajout / retrait (mode modification) ----- */
     let sectorsHtml = "";
-    if (roles.sectors) {
-      const v = raw(roles.sectors);
-      const tags = Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : (v ? [String(v)] : []);
+
+    if (editing && sectorsCol) {
+
+      const known = new Set(sectorsCol.choices);
+      rows[sectorsCol.colId].forEach(v => tagsOf(v).forEach(t => known.add(t)));
+
+      const suggestions = Array.from(known)
+        .filter(t => !sectors.some(s => normalize(s) === normalize(t)))
+        .sort((a, b) => normalize(a).localeCompare(normalize(b), "fr"));
 
       sectorsHtml = `
         <section class="org-section">
-          <h2 class="section-title">${escapeHtml(roles.sectors.label)}</h2>
-          ${tags.length
-            ? `<div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>`
-            : `<span class="muted-note">Aucun secteur renseigné.</span>`}
+          <h2 class="section-title">${escapeHtml(sectorsCol.label)}</h2>
+
+          <div class="tags">
+            ${sectors.length
+              ? sectors.map((t, i) => `<span class="tag">${escapeHtml(t)}<button class="tag-x"
+                  type="button" data-remove-sector="${i}" title="Retirer" aria-label="Retirer ${escapeHtml(t)}">×</button></span>`).join("")
+              : `<span class="muted-note">Aucun secteur renseigné.</span>`}
+          </div>
+
+          <div class="sector-add">
+            <input id="sectorInput" type="text" list="sectorChoices" autocomplete="off"
+              placeholder="Ajouter un secteur d'activité…">
+            <button class="btn btn-secondary" type="button" data-add-sector>Ajouter</button>
+          </div>
+
+          <datalist id="sectorChoices">
+            ${suggestions.map(t => `<option value="${escapeHtml(t)}">`).join("")}
+          </datalist>
         </section>`;
     }
 
-    /* Commentaires */
-    const commentsHtml = roles.comments
-      ? `<section class="org-section">
-          <h2 class="section-title">${escapeHtml(roles.comments.label)}</h2>
-          ${canEditOrg(roles.comments)
-            ? `<textarea class="comments-editor"
-                data-org-col="${escapeHtml(roles.comments.colId)}"
-                data-enter-saves
-                placeholder="Ajouter un commentaire…">${escapeHtml(disp(roles.comments))}</textarea>`
-            : `<div class="org-readonly">${escapeHtml(disp(roles.comments)) || "—"}</div>`}
-        </section>`
-      : "";
-
-    /* Autres colonnes de la table */
-    const others = cols.filter(c => !used.has(c.colId))
-      .map(c => orgFieldHtml(c, disp(c)));
-
-    const othersHtml = others.length
-      ? `<section class="org-section">
-          <h2 class="section-title">Autres informations</h2>
-          <div class="org-grid">${others.join("")}</div>
-        </section>`
-      : "";
-
-    /* Contacts rattachés : ceux dont la colonne Référence pointe vers cette organisation */
+    /* ----- Contacts rattachés (contact principal en tête, puis ordre alphabétique) ----- */
     const detected = orgState.contactRefs || new Map();
     const idOf = (r) => toRowId(r.organisationRef) || detected.get(r.id) || null;
 
@@ -2322,34 +2531,90 @@
       (state.mappings && typeof state.mappings.organisationRef === "string") ||
       detected.size > 0;
 
-    const linked = sorted().filter(r =>
+    let linked = sorted().filter(r =>
       refMapped
         ? idOf(r) === orgId
         : name && normalize(text(r.organisation)) === normalize(name)
     );
 
+    const mainId = roles.main ? toRowId(raw(roles.main)) : null;
+
+    if (mainId) {
+      linked = [
+        ...linked.filter(r => r.id === mainId),
+        ...linked.filter(r => r.id !== mainId)
+      ];
+    }
+
+    const contactItem = (r) => {
+      const c = contactData(r);
+      const isMain = r.id === mainId;
+
+      const star = editing && roles.main
+        ? `<button class="oc-star ${isMain ? "on" : ""}" type="button" data-set-main="${r.id}"
+            title="${isMain ? "Retirer le statut de contact principal" : "Définir comme contact principal"}">${STAR_ICON(isMain)}</button>`
+        : isMain
+          ? `<span class="oc-star on" title="Contact principal">${STAR_ICON(true)}</span>`
+          : `<span class="oc-star"></span>`;
+
+      return `<div class="oc-row">
+        ${star}
+        <button class="oc-open" type="button" data-open-contact="${r.id}">
+          <span class="n">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
+          ${c.role ? `<span class="r">${escapeHtml(c.role)}</span>` : ""}
+        </button>
+      </div>`;
+    };
+
+    const colA = linked.slice(0, 5).map(contactItem).join("");
+    const colB = linked.slice(5).map(contactItem).join("");
+
     const contactsHtml = `
       <section class="org-section">
         <h2 class="section-title">Contacts rattachés (${linked.length})</h2>
         ${linked.length
-          ? linked.map(r => {
-              const c = contactData(r);
-              return `<button class="org-contact" type="button" data-open-contact="${r.id}">
-                <span class="n">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
-                <span class="r">${escapeHtml(c.role)}</span>
-              </button>`;
-            }).join("")
+          ? `<div class="oc-grid"><div>${colA}</div><div>${colB}</div></div>`
           : `<span class="muted-note">Aucun contact rattaché à cette organisation.</span>`}
+        ${editing && !roles.main
+          ? `<p class="muted-note" style="margin-top:10px">Pour désigner un contact principal, ajoutez dans la table
+              Organisation une colonne Référence « Contact principal » vers Contacts.</p>`
+          : ""}
         ${refMapped
           ? ""
           : `<p class="muted-note" style="margin-top:10px">
               Rattachement établi d'après le nom : la colonne Référence vers les organisations
-              n'a pas pu être détectée.
-            </p>`}
+              n'a pas pu être détectée.</p>`}
       </section>`;
 
+    /* ----- Commentaires (tout en bas) ----- */
+    const commentsHtml = roles.comments
+      ? `<section class="org-section">
+          <h2 class="section-title">${escapeHtml(roles.comments.label)}</h2>
+          ${editing && canEditOrg(roles.comments)
+            ? `<textarea class="comments-editor"
+                data-org-col="${escapeHtml(roles.comments.colId)}"
+                data-enter-saves
+                placeholder="Ajouter un commentaire…">${escapeHtml(disp(roles.comments))}</textarea>`
+            : `<div class="org-readonly org-comment">${escapeHtml(disp(roles.comments)) || "—"}</div>`}
+        </section>`
+      : "";
+
+    /* ----- Bannière : nom, identifiant (minuscule), type, secteurs ----- */
+    const titleHtml = editing && nameCol && canEditOrg(nameCol)
+      ? `<span class="autogrow" data-value="${escapeHtml(name || "Nom de l'organisation")}">
+          <textarea class="editable-field" rows="1" data-singleline
+            data-org-col="${escapeHtml(nameCol.colId)}"
+            placeholder="Nom de l'organisation">${escapeHtml(name)}</textarea>
+        </span>`
+      : `<h1 class="org-title">${escapeHtml(name || "Organisation")}</h1>`;
+
+    const badges = [
+      type ? `<span class="badge-type">${escapeHtml(type)}</span>` : "",
+      ...sectors.map(t => `<span class="badge-sector">${escapeHtml(t)}</span>`)
+    ].filter(Boolean).join("");
+
     $("mainContent").innerHTML = `
-      <article class="profile">
+      <article class="profile org">
 
         <header class="banner">
 
@@ -2357,38 +2622,27 @@
             <button class="back-btn" type="button" data-org-back>← Retour</button>
             <div class="banner-right">
               <span>Fiche organisation</span>
-              ${roles.id ? `<span class="contact-id">${escapeHtml(disp(roles.id))}</span>` : ""}
+              <button class="edit-toggle ${editing ? "on" : ""}" type="button" data-org-edit
+                title="${editing ? "Terminer la modification" : "Modifier l'organisation"}"
+                aria-label="${editing ? "Terminer la modification" : "Modifier l'organisation"}">
+                ${editing ? CHECK_ICON : EDIT_ICON}
+              </button>
             </div>
           </div>
 
-          <div class="org-title-line">
-            ${nameCol && canEditOrg(nameCol)
-              ? `<span class="autogrow" data-value="${escapeHtml(name || "Nom de l'organisation")}">
-                  <textarea class="editable-field" rows="1" data-singleline
-                    data-org-col="${escapeHtml(nameCol.colId)}"
-                    placeholder="Nom de l'organisation">${escapeHtml(name)}</textarea>
-                </span>`
-              : `<span class="org-name">${escapeHtml(name || "Organisation")}</span>`}
-          </div>
+          <div class="org-title-line">${titleHtml}</div>
 
-          ${summary ? `<div class="org-summary">${escapeHtml(summary)}</div>` : ""}
+          ${roles.id ? `<div class="tiny-id">${escapeHtml(disp(roles.id))}</div>` : ""}
+
+          ${badges ? `<div class="org-badges">${badges}</div>` : ""}
 
         </header>
 
         <div class="profile-body">
-
-          ${info.length
-            ? `<section>
-                <h2 class="section-title">Informations</h2>
-                <div class="org-grid">${info.join("")}</div>
-              </section>`
-            : ""}
-
+          ${infoHtml}
           ${sectorsHtml}
-          ${commentsHtml}
-          ${othersHtml}
           ${contactsHtml}
-
+          ${commentsHtml}
         </div>
 
         <datalist id="orgTypes">
@@ -2413,6 +2667,7 @@
       if (i >= 0) orgState.rows[colId][i] = value;
 
       $("status").textContent = "Modification enregistrée.";
+      return true;
 
     } catch (err) {
       console.error("Erreur d'enregistrement (organisation) :", err);
@@ -2421,20 +2676,98 @@
       $("status").textContent = /formula column/i.test(msg)
         ? "Modification impossible : cette colonne est une colonne de formule."
         : "Enregistrement impossible : " + (msg || "vérifiez les droits.");
+      return false;
     }
   }
 
   function bindOrgEvents(orgId) {
 
     const root = $("mainContent");
+    const { roles, rows } = orgState;
 
     root.querySelector("[data-org-back]").addEventListener("click", closeOrganisation);
+
+    /* Crayon : entrer / sortir du mode modification */
+    root.querySelector("[data-org-edit]").addEventListener("click", () => {
+      orgState.editing = !orgState.editing;
+      renderOrganisation(orgId);
+    });
 
     root.querySelectorAll("[data-open-contact]").forEach(b =>
       b.addEventListener("click", () => openContactFromOrg(Number(b.dataset.openContact)))
     );
 
-    const siretId = orgState.roles.siret ? orgState.roles.siret.colId : null;
+    /* Contact principal */
+    root.querySelectorAll("[data-set-main]").forEach(b =>
+      b.addEventListener("click", async () => {
+
+        const id = Number(b.dataset.setMain);
+        const col = roles.main;
+        const current = toRowId(rows[col.colId][rows.id.indexOf(orgId)]);
+
+        const ok = await saveOrgField(orgId, col.colId, current === id ? 0 : id);
+        if (ok) renderOrganisation(orgId);
+      })
+    );
+
+    /* Secteurs d'activité : ajout / retrait */
+    const sCol = roles.sectors && roles.sectors.type === "ChoiceList" ? roles.sectors : null;
+
+    if (orgState.editing && sCol) {
+
+      const currentTags = () => {
+        const v = rows[sCol.colId][rows.id.indexOf(orgId)];
+        return Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : [];
+      };
+
+      const writeTags = async (tags) => {
+        const ok = await saveOrgField(orgId, sCol.colId, ["L", ...tags]);
+        if (ok) {
+          orgState.focusSector = true;
+          renderOrganisation(orgId);
+        }
+      };
+
+      const input = root.querySelector("#sectorInput");
+
+      const addFromInput = () => {
+        const t = input.value.trim();
+        if (!t) return;
+
+        const tags = currentTags();
+
+        if (tags.some(x => normalize(x) === normalize(t))) {
+          input.value = "";
+          return;
+        }
+
+        writeTags([...tags, t]);
+      };
+
+      root.querySelector("[data-add-sector]").addEventListener("click", addFromInput);
+
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.isComposing) {
+          e.preventDefault();
+          addFromInput();
+        }
+      });
+
+      root.querySelectorAll("[data-remove-sector]").forEach(b =>
+        b.addEventListener("click", () => {
+          const n = Number(b.dataset.removeSector);
+          writeTags(currentTags().filter((_, i) => i !== n));
+        })
+      );
+
+      if (orgState.focusSector) {
+        orgState.focusSector = false;
+        input.focus();
+      }
+    }
+
+    /* Champs texte / choix */
+    const siretId = roles.siret ? roles.siret.colId : null;
 
     root.querySelectorAll("[data-org-col]").forEach(field => {
 
@@ -2495,7 +2828,11 @@
       state.organisations = orgState.rows.id
         .map((id, i) => ({
           id: Number(id),
-          name: orgDisplay(nameCol, orgState.rows[nameCol.colId][i])
+          name: orgDisplay(nameCol, orgState.rows[nameCol.colId][i]),
+          detail: [
+            orgState.roles.type ? orgDisplay(orgState.roles.type, orgState.rows[orgState.roles.type.colId][i]) : "",
+            orgState.roles.city ? orgDisplay(orgState.roles.city, orgState.rows[orgState.roles.city.colId][i]) : ""
+          ].filter(Boolean).join(" · ")
         }))
         .filter(o => Number.isInteger(o.id) && o.id > 0 && o.name)
         .sort((a, b) => normalize(a.name).localeCompare(normalize(b.name), "fr"));
@@ -2584,6 +2921,61 @@
     });
   }
 
+  const PERSON_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+    stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/>
+    <path d="M5 20c.6-3.7 3.2-5.6 7-5.6s6.4 1.9 7 5.6"/></svg>`;
+
+  const BUILDING_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+    stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/>
+    <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg>`;
+
+  const STAR_ICON = (filled) => `<svg viewBox="0 0 24 24" fill="${filled ? "currentColor" : "none"}"
+    stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+    <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z"/></svg>`;
+
+  /* Navigation au clavier dans une liste déroulante : ↑ ↓ Entrée Échap */
+  function enableListNav(input, box, itemSelector) {
+
+    input.addEventListener("keydown", (e) => {
+
+      if (!["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key) || e.isComposing) return;
+
+      if (!box.classList.contains("open")) {
+        if (e.key === "ArrowDown") input.dispatchEvent(new Event("focus"));
+        return;
+      }
+
+      if (e.key === "Escape") {
+        box.classList.remove("open");
+        return;
+      }
+
+      const items = Array.from(box.querySelectorAll(itemSelector));
+      if (!items.length) return;
+
+      let i = items.findIndex(x => x.classList.contains("active"));
+
+      if (e.key === "Enter") {
+        const target = i >= 0 ? items[i] : items.find(x => !x.classList.contains("create-item"));
+        if (target) {
+          e.preventDefault();
+          target.click();
+        }
+        return;
+      }
+
+      e.preventDefault();
+
+      i = e.key === "ArrowDown"
+        ? (i + 1) % items.length
+        : (i <= 0 ? items.length - 1 : i - 1);
+
+      items.forEach(x => x.classList.remove("active"));
+      items[i].classList.add("active");
+      items[i].scrollIntoView({ block: "nearest" });
+    });
+  }
+
   /* CLASSEMENT DES CONTACTS */
 
   const sorted = () =>
@@ -2610,7 +3002,7 @@
 
     if (!q) return closeResults();
 
-    const matches = sorted().filter(r => {
+    const contactMatches = sorted().filter(r => {
 
       const c = contactData(r);
 
@@ -2620,15 +3012,24 @@
         c.organisation
       ].join(" ")).includes(q);
 
-    });
+    }).slice(0, 50);
+
+    const orgMatches = state.organisations
+      .filter(o => normalize(o.name).includes(q))
+      .slice(0, 50);
+
+    const entries = [
+      ...contactMatches.map(rec => ({ kind: "contact", rec })),
+      ...orgMatches.map(org => ({ kind: "org", org }))
+    ];
 
     const box = $("results");
 
-    if (!matches.length) {
+    if (!entries.length) {
 
       box.innerHTML = `
         <div class="empty-results">
-          Aucun contact ne correspond à « ${escapeHtml(query)} ».
+          Aucun contact ni organisation ne correspond à « ${escapeHtml(query)} ».
         </div>
         <button class="result-item create-item" type="button" data-new-contact>
           + Créer un nouveau contact
@@ -2638,52 +3039,73 @@
 
     } else {
 
-      const shown = matches.slice(0, 100);
+      const itemHtml = (entry, i) => {
 
-      box.innerHTML = `
-        <div class="results-meta">
-          ${matches.length} résultat${matches.length > 1 ? "s" : ""}
-        </div>` +
-
-        shown.map((r, i) => {
-
-          const c = contactData(r);
+        if (entry.kind === "contact") {
+          const c = contactData(entry.rec);
           const detail = [c.organisation, c.role].filter(Boolean).join(" · ");
 
           return `
-            <button class="result-item"
-              type="button"
-              role="option"
-              data-i="${i}">
-
-              <span class="result-name">
-                ${escapeHtml(fullName(c) || "Contact sans nom")}
+            <button class="result-item rich" type="button" role="option" data-i="${i}">
+              <span class="result-icon contact" title="Contact">${PERSON_ICON}</span>
+              <span class="result-body">
+                <span class="result-name">${escapeHtml(fullName(c) || "Contact sans nom")}</span>
+                ${detail ? `<span class="result-detail">${escapeHtml(detail)}</span>` : ""}
               </span>
-
-              ${detail
-                ? `<span class="result-detail">${escapeHtml(detail)}</span>`
-                : ""}
-
             </button>`;
+        }
 
-        }).join("");
+        return `
+          <button class="result-item rich" type="button" role="option" data-i="${i}">
+            <span class="result-icon org" title="Organisation">${BUILDING_ICON}</span>
+            <span class="result-body">
+              <span class="result-name">${escapeHtml(entry.org.name)}<span class="result-tag">Organisation</span></span>
+              ${entry.org.detail ? `<span class="result-detail">${escapeHtml(entry.org.detail)}</span>` : ""}
+            </span>
+          </button>`;
+      };
+
+      let html = `<div class="results-meta">${entries.length} résultat${entries.length > 1 ? "s" : ""}</div>`;
+
+      if (contactMatches.length) {
+        html += `<div class="results-group">Contacts</div>` +
+          contactMatches.map((_, i) => itemHtml(entries[i], i)).join("");
+      }
+
+      if (orgMatches.length) {
+        html += `<div class="results-group">Organisations</div>` +
+          orgMatches.map((_, i) => itemHtml(entries[contactMatches.length + i], contactMatches.length + i)).join("");
+      }
+
+      box.innerHTML = html;
 
       box.querySelectorAll(".result-item").forEach(btn => {
 
         btn.addEventListener("click", () => {
 
-          const chosen = shown[Number(btn.dataset.i)];
+          const entry = entries[Number(btn.dataset.i)];
 
           state.creating = false;
-          state.view = "contact";
-          state.selectedId = chosen.id;
-          focusInGrist(chosen.id);
-
-          $("searchInput").value = fullName(contactData(chosen));
+          closeResults();
           $("clearSearch").style.display = "block";
 
-          closeResults();
-          renderProfile(chosen);
+          if (entry.kind === "contact") {
+
+            state.view = "contact";
+            state.selectedId = entry.rec.id;
+
+            $("searchInput").value = fullName(contactData(entry.rec));
+
+            focusInGrist(entry.rec.id);
+            renderProfile(entry.rec);
+
+          } else {
+
+            state.selectedId = null;
+            $("searchInput").value = entry.org.name;
+
+            openOrganisation(entry.org.id, entry.org.name);
+          }
 
         });
 
@@ -2691,6 +3113,23 @@
     }
 
     box.classList.add("open");
+  }
+
+  /* Les organisations sont chargées en arrière-plan pour la recherche (au plus toutes les 30 s) */
+  let orgSearchLoading = false;
+  let orgSearchLastLoad = 0;
+
+  function ensureOrganisationsForSearch() {
+
+    if (orgSearchLoading || Date.now() - orgSearchLastLoad < 30000) return;
+
+    orgSearchLoading = true;
+    orgSearchLastLoad = Date.now();
+
+    loadOrganisationOptions().finally(() => {
+      orgSearchLoading = false;
+      if ($("searchInput").value.trim() && !state.creating) renderResults();
+    });
   }
 
   /* ÉVÉNEMENTS DE RECHERCHE */
@@ -2703,14 +3142,19 @@
       if (state.mapped) renderHome();
     }
 
+    ensureOrganisationsForSearch();
     renderResults();
   });
 
   $("searchInput").addEventListener("focus", () => {
 
+    ensureOrganisationsForSearch();
+
     if ($("searchInput").value.trim()) renderResults();
 
   });
+
+  enableListNav($("searchInput"), $("results"), ".result-item");
 
   $("clearSearch").addEventListener("click", () => {
 
