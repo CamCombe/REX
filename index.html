@@ -356,6 +356,46 @@
     .cl-opt-check { width: 14px; height: 14px; color: var(--bleu-mid); flex-shrink: 0; }
     .cl-empty { padding: 10px 12px; font-size: 12px; color: var(--text-muted); text-align: center; }
 
+    /* SECTION PROPULSE — déclinaison claire du violet de la démarche */
+    .section-propulse {
+      border-color: rgba(112,81,163,.25);
+      background: #fff;
+    }
+    .section-propulse .section-head {
+      background: #f7f3fc;
+      border-bottom-color: #e9e0f4;
+    }
+    .section-propulse .section-title { color: #7051a3; }
+    .section-propulse .section-icon { background: #eee6f8 !important; }
+    .section-propulse .section-icon svg { stroke: #7051a3 !important; }
+    .propulse-status-wrap { display:flex; align-items:center; gap:9px; }
+    .propulse-status {
+      min-width:130px;
+      border-radius:var(--r-sm);
+      border:1.5px solid var(--border);
+      background:var(--surface-alt);
+      padding:7px 10px;
+      font:inherit;
+      font-size:13px;
+      color:var(--text);
+      outline:none;
+    }
+    .propulse-status.status-yes {
+      border-color:#b9e2cd;
+      background:#edf8f2;
+      color:#177a4e;
+      font-weight:600;
+    }
+    .propulse-status.status-no {
+      border-color:#f0c6c2;
+      background:#fff2f1;
+      color:#b83030;
+      font-weight:600;
+    }
+    .propulse-status.status-empty { color:var(--text-muted); }
+    .propulse-status:focus { border-color:#8b6bc0; box-shadow:0 0 0 3px rgba(112,81,163,.1); }
+    .propulse-status-legend { font-size:11px; color:var(--text-muted); }
+
     /* TOAST */
     .toast {
       position: fixed; bottom: 16px; right: 16px;
@@ -792,6 +832,65 @@
         </div>
       </div>
 
+      <!-- SECTION 6 — PROPULSE (uniquement pour les fiches REX PROPULSE renseignées) -->
+      <div class="section section-propulse" id="sectionPropulse" style="display:none;">
+        <div class="section-head">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7051a3" stroke-width="2">
+              <path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2L12 2z"/>
+              <path d="M19 14l1.2 3.3L23 18.5l-2.8 1.1L19 23l-1.2-3.4-2.8-1.1 2.8-1.2L19 14z"/>
+            </svg>
+          </div>
+          <span class="section-title">PROPULSE</span>
+        </div>
+        <div class="section-body">
+          <div class="row row-2">
+            <div class="field">
+              <label class="field-label">Édition</label>
+              <input class="inp" id="f_propulseEdition" type="text"
+                     data-col="PropulseEdition" oninput="onChange(this)"/>
+            </div>
+            <div class="field">
+              <label class="field-label">AAP Propulse</label>
+              <input class="inp" id="f_propulseAAP" type="text"
+                     data-col="PropulseAAP" oninput="onChange(this)"/>
+            </div>
+          </div>
+          <div class="row row-2">
+            <div class="field">
+              <label class="field-label">Lauréat GreenTech</label>
+              <div class="propulse-status-wrap">
+                <select class="propulse-status status-empty" id="f_propulseGreenTech"
+                        data-col="PropulseLaureatGreentech"
+                        onchange="onPropulseBoolChange(this)">
+                  <option value="">Non renseigné</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">France 2030</label>
+              <div class="propulse-status-wrap">
+                <select class="propulse-status status-empty" id="f_propulseFrance2030"
+                        data-col="PropulseLaureatFrance2030"
+                        onchange="onPropulseBoolChange(this)">
+                  <option value="">Non renseigné</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Commentaire dans la section PROPULSE</label>
+            <textarea class="inp" id="f_propulseObservations"
+                      data-col="PropulseObservations"
+                      oninput="autoH(this);onChange(this)"></textarea>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -830,6 +929,11 @@ grist.ready({
     { name: 'Perspectives',     title: 'Perspectives de développement', type: 'Text',       optional: true  },
     { name: 'AvisSPIN',         title: 'Avis SPIN',                     type: 'Text',       optional: true  },
     { name: 'AvisSFG',          title: 'Avis SFG',                      type: 'Text',       optional: true  },
+    { name: 'PropulseEdition',   title: 'PROPULSE_Edition',                type: 'Choice',     optional: true  },
+    { name: 'PropulseAAP',       title: 'PROPULSE_AAP',                    type: 'Text',       optional: true  },
+    { name: 'PropulseLaureatGreentech', title: 'PROPULSE_Lauréat Greentech', type: 'Bool',      optional: true  },
+    { name: 'PropulseLaureatFrance2030', title: 'PROPULSE_Lauréat France 2030', type: 'Bool',  optional: true  },
+    { name: 'PropulseObservations', title: 'PROPULSE_Observations',         type: 'Text',       optional: true  },
   ]
 });
 
@@ -1203,6 +1307,39 @@ function highlightPicker(rowId) {
 /* ═══════════════════════════════════════════════════════
    REMPLISSAGE
 ═══════════════════════════════════════════════════════ */
+function hasPropulseData(r) {
+  if (!r || getDemarcheKey(r) !== 'PROPULSE') return false;
+  const fields = [
+    r.PropulseEdition,
+    r.PropulseAAP,
+    r.PropulseLaureatGreentech,
+    r.PropulseLaureatFrance2030,
+    r.PropulseObservations
+  ];
+  // false est une information valide pour les champs Oui/Non.
+  return fields.some(v => v !== null && v !== undefined && v !== '');
+}
+
+function setPropulseBool(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (value === true || value === 1 || value === 'true' || value === 'Oui') el.value = 'true';
+  else if (value === false || value === 0 || value === 'false' || value === 'Non') el.value = 'false';
+  else el.value = '';
+  updatePropulseBoolStyle(el);
+}
+
+function updatePropulseBoolStyle(el) {
+  if (!el) return;
+  el.classList.remove('status-yes', 'status-no', 'status-empty');
+  el.classList.add(el.value === 'true' ? 'status-yes' : el.value === 'false' ? 'status-no' : 'status-empty');
+}
+
+function onPropulseBoolChange(el) {
+  updatePropulseBoolStyle(el);
+  queueUpdate(el.dataset.col, el.value === '' ? null : el.value === 'true');
+}
+
 function fillFiche(r) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('fiche').style.display      = 'flex';
@@ -1272,6 +1409,15 @@ function fillFiche(r) {
   sta('f_perspectives',  r.Perspectives);
   sta('f_avisSpin',      r.AvisSPIN);
   sta('f_avisSfg',       r.AvisSFG);
+
+  // Section PROPULSE : uniquement pour les fiches REX PROPULSE avec au moins une donnée.
+  const propulseSection = document.getElementById('sectionPropulse');
+  if (propulseSection) propulseSection.style.display = hasPropulseData(r) ? '' : 'none';
+  sv('f_propulseEdition', r.PropulseEdition);
+  sv('f_propulseAAP', r.PropulseAAP);
+  setPropulseBool('f_propulseGreenTech', r.PropulseLaureatGreentech);
+  setPropulseBool('f_propulseFrance2030', r.PropulseLaureatFrance2030);
+  sta('f_propulseObservations', r.PropulseObservations);
 
   pending = {};
 }
@@ -1661,6 +1807,19 @@ function exportDocx() {
     const vals = decodeChoiceList(r?.[widgetCol]);
     return vals.length ? esc(vals.join(', ')) : '—';
   };
+  const yesNo = v => v === true || v === 1 ? 'Oui' : v === false || v === 0 ? 'Non' : 'Non renseigné';
+  const propulseExport = hasPropulseData(r) ? `
+<h2 style="color:#7051a3;border-color:#7051a3;">PROPULSE</h2>
+<div class="g2">
+  <div class="c"><p class="lbl">Édition</p><p class="val">${t(r.PropulseEdition)}</p></div>
+  <div class="c"><p class="lbl">AAP Propulse</p><p class="val">${t(r.PropulseAAP)}</p></div>
+</div>
+<div class="g2">
+  <div class="c"><p class="lbl">Lauréat GreenTech</p><p class="val">${yesNo(r.PropulseLaureatGreentech)}</p></div>
+  <div class="c"><p class="lbl">France 2030</p><p class="val">${yesNo(r.PropulseLaureatFrance2030)}</p></div>
+</div>
+<p class="lbl">Commentaire dans la section PROPULSE</p><div class="pre">${pre(r.PropulseObservations)}</div>
+` : '';
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
@@ -1713,6 +1872,7 @@ function exportDocx() {
   <div class="c"><p class="lbl">Avis SPIN</p><div class="pre">${pre(r.AvisSPIN)}</div></div>
   <div class="c"><p class="lbl">Avis SFG</p><div class="pre">${pre(r.AvisSFG)}</div></div>
 </div>
+${propulseExport}
 </body></html>`;
 
   const blob = new Blob([html], { type: 'application/msword' });
