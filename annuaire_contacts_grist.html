@@ -940,6 +940,159 @@
       .oc-grid { grid-template-columns: 1fr; }
     }
 
+    /* FICHE ORGANISATION : bannière modifiable, informations, PROPULSE */
+
+    .editing-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+
+    .org-grid.org-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .org-grid.org-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; }
+
+    @media (max-width: 420px) {
+      .org-grid.org-grid-2, .org-grid.org-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .ro-hint { margin-left: 6px; color: #A0AAB4; font-size: 10px; font-style: italic; }
+
+    /* Mode modification : les champs se voient comme des champs */
+    .profile.org.editing .profile-body .editable-field { border-color: #CBD7E0; background: #fff; }
+    .profile.org.editing .profile-body .editable-field:focus { border-color: #5FA8A1; }
+
+    .profile.org.editing .banner .editable-field {
+      border-color: rgba(255,255,255,.4);
+      background: rgba(255,255,255,.12);
+    }
+
+    .profile.org.editing .banner .editable-field:focus { background: #fff; border-color: #9CD0CA; }
+
+    /* Type et secteurs dans la bannière */
+    .badge-select {
+      width: auto !important;
+      min-width: 120px;
+      margin: 0 !important;
+      padding: 3px 10px !important;
+      border-radius: 999px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      color: #fff !important;
+    }
+
+    .banner select.badge-select option { color: #202B36; background: #fff; }
+    .banner select.badge-select:focus { color: #202B36 !important; }
+    .banner .badge-select::placeholder { color: #CDE6E2; }
+
+    .chip-x {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      opacity: .7;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 0 0 6px;
+    }
+
+    .chip-x:hover { opacity: 1; }
+
+    .badge-add {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,.65);
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .badge-add:hover { background: rgba(255,255,255,.2); }
+
+    .sector-inline {
+      min-width: 150px;
+      border: 0;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #202B36;
+      background: #fff;
+      outline: none;
+    }
+
+    .sector-inline[hidden], .badge-add[hidden] { display: none; }
+
+    /* PROPULSE : même famille de couleur que l'organisation, ton plus clair */
+    .propulse {
+      margin-top: 22px;
+      border: 1px solid #CFE5E1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #F1F8F7;
+    }
+
+    .propulse-head {
+      background: #5FA8A1;
+      color: #fff;
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .1em;
+    }
+
+    .propulse-body { padding: 16px; display: grid; gap: 16px; }
+    .propulse .contact-label { color: #5B7F7B; }
+
+    .pill-edition {
+      display: inline-block;
+      background: #fff;
+      border: 1px solid #BFDDD8;
+      color: #1F5F5B;
+      border-radius: 999px;
+      padding: 3px 13px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .flags { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+
+    @media (max-width: 480px) { .flags { grid-template-columns: 1fr; } }
+
+    .flag { background: #fff; border: 1px solid #DCECE9; border-radius: 10px; padding: 10px 12px; }
+
+    .flag-val {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #273B4E;
+    }
+
+    button.flag-val { width: 100%; border: 0; background: transparent; padding: 0; text-align: left; }
+
+    .flag.editable { border-color: #9CC9C3; }
+    .flag.editable:hover { background: #F6FBFA; }
+
+    .voyant {
+      flex: 0 0 10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background: #B7C2CB;
+    }
+
+    .voyant.yes { background: #2E9E5B; box-shadow: 0 0 0 3px rgba(46,158,91,.18); }
+    .voyant.no { background: #C0453F; box-shadow: 0 0 0 3px rgba(192,69,63,.16); }
+
+    .propulse .comments-editor { background: #fff; }
+
     /* SÉLECTEUR D'ORGANISATION (création de contact) */
 
     .organisation-create { margin-bottom: 22px; position: relative; }
@@ -2121,9 +2274,9 @@
 
   const formatSiret = (v) => {
     const d = String(v ?? "").replace(/\s/g, "");
-    return /^\d{14}$/.test(d)
-      ? d.replace(/^(\d{3})(\d{3})(\d{3})(\d{5})$/, "$1 $2 $3 $4")
-      : String(v ?? "");
+    if (/^\d{14}$/.test(d)) return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{5})$/, "$1 $2 $3 $4");
+    if (/^\d{9}$/.test(d)) return d.replace(/^(\d{3})(\d{3})(\d{3})$/, "$1 $2 $3");
+    return String(v ?? "");
   };
 
   async function loadOrganisations() {
@@ -2158,7 +2311,8 @@
         label: meta.label[i] || colId,
         type: meta.type[i] || "Any",
         isFormula: !!meta.isFormula[i] && !!meta.formula[i],
-        choices: Array.isArray(opts.choices) ? opts.choices : [],
+        opts,
+        choices: Array.isArray(opts.choices) ? opts.choices.slice() : [],
         visibleCol: meta.visibleCol ? meta.visibleCol[i] : 0,
         pos: meta.parentPos ? meta.parentPos[i] : i
       });
@@ -2189,7 +2343,10 @@
 
     /* Rôles : on reconnaît les colonnes d'après leur libellé */
     const find = (re, pred = () => true) =>
-      cols.find(c => re.test(normKey(c.label)) && pred(c));
+      cols.find(c => re.test(normKey(c.label)) && !/propulse/.test(normKey(c.label)) && pred(c));
+
+    const findP = (re) =>
+      cols.find(c => /propulse/.test(normKey(c.label)) && re.test(normKey(c.label)));
 
     const roles = {};
     roles.id = find(/^(id|identifiant)\b/);
@@ -2205,6 +2362,13 @@
     roles.comments = find(/comment|note|remarque/);
     roles.contacts = find(/^contacts?\b/);
     roles.main = find(/principal/, c => c.type.startsWith("Ref:"));
+
+    /* Colonnes PROPULSE */
+    roles.pEdition = findP(/edition/);
+    roles.pAap = findP(/aap/);
+    roles.pGreen = findP(/green/);
+    roles.pF2030 = findP(/2030/);
+    roles.pObs = findP(/observation|commentaire|note/);
 
     Object.assign(orgState, { tableId, cols, roles, rows, refs });
   }
@@ -2287,7 +2451,7 @@
   }
 
   const canEditOrg = (col) =>
-    !col.isFormula && (col.type === "Text" || col.type === "Choice");
+    !col.isFormula && ["Text", "Choice", "Int", "Numeric"].includes(col.type);
 
   function orgDisplay(col, v) {
 
@@ -2309,14 +2473,64 @@
     return String(v);
   }
 
+  /* Voyant Oui / Non (colonnes Booléen, Choix ou Texte) */
+  function flagState(v) {
+    if (v === true) return "yes";
+    if (v === false) return "no";
+    if (isBlank(v)) return "unknown";
+
+    const n = normalize(v);
+    if (["oui", "yes", "vrai", "true", "x", "1"].includes(n)) return "yes";
+    if (["non", "no", "faux", "false", "0"].includes(n)) return "no";
+    return "unknown";
+  }
+
+  function nextFlagValue(col, v) {
+
+    const st = flagState(v);
+    if (col.type === "Bool") return st !== "yes";
+
+    const pick = (re, dflt) => col.choices.find(c => re.test(normalize(c))) || dflt;
+    const yes = pick(/^(oui|yes|vrai)/, "Oui");
+    const no = pick(/^(non|no|faux)/, "Non");
+
+    return st === "unknown" ? yes : st === "yes" ? no : "";
+  }
+
+  /* Ajoute un choix à la liste de la colonne (évite l'affichage en rouge dans Grist) */
+  async function addChoiceToColumn(col, tag) {
+
+    if (col.choices.includes(tag)) return true;
+
+    const opts = Object.assign({}, col.opts || {});
+    const choices = col.choices.concat(tag);
+    opts.choices = choices;
+
+    try {
+      await grist.docApi.applyUserActions([
+        ["UpdateRecord", "_grist_Tables_column", col.rowId, { widgetOptions: JSON.stringify(opts) }]
+      ]);
+
+      col.opts = opts;
+      col.choices = choices;
+      return true;
+
+    } catch (err) {
+      console.error("Ajout du choix à la colonne impossible :", err);
+      return false;
+    }
+  }
+
   function orgFieldHtml(col, shown, editing) {
 
     const roles = orgState.roles;
-    const label = escapeHtml(col.label);
 
     const isSite = roles.website && roles.website.colId === col.colId;
     const isSiret = roles.siret && roles.siret.colId === col.colId;
-    const isType = roles.type && roles.type.colId === col.colId;
+
+    const readOnlyHint = editing && !canEditOrg(col)
+      ? `<span class="ro-hint">lecture seule</span>`
+      : "";
 
     let control;
 
@@ -2327,7 +2541,7 @@
         const choices = col.choices.slice();
         if (shown && !choices.includes(shown)) choices.push(shown);
 
-        control = `<select class="editable-field" data-org-col="${escapeHtml(col.colId)}">
+        control = `<select class="editable-field" data-org-col="${escapeHtml(col.colId)}" data-org-type="Choice">
           <option value=""></option>
           ${choices.map(c =>
             `<option value="${escapeHtml(c)}" ${c === shown ? "selected" : ""}>${escapeHtml(c)}</option>`
@@ -2340,7 +2554,7 @@
 
         control = `<input class="editable-field" type="text"
           data-org-col="${escapeHtml(col.colId)}"
-          ${isType ? 'list="orgTypes"' : ""}
+          data-org-type="${escapeHtml(col.type)}"
           value="${escapeHtml(value)}"
           placeholder="Ajouter…">`;
       }
@@ -2357,7 +2571,7 @@
 
     return `
       <div class="org-field">
-        <span class="contact-label">${label}</span>
+        <span class="contact-label">${escapeHtml(col.label)}${readOnlyHint}</span>
         <div class="contact-value-wrap">${control}</div>
       </div>`;
   }
@@ -2449,7 +2663,7 @@
 
   function renderOrganisation(orgId) {
 
-    const { cols, roles, rows } = orgState;
+    const { roles, rows } = orgState;
     const idx = rows.id.indexOf(orgId);
 
     if (idx < 0) {
@@ -2474,56 +2688,28 @@
     const sectors = roles.sectors ? tagsOf(raw(roles.sectors)) : [];
     const sectorsCol = roles.sectors && roles.sectors.type === "ChoiceList" ? roles.sectors : null;
 
-    /* ----- Informations (le type s'édite ici ; en lecture il est dans la bannière) ----- */
-    const infoCols = [
-      editing ? roles.type : null,
-      roles.website, roles.siret, roles.city, roles.region, roles.country,
+    /* ---------- Informations : site / SIRET, puis ville / région / pays sur une ligne ---------- */
+    const row1 = [
+      roles.website,
+      roles.siret,
       editing && roles.sectors && !sectorsCol ? roles.sectors : null
     ].filter(Boolean);
 
-    const infoHtml = infoCols.length
+    const row2 = [roles.city, roles.region, roles.country].filter(Boolean);
+
+    const infoHtml = row1.length || row2.length
       ? `<section>
           <h2 class="section-title">Informations</h2>
-          <div class="org-grid">${infoCols.map(c => orgFieldHtml(c, disp(c), editing)).join("")}</div>
+          ${row1.length
+            ? `<div class="org-grid org-grid-2">${row1.map(c => orgFieldHtml(c, disp(c), editing)).join("")}</div>`
+            : ""}
+          ${row2.length
+            ? `<div class="org-grid org-grid-3">${row2.map(c => orgFieldHtml(c, disp(c), editing)).join("")}</div>`
+            : ""}
         </section>`
       : "";
 
-    /* ----- Secteurs d'activité : ajout / retrait (mode modification) ----- */
-    let sectorsHtml = "";
-
-    if (editing && sectorsCol) {
-
-      const known = new Set(sectorsCol.choices);
-      rows[sectorsCol.colId].forEach(v => tagsOf(v).forEach(t => known.add(t)));
-
-      const suggestions = Array.from(known)
-        .filter(t => !sectors.some(s => normalize(s) === normalize(t)))
-        .sort((a, b) => normalize(a).localeCompare(normalize(b), "fr"));
-
-      sectorsHtml = `
-        <section class="org-section">
-          <h2 class="section-title">${escapeHtml(sectorsCol.label)}</h2>
-
-          <div class="tags">
-            ${sectors.length
-              ? sectors.map((t, i) => `<span class="tag">${escapeHtml(t)}<button class="tag-x"
-                  type="button" data-remove-sector="${i}" title="Retirer" aria-label="Retirer ${escapeHtml(t)}">×</button></span>`).join("")
-              : `<span class="muted-note">Aucun secteur renseigné.</span>`}
-          </div>
-
-          <div class="sector-add">
-            <input id="sectorInput" type="text" list="sectorChoices" autocomplete="off"
-              placeholder="Ajouter un secteur d'activité…">
-            <button class="btn btn-secondary" type="button" data-add-sector>Ajouter</button>
-          </div>
-
-          <datalist id="sectorChoices">
-            ${suggestions.map(t => `<option value="${escapeHtml(t)}">`).join("")}
-          </datalist>
-        </section>`;
-    }
-
-    /* ----- Contacts rattachés (contact principal en tête, puis ordre alphabétique) ----- */
+    /* ---------- Contacts rattachés (principal en tête, puis ordre alphabétique) ---------- */
     const detected = orgState.contactRefs || new Map();
     const idOf = (r) => toRowId(r.organisationRef) || detected.get(r.id) || null;
 
@@ -2586,46 +2772,189 @@
               n'a pas pu être détectée.</p>`}
       </section>`;
 
-    /* ----- Commentaires (tout en bas) ----- */
+    /* ---------- PROPULSE : visible seulement si une information est vérifiée (ou en modification) ---------- */
+    const pCols = [roles.pEdition, roles.pAap, roles.pGreen, roles.pF2030, roles.pObs].filter(Boolean);
+
+    const verified =
+      (roles.pEdition && !!disp(roles.pEdition)) ||
+      [roles.pAap, roles.pGreen, roles.pF2030].some(c => c && flagState(raw(c)) === "yes") ||
+      (roles.pObs && !!disp(roles.pObs));
+
+    let propulseHtml = "";
+
+    if (pCols.length && (verified || editing)) {
+
+      /* Édition (choix unique) en premier */
+      let editionHtml = "";
+
+      if (roles.pEdition) {
+        const col = roles.pEdition;
+        const shown = disp(col);
+        let control;
+
+        if (editing && canEditOrg(col)) {
+          if (col.type === "Choice") {
+            const choices = col.choices.slice();
+            if (shown && !choices.includes(shown)) choices.push(shown);
+
+            control = `<select class="editable-field" data-org-col="${escapeHtml(col.colId)}" data-org-type="Choice">
+              <option value=""></option>
+              ${choices.map(c => `<option value="${escapeHtml(c)}" ${c === shown ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+            </select>`;
+          } else {
+            control = `<input class="editable-field" type="text" data-org-col="${escapeHtml(col.colId)}"
+              data-org-type="${escapeHtml(col.type)}" value="${escapeHtml(shown)}" placeholder="Ajouter…">`;
+          }
+        } else {
+          control = shown ? `<span class="pill-edition">${escapeHtml(shown)}</span>` : `<div class="org-readonly">—</div>`;
+        }
+
+        editionHtml = `<div class="org-field">
+          <span class="contact-label">Édition${editing && !canEditOrg(col) ? `<span class="ro-hint">lecture seule</span>` : ""}</span>
+          <div class="contact-value-wrap">${control}</div>
+        </div>`;
+      }
+
+      /* Oui / Non avec voyant vert ou rouge */
+      const flagHtml = (col, label) => {
+        if (!col) return "";
+
+        const st = flagState(raw(col));
+        const label2 = st === "yes" ? "Oui" : st === "no" ? "Non" : "—";
+        const voyant = `<span class="voyant ${st === "unknown" ? "" : st}"></span>`;
+        const flagEditable = editing && !col.isFormula && ["Bool", "Choice", "Text"].includes(col.type);
+
+        return `<div class="flag ${flagEditable ? "editable" : ""}">
+          <span class="contact-label">${escapeHtml(label)}</span>
+          ${flagEditable
+            ? `<button class="flag-val" type="button" data-flag-col="${escapeHtml(col.colId)}"
+                title="Cliquer pour changer (Oui / Non / vide)">${voyant}${label2}</button>`
+            : `<div class="flag-val">${voyant}${label2}</div>`}
+        </div>`;
+      };
+
+      const flags = [
+        flagHtml(roles.pAap, "AAP Propulse"),
+        flagHtml(roles.pGreen, "Lauréat GreenTech"),
+        flagHtml(roles.pF2030, "France 2030")
+      ].join("");
+
+      /* Commentaire PROPULSE */
+      let obsHtml = "";
+
+      if (roles.pObs && (editing || disp(roles.pObs))) {
+        const col = roles.pObs;
+
+        obsHtml = `<div>
+          <span class="contact-label">Commentaire PROPULSE</span>
+          ${editing && canEditOrg(col)
+            ? `<textarea class="comments-editor" data-org-col="${escapeHtml(col.colId)}"
+                data-org-type="${escapeHtml(col.type)}" data-enter-saves
+                placeholder="Ajouter un commentaire…">${escapeHtml(disp(col))}</textarea>`
+            : `<div class="org-readonly org-comment">${escapeHtml(disp(col))}</div>`}
+        </div>`;
+      }
+
+      propulseHtml = `
+        <section class="propulse">
+          <div class="propulse-head">PROPULSE</div>
+          <div class="propulse-body">
+            ${editionHtml}
+            ${flags ? `<div class="flags">${flags}</div>` : ""}
+            ${obsHtml}
+          </div>
+        </section>`;
+    }
+
+    /* ---------- Commentaires (tout en bas) ---------- */
     const commentsHtml = roles.comments
       ? `<section class="org-section">
           <h2 class="section-title">${escapeHtml(roles.comments.label)}</h2>
           ${editing && canEditOrg(roles.comments)
             ? `<textarea class="comments-editor"
                 data-org-col="${escapeHtml(roles.comments.colId)}"
+                data-org-type="${escapeHtml(roles.comments.type)}"
                 data-enter-saves
                 placeholder="Ajouter un commentaire…">${escapeHtml(disp(roles.comments))}</textarea>`
             : `<div class="org-readonly org-comment">${escapeHtml(disp(roles.comments)) || "—"}</div>`}
         </section>`
       : "";
 
-    /* ----- Bannière : nom, identifiant (minuscule), type, secteurs ----- */
+    /* ---------- Bannière : nom, identifiant, type et secteurs modifiables ---------- */
     const titleHtml = editing && nameCol && canEditOrg(nameCol)
       ? `<span class="autogrow" data-value="${escapeHtml(name || "Nom de l'organisation")}">
           <textarea class="editable-field" rows="1" data-singleline
-            data-org-col="${escapeHtml(nameCol.colId)}"
+            data-org-col="${escapeHtml(nameCol.colId)}" data-org-type="${escapeHtml(nameCol.type)}"
             placeholder="Nom de l'organisation">${escapeHtml(name)}</textarea>
         </span>`
       : `<h1 class="org-title">${escapeHtml(name || "Organisation")}</h1>`;
 
-    const badges = [
-      type ? `<span class="badge-type">${escapeHtml(type)}</span>` : "",
-      ...sectors.map(t => `<span class="badge-sector">${escapeHtml(t)}</span>`)
-    ].filter(Boolean).join("");
+    let typeHtml = "";
+    const typeCol = roles.type;
+
+    if (editing && typeCol && canEditOrg(typeCol)) {
+
+      if (typeCol.type === "Choice") {
+        const choices = typeCol.choices.slice();
+        if (type && !choices.includes(type)) choices.push(type);
+
+        typeHtml = `<select class="editable-field badge-select" data-org-col="${escapeHtml(typeCol.colId)}"
+          data-org-type="Choice" aria-label="Type d'organisation">
+          <option value="">Type…</option>
+          ${choices.map(c => `<option value="${escapeHtml(c)}" ${c === type ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+        </select>`;
+      } else {
+        typeHtml = `<input class="editable-field badge-select" type="text" list="orgTypes"
+          data-org-col="${escapeHtml(typeCol.colId)}" data-org-type="${escapeHtml(typeCol.type)}"
+          value="${escapeHtml(type)}" placeholder="Type…" aria-label="Type d'organisation">`;
+      }
+
+    } else if (type) {
+      typeHtml = `<span class="badge-type">${escapeHtml(type)}</span>`;
+    }
+
+    const chips = sectors.map((t, i) =>
+      `<span class="badge-sector">${escapeHtml(t)}${editing && sectorsCol
+        ? `<button class="chip-x" type="button" data-remove-sector="${i}" title="Retirer" aria-label="Retirer ${escapeHtml(t)}">×</button>`
+        : ""}</span>`
+    ).join("");
+
+    let addSectorHtml = "";
+
+    if (editing && sectorsCol) {
+
+      const known = new Set(sectorsCol.choices);
+      rows[sectorsCol.colId].forEach(v => tagsOf(v).forEach(t => known.add(t)));
+
+      const suggestions = Array.from(known)
+        .filter(t => !sectors.some(s => normalize(s) === normalize(t)))
+        .sort((a, b) => normalize(a).localeCompare(normalize(b), "fr"));
+
+      addSectorHtml = `
+        <button class="badge-add" type="button" data-show-sector
+          title="Ajouter un secteur d'activité" aria-label="Ajouter un secteur d'activité">+</button>
+        <input id="sectorInput" class="sector-inline" type="text" list="sectorChoices" hidden
+          autocomplete="off" placeholder="Secteur d'activité…">
+        <datalist id="sectorChoices">${suggestions.map(t => `<option value="${escapeHtml(t)}">`).join("")}</datalist>`;
+    }
+
+    const badgesHtml = typeHtml || chips || addSectorHtml
+      ? `<div class="org-badges">${typeHtml}${chips}${addSectorHtml}</div>`
+      : "";
 
     $("mainContent").innerHTML = `
-      <article class="profile org">
+      <article class="profile org ${editing ? "editing" : ""}">
 
         <header class="banner">
 
           <div class="banner-meta">
             <button class="back-btn" type="button" data-org-back>← Retour</button>
             <div class="banner-right">
-              <span>Fiche organisation</span>
+              ${editing ? `<span class="editing-label">Mode modification</span>` : `<span>Fiche organisation</span>`}
               <button class="edit-toggle ${editing ? "on" : ""}" type="button" data-org-edit
-                title="${editing ? "Terminer la modification" : "Modifier l'organisation"}"
-                aria-label="${editing ? "Terminer la modification" : "Modifier l'organisation"}">
-                ${editing ? CHECK_ICON : EDIT_ICON}
+                title="${editing ? "Quitter le mode modification" : "Modifier l'organisation"}"
+                aria-label="${editing ? "Quitter le mode modification" : "Modifier l'organisation"}">
+                ${EDIT_ICON}
               </button>
             </div>
           </div>
@@ -2634,14 +2963,14 @@
 
           ${roles.id ? `<div class="tiny-id">${escapeHtml(disp(roles.id))}</div>` : ""}
 
-          ${badges ? `<div class="org-badges">${badges}</div>` : ""}
+          ${badgesHtml}
 
         </header>
 
         <div class="profile-body">
           ${infoHtml}
-          ${sectorsHtml}
           ${contactsHtml}
+          ${propulseHtml}
           ${commentsHtml}
         </div>
 
@@ -2697,81 +3026,130 @@
       b.addEventListener("click", () => openContactFromOrg(Number(b.dataset.openContact)))
     );
 
+    const rowIndex = () => rows.id.indexOf(orgId);
+
     /* Contact principal */
     root.querySelectorAll("[data-set-main]").forEach(b =>
       b.addEventListener("click", async () => {
 
         const id = Number(b.dataset.setMain);
         const col = roles.main;
-        const current = toRowId(rows[col.colId][rows.id.indexOf(orgId)]);
+        const current = toRowId(rows[col.colId][rowIndex()]);
 
         const ok = await saveOrgField(orgId, col.colId, current === id ? 0 : id);
         if (ok) renderOrganisation(orgId);
       })
     );
 
-    /* Secteurs d'activité : ajout / retrait */
+    /* Voyants PROPULSE : clic = Oui / Non / vide */
+    root.querySelectorAll("[data-flag-col]").forEach(b =>
+      b.addEventListener("click", async () => {
+
+        const col = orgState.cols.find(c => c.colId === b.dataset.flagCol);
+        if (!col) return;
+
+        const ok = await saveOrgField(orgId, col.colId, nextFlagValue(col, rows[col.colId][rowIndex()]));
+        if (ok) renderOrganisation(orgId);
+      })
+    );
+
+    /* Secteurs d'activité : « + » et × dans la bannière */
     const sCol = roles.sectors && roles.sectors.type === "ChoiceList" ? roles.sectors : null;
 
     if (orgState.editing && sCol) {
 
       const currentTags = () => {
-        const v = rows[sCol.colId][rows.id.indexOf(orgId)];
+        const v = rows[sCol.colId][rowIndex()];
         return Array.isArray(v) ? (v[0] === "L" ? v.slice(1) : v) : [];
       };
 
-      const writeTags = async (tags) => {
-        const ok = await saveOrgField(orgId, sCol.colId, ["L", ...tags]);
-        if (ok) {
-          orgState.focusSector = true;
-          renderOrganisation(orgId);
+      const writeTags = async (tags, added) => {
+
+        /* Un secteur absent de la liste des choix s'afficherait en rouge dans Grist :
+           on l'ajoute d'abord à la liste des choix de la colonne. */
+        if (added && !sCol.choices.includes(added)) {
+          const ok = await addChoiceToColumn(sCol, added);
+
+          if (!ok) {
+            $("status").textContent =
+              "Ce secteur n'a pas pu être ajouté à la liste des choix de la colonne : " +
+              "il pourra apparaître en rouge dans Grist.";
+          }
         }
+
+        const saved = await saveOrgField(orgId, sCol.colId, ["L", ...tags]);
+        if (saved) renderOrganisation(orgId);
       };
 
+      const plus = root.querySelector("[data-show-sector]");
       const input = root.querySelector("#sectorInput");
+
+      const closeInput = () => {
+        input.hidden = true;
+        plus.hidden = false;
+        input.value = "";
+      };
+
+      plus.addEventListener("click", () => {
+        plus.hidden = true;
+        input.hidden = false;
+        input.focus();
+      });
 
       const addFromInput = () => {
         const t = input.value.trim();
-        if (!t) return;
+        if (!t) return closeInput();
+
+        /* Orthographe de la liste des choix si le secteur existe déjà */
+        const known = [
+          ...sCol.choices,
+          ...rows[sCol.colId].flatMap(v => (Array.isArray(v) ? v.filter(x => x !== "L") : []))
+        ];
+        const canonical = known.find(k => normalize(k) === normalize(t)) || t;
 
         const tags = currentTags();
 
-        if (tags.some(x => normalize(x) === normalize(t))) {
-          input.value = "";
-          return;
-        }
+        if (tags.some(x => normalize(x) === normalize(canonical))) return closeInput();
 
-        writeTags([...tags, t]);
+        writeTags([...tags, canonical], canonical);
       };
 
-      root.querySelector("[data-add-sector]").addEventListener("click", addFromInput);
-
       input.addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.isComposing) {
+        if (e.isComposing) return;
+
+        if (e.key === "Enter") {
           e.preventDefault();
           addFromInput();
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          closeInput();
         }
+      });
+
+      input.addEventListener("blur", () => {
+        window.setTimeout(() => {
+          if (input.isConnected && !input.hidden && document.activeElement !== input && !input.value.trim()) {
+            closeInput();
+          }
+        }, 150);
       });
 
       root.querySelectorAll("[data-remove-sector]").forEach(b =>
         b.addEventListener("click", () => {
           const n = Number(b.dataset.removeSector);
-          writeTags(currentTags().filter((_, i) => i !== n));
+          writeTags(currentTags().filter((_, i) => i !== n), null);
         })
       );
-
-      if (orgState.focusSector) {
-        orgState.focusSector = false;
-        input.focus();
-      }
     }
 
-    /* Champs texte / choix */
+    /* Champs texte / choix / nombre */
     const siretId = roles.siret ? roles.siret.colId : null;
 
     root.querySelectorAll("[data-org-col]").forEach(field => {
 
       const colId = field.dataset.orgCol;
+      const colType = field.dataset.orgType || "Text";
+
       field.dataset.lastSaved = field.value;
 
       if (field.parentElement.classList.contains("autogrow")) {
@@ -2789,13 +3167,26 @@
 
         if (colId === siretId) {
           const digits = value.replace(/\s/g, "");
-          if (/^\d{14}$/.test(digits)) {
+          if (/^(\d{9}|\d{14})$/.test(digits)) {
             value = digits;
             field.value = formatSiret(digits);
           }
         }
 
         if (field.dataset.lastSaved === field.value) return;
+
+        if (colType === "Int" || colType === "Numeric") {
+          const n = value === "" ? null : Number(value.replace(/\s/g, "").replace(",", "."));
+
+          if (n !== null && Number.isNaN(n)) {
+            $("status").textContent = "Valeur numérique attendue pour ce champ.";
+            field.value = field.dataset.lastSaved;
+            return;
+          }
+
+          value = n;
+        }
+
         field.dataset.lastSaved = field.value;
 
         saveOrgField(orgId, colId, value);
@@ -3005,6 +3396,8 @@
     const contactMatches = sorted().filter(r => {
 
       const c = contactData(r);
+
+      if (!c.first && !c.last) return false;   // pas de « Contact sans nom » dans la recherche
 
       return normalize([
         c.first,
