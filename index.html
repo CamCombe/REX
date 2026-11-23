@@ -1210,7 +1210,7 @@ function renderDashboard() {
   const projectList = visibleProjects.map((r, index) => {
     const key = getDemarcheKey(r), c = DEMARCHES[key] || DEMARCHES.OTHER;
     const date = r.Debut ? fmtDate(r.Debut) : 'Date non renseignée';
-    return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${index+1}. ${esc(r.Projet)}</span><span class="dash-project-meta">${esc(r.Operateur || 'Opérateur non renseigné')} · ${esc(date)}</span></span><span class="dash-project-status">${esc(euroShort(numericValue(r.MontantAide)))}</span></button>`;
+    return `<button class="dash-project" type="button" onclick="showFiche(${Number(r.__id)})"><span class="dash-project-dot" style="background:${c.color}"></span><span class="dash-project-main"><span class="dash-project-name">${index+1}. ${esc(r.Projet)}</span><span class="dash-project-meta">${esc(date)}</span></span><span class="dash-project-status">${esc(euroShort(numericValue(r.MontantAide)))}</span></button>`;
   }).join('') || '<div class="dash-empty">Aucun projet à afficher pour cette démarche.</div>';
   const projectMore = projects.length > 10
     ? `<div class="dash-more-wrap"><button class="dash-more" type="button" onclick="toggleDashboardProjects()">${showAllDashboardProjects ? 'Réduire le classement' : `Voir les ${projects.length - 10} autres projets`}</button></div>`
@@ -1255,7 +1255,7 @@ function buildPicker() {
       : '';
     return `
     <div class="picker-item ${r.__id === currentRowId ? 'active' : ''}"
-         data-id="${r.__id}" data-search="${esc(normalizeText([r.Projet, r.Operateur, r.ChefDeFile, decodeChoiceList(r.Consortium).join(" ")].join(" ")))}" onclick="selectRow(${r.__id})">
+         data-id="${r.__id}" data-search="${esc(normalizeText([r.Projet, r.ChefDeFile, decodeChoiceList(r.Consortium).join(" ")].join(" ")))}" onclick="selectRow(${r.__id})">
       <div class="picker-item-dot" style="background:${colors.color}"></div>
       <span class="picker-item-name">${esc(r.Projet)}</span>
       ${topic}
@@ -1348,7 +1348,9 @@ function fillFiche(r) {
 
   // Bannière
   document.getElementById('bName').textContent = r.Projet    || '—';
-  document.getElementById('bOp').textContent   = r.Operateur || '—';
+  const operator = r.Operateur == null ? '' : String(r.Operateur).trim();
+  document.getElementById('bOp').textContent = operator;
+  document.getElementById('bOpWrap').style.display = operator.length > 0 ? '' : 'none';
   const lastUpdateEl = document.getElementById('bLastUpdate');
   const lastUpdate = r.DerniereModification;
   if (lastUpdate !== null && lastUpdate !== undefined && lastUpdate !== '') {
