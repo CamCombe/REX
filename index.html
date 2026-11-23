@@ -683,6 +683,65 @@
         </div>
       </div>
 
+      <!-- SECTION PROPULSE — affichée sous les Informations générales -->
+      <div class="section section-propulse" id="sectionPropulse" style="display:none;">
+        <div class="section-head">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7051a3" stroke-width="2">
+              <path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2L12 2z"/>
+              <path d="M19 14l1.2 3.3L23 18.5l-2.8 1.1L19 23l-1.2-3.4-2.8-1.1 2.8-1.2L19 14z"/>
+            </svg>
+          </div>
+          <span class="section-title">PROPULSE</span>
+        </div>
+        <div class="section-body">
+          <div class="row row-2">
+            <div class="field">
+              <label class="field-label">Édition</label>
+              <input class="inp" id="f_propulseEdition" type="text"
+                     data-col="PropulseEdition" oninput="onChange(this)"/>
+            </div>
+            <div class="field">
+              <label class="field-label">AAP Propulse</label>
+              <input class="inp" id="f_propulseAAP" type="text"
+                     data-col="PropulseAAP" oninput="onChange(this)"/>
+            </div>
+          </div>
+          <div class="row row-2">
+            <div class="field">
+              <label class="field-label">Lauréat GreenTech</label>
+              <div class="propulse-status-wrap">
+                <select class="propulse-status status-empty" id="f_propulseGreenTech"
+                        data-col="PropulseLaureatGreentech"
+                        onchange="onPropulseBoolChange(this)">
+                  <option value="">Non renseigné</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">France 2030</label>
+              <div class="propulse-status-wrap">
+                <select class="propulse-status status-empty" id="f_propulseFrance2030"
+                        data-col="PropulseLaureatFrance2030"
+                        onchange="onPropulseBoolChange(this)">
+                  <option value="">Non renseigné</option>
+                  <option value="true">Oui</option>
+                  <option value="false">Non</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Commentaire dans la section PROPULSE</label>
+            <textarea class="inp" id="f_propulseObservations"
+                      data-col="PropulseObservations"
+                      oninput="autoH(this);onChange(this)"></textarea>
+          </div>
+        </div>
+      </div>
+
       <!-- SECTION 2 — Participants à l'audition -->
       <div class="section">
         <div class="section-head">
@@ -832,64 +891,6 @@
         </div>
       </div>
 
-      <!-- SECTION 6 — PROPULSE (uniquement pour les fiches REX PROPULSE renseignées) -->
-      <div class="section section-propulse" id="sectionPropulse" style="display:none;">
-        <div class="section-head">
-          <div class="section-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#7051a3" stroke-width="2">
-              <path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2L12 2z"/>
-              <path d="M19 14l1.2 3.3L23 18.5l-2.8 1.1L19 23l-1.2-3.4-2.8-1.1 2.8-1.2L19 14z"/>
-            </svg>
-          </div>
-          <span class="section-title">PROPULSE</span>
-        </div>
-        <div class="section-body">
-          <div class="row row-2">
-            <div class="field">
-              <label class="field-label">Édition</label>
-              <input class="inp" id="f_propulseEdition" type="text"
-                     data-col="PropulseEdition" oninput="onChange(this)"/>
-            </div>
-            <div class="field">
-              <label class="field-label">AAP Propulse</label>
-              <input class="inp" id="f_propulseAAP" type="text"
-                     data-col="PropulseAAP" oninput="onChange(this)"/>
-            </div>
-          </div>
-          <div class="row row-2">
-            <div class="field">
-              <label class="field-label">Lauréat GreenTech</label>
-              <div class="propulse-status-wrap">
-                <select class="propulse-status status-empty" id="f_propulseGreenTech"
-                        data-col="PropulseLaureatGreentech"
-                        onchange="onPropulseBoolChange(this)">
-                  <option value="">Non renseigné</option>
-                  <option value="true">Oui</option>
-                  <option value="false">Non</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label class="field-label">France 2030</label>
-              <div class="propulse-status-wrap">
-                <select class="propulse-status status-empty" id="f_propulseFrance2030"
-                        data-col="PropulseLaureatFrance2030"
-                        onchange="onPropulseBoolChange(this)">
-                  <option value="">Non renseigné</option>
-                  <option value="true">Oui</option>
-                  <option value="false">Non</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label">Commentaire dans la section PROPULSE</label>
-            <textarea class="inp" id="f_propulseObservations"
-                      data-col="PropulseObservations"
-                      oninput="autoH(this);onChange(this)"></textarea>
-          </div>
-        </div>
-      </div>
 
     </div>
   </main>
