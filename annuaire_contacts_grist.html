@@ -976,18 +976,28 @@
     /* Type et secteurs dans la bannière */
     .badge-select {
       width: auto !important;
-      min-width: 120px;
+      min-width: 150px;
       margin: 0 !important;
-      padding: 3px 10px !important;
+      padding: 3px 12px !important;
+      border: 1px solid #fff !important;
       border-radius: 999px !important;
+      background: #fff !important;
+      color: #1F4F4C !important;
       font-size: 12px !important;
       font-weight: 700 !important;
-      color: #fff !important;
     }
 
     .banner select.badge-select option { color: #202B36; background: #fff; }
-    .banner select.badge-select:focus { color: #202B36 !important; }
-    .banner .badge-select::placeholder { color: #CDE6E2; }
+    .banner .badge-select::placeholder { color: #7A8E8B !important; }
+
+    .sector-hint {
+      flex-basis: 100%;
+      margin-top: 2px;
+      font-size: 11px;
+      color: #D6ECE9;
+    }
+
+    .sector-hint[hidden] { display: none; }
 
     .chip-x {
       border: 0;
@@ -1060,7 +1070,7 @@
       font-weight: 700;
     }
 
-    .flags { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .flags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
     @media (max-width: 480px) { .flags { grid-template-columns: 1fr; } }
 
@@ -2361,7 +2371,8 @@
     roles.siret = find(/siret/);
     roles.comments = find(/comment|note|remarque/);
     roles.contacts = find(/^contacts?\b/);
-    roles.main = find(/principal/, c => c.type.startsWith("Ref:"));
+    roles.updated = find(/modifi|updated/);
+    roles.created = find(/creation|cree|created/);
 
     /* Colonnes PROPULSE */
     roles.pEdition = findP(/edition/);
@@ -2376,7 +2387,7 @@
   /* Colonne Référence de Contacts vers Organisation : détectée automatiquement
      (si elle n'est pas associée dans les options du widget) */
 
-  const contactsRef = { loaded: false, tableId: null, colId: null };
+  const contactsRef = { loaded: false, tableId: null, colId: null, mainCol: null };
 
   async function detectContactsRef() {
 
@@ -2397,7 +2408,8 @@
         byTable.get(meta.parentId[i]).push({
           colId: meta.colId[i],
           label: meta.label[i] || "",
-          type: meta.type[i] || ""
+          type: meta.type[i] || "",
+          wo: meta.widgetOptions ? meta.widgetOptions[i] : ""
         });
       }
 
@@ -2415,6 +2427,28 @@
 
         contactsRef.tableId = tables.tableId[t];
         contactsRef.colId = pick.colId;
+
+        /* Colonne Oui/Non « Contact principal » : celle associée au widget, sinon détectée par son libellé */
+        const mappedMain = state.mappings && typeof state.mappings.isMain === "string"
+          ? state.mappings.isMain
+          : null;
+
+        const mainPick = mappedMain
+          ? cols.find(c => c.colId === mappedMain)
+          : cols.find(c => /principal/.test(normKey(c.label + " " + c.colId)) &&
+                           ["Bool", "Choice", "Text"].includes(c.type));
+
+        if (mainPick) {
+          let o = {};
+          try { o = JSON.parse(mainPick.wo || "{}"); } catch (e) { /* ignoré */ }
+
+          contactsRef.mainCol = {
+            colId: mainPick.colId,
+            type: mainPick.type,
+            choices: Array.isArray(o.choices) ? o.choices : []
+          };
+        }
+
         break;
       }
 
@@ -2427,27 +2461,39 @@
     return contactsRef;
   }
 
-  /* Identifiant d'organisation de chaque contact : Map(ligne du contact -> ligne de l'organisation) */
-  async function detectedOrgIds() {
+  /* Organisation et statut « contact principal » de chaque contact, lus dans la table Contacts */
+  async function detectedContactData() {
 
-    const result = new Map();
+    const out = { orgIds: new Map(), mains: new Set() };
 
     try {
       const ref = await detectContactsRef();
-      if (!ref.tableId || !ref.colId) return result;
+      if (!ref.tableId) return out;
 
       const data = await grist.docApi.fetchTable(ref.tableId);
-      const values = data[ref.colId] || [];
+      const orgVals = ref.colId ? (data[ref.colId] || []) : [];
+      const mainVals = ref.mainCol ? (data[ref.mainCol.colId] || []) : [];
 
       data.id.forEach((id, i) => {
-        const orgId = toRowId(values[i]);
-        if (orgId) result.set(id, orgId);
+        const orgId = toRowId(orgVals[i]);
+        if (orgId) out.orgIds.set(id, orgId);
+        if (flagState(mainVals[i]) === "yes") out.mains.add(id);
       });
+
     } catch (err) {
-      console.error("Lecture des organisations des contacts :", err);
+      console.error("Lecture des contacts :", err);
     }
 
-    return result;
+    return out;
+  }
+
+  /* Valeur à écrire pour Oui / Non selon le type de la colonne */
+  function yesNoValue(col, yes) {
+
+    if (!col || col.type === "Bool") return !!yes;
+
+    const pick = (re, dflt) => (col.choices || []).find(c => re.test(normalize(c))) || dflt;
+    return yes ? pick(/^(oui|yes|vrai)/, "Oui") : pick(/^(non|no|faux)/, "Non");
   }
 
   const canEditOrg = (col) =>
@@ -2521,7 +2567,7 @@
     }
   }
 
-  function orgFieldHtml(col, shown, editing) {
+  function orgFieldHtml(col, shown, editing, labelOverride) {
 
     const roles = orgState.roles;
 
@@ -2571,7 +2617,7 @@
 
     return `
       <div class="org-field">
-        <span class="contact-label">${escapeHtml(col.label)}${readOnlyHint}</span>
+        <span class="contact-label">${escapeHtml(labelOverride || col.label)}${readOnlyHint}</span>
         <div class="contact-value-wrap">${control}</div>
       </div>`;
   }
@@ -2599,7 +2645,11 @@
     try {
       await loadOrganisations();
 
-      orgState.contactRefs = await detectedOrgIds();
+      const info = await detectedContactData();
+      orgState.contactRefs = info.orgIds;
+      orgState.contactMains = info.mains;
+      orgState.mainOverride = new Map();
+      orgState.mainCol = (await detectContactsRef()).mainCol;
 
       let id = orgId
         || (contactId != null ? orgState.contactRefs.get(contactId) : null)
@@ -2723,20 +2773,34 @@
         : name && normalize(text(r.organisation)) === normalize(name)
     );
 
-    const mainId = roles.main ? toRowId(raw(roles.main)) : null;
+    /* Contact principal : colonne Oui/Non de la table Contacts */
+    const mappedMain = !!(state.mappings && typeof state.mappings.isMain === "string");
+    const mainCol = orgState.mainCol || (mappedMain ? { colId: state.mappings.isMain, type: "Bool", choices: [] } : null);
+    const overrides = orgState.mainOverride || new Map();
 
-    if (mainId) {
-      linked = [
-        ...linked.filter(r => r.id === mainId),
-        ...linked.filter(r => r.id !== mainId)
-      ];
-    }
+    const isMainById = (id) => {
+      if (overrides.has(id)) return overrides.get(id);
+
+      if (mappedMain) {
+        const rec = state.contacts.find(r => r.id === id);
+        return !!rec && flagState(rec.isMain) === "yes";
+      }
+
+      return (orgState.contactMains || new Set()).has(id);
+    };
+
+    linked = [
+      ...linked.filter(r => isMainById(r.id)),
+      ...linked.filter(r => !isMainById(r.id))
+    ];
+
+    orgState.render = { linkedIds: linked.map(r => r.id), isMainById, mainCol };
 
     const contactItem = (r) => {
       const c = contactData(r);
-      const isMain = r.id === mainId;
+      const isMain = isMainById(r.id);
 
-      const star = editing && roles.main
+      const star = editing && mainCol
         ? `<button class="oc-star ${isMain ? "on" : ""}" type="button" data-set-main="${r.id}"
             title="${isMain ? "Retirer le statut de contact principal" : "Définir comme contact principal"}">${STAR_ICON(isMain)}</button>`
         : isMain
@@ -2761,9 +2825,9 @@
         ${linked.length
           ? `<div class="oc-grid"><div>${colA}</div><div>${colB}</div></div>`
           : `<span class="muted-note">Aucun contact rattaché à cette organisation.</span>`}
-        ${editing && !roles.main
+        ${editing && !mainCol
           ? `<p class="muted-note" style="margin-top:10px">Pour désigner un contact principal, ajoutez dans la table
-              Organisation une colonne Référence « Contact principal » vers Contacts.</p>`
+              Contacts une colonne Oui/Non « Contact principal ».</p>`
           : ""}
         ${refMapped
           ? ""
@@ -2777,14 +2841,15 @@
 
     const verified =
       (roles.pEdition && !!disp(roles.pEdition)) ||
-      [roles.pAap, roles.pGreen, roles.pF2030].some(c => c && flagState(raw(c)) === "yes") ||
+      (roles.pAap && !!disp(roles.pAap)) ||
+      [roles.pGreen, roles.pF2030].some(c => c && flagState(raw(c)) === "yes") ||
       (roles.pObs && !!disp(roles.pObs));
 
     let propulseHtml = "";
 
     if (pCols.length && (verified || editing)) {
 
-      /* Édition (choix unique) en premier */
+      /* Première ligne : Édition (choix unique) + AAP Propulse (texte) */
       let editionHtml = "";
 
       if (roles.pEdition) {
@@ -2815,7 +2880,15 @@
         </div>`;
       }
 
-      /* Oui / Non avec voyant vert ou rouge */
+      const aapHtml = roles.pAap
+        ? orgFieldHtml(roles.pAap, disp(roles.pAap), editing, "AAP Propulse")
+        : "";
+
+      const topRow = editionHtml || aapHtml
+        ? `<div class="org-grid org-grid-2" style="margin-top:0">${editionHtml}${aapHtml}</div>`
+        : "";
+
+      /* Voyants Oui / Non : GreenTech et France 2030 */
       const flagHtml = (col, label) => {
         if (!col) return "";
 
@@ -2834,7 +2907,6 @@
       };
 
       const flags = [
-        flagHtml(roles.pAap, "AAP Propulse"),
         flagHtml(roles.pGreen, "Lauréat GreenTech"),
         flagHtml(roles.pF2030, "France 2030")
       ].join("");
@@ -2859,8 +2931,8 @@
         <section class="propulse">
           <div class="propulse-head">PROPULSE</div>
           <div class="propulse-body">
-            ${editionHtml}
-            ${flags ? `<div class="flags">${flags}</div>` : ""}
+            ${topRow}
+            ${flags.trim() ? `<div class="flags">${flags}</div>` : ""}
             ${obsHtml}
           </div>
         </section>`;
@@ -2935,12 +3007,16 @@
           title="Ajouter un secteur d'activité" aria-label="Ajouter un secteur d'activité">+</button>
         <input id="sectorInput" class="sector-inline" type="text" list="sectorChoices" hidden
           autocomplete="off" placeholder="Secteur d'activité…">
+        <span class="sector-hint" hidden>↵ Appuyez sur Entrée pour valider · Échap pour annuler</span>
         <datalist id="sectorChoices">${suggestions.map(t => `<option value="${escapeHtml(t)}">`).join("")}</datalist>`;
     }
 
     const badgesHtml = typeHtml || chips || addSectorHtml
       ? `<div class="org-badges">${typeHtml}${chips}${addSectorHtml}</div>`
       : "";
+
+    const createdTxt = disp(roles.created);
+    const updatedTxt = disp(roles.updated);
 
     $("mainContent").innerHTML = `
       <article class="profile org ${editing ? "editing" : ""}">
@@ -2973,6 +3049,13 @@
           ${propulseHtml}
           ${commentsHtml}
         </div>
+
+        ${createdTxt || updatedTxt
+          ? `<footer class="meta-foot">
+              ${createdTxt ? `<span>Créée le ${escapeHtml(createdTxt)}</span>` : ""}
+              ${updatedTxt ? `<span>Modifiée le ${escapeHtml(updatedTxt)}</span>` : ""}
+            </footer>`
+          : ""}
 
         <datalist id="orgTypes">
           ${ORG_TYPES.map(t => `<option value="${escapeHtml(t)}">`).join("")}
@@ -3028,16 +3111,44 @@
 
     const rowIndex = () => rows.id.indexOf(orgId);
 
-    /* Contact principal */
+    /* Contact principal : colonne Oui/Non de Contacts (un seul principal par organisation) */
     root.querySelectorAll("[data-set-main]").forEach(b =>
       b.addEventListener("click", async () => {
 
-        const id = Number(b.dataset.setMain);
-        const col = roles.main;
-        const current = toRowId(rows[col.colId][rowIndex()]);
+        const contactId = Number(b.dataset.setMain);
+        const { linkedIds, isMainById, mainCol } = orgState.render;
+        if (!mainCol) return;
 
-        const ok = await saveOrgField(orgId, col.colId, current === id ? 0 : id);
-        if (ok) renderOrganisation(orgId);
+        const makeMain = !isMainById(contactId);
+        const updates = [];
+
+        if (makeMain) {
+          linkedIds.forEach(id => {
+            if (id === contactId) updates.push({ id, fields: { [mainCol.colId]: yesNoValue(mainCol, true) } });
+            else if (isMainById(id)) updates.push({ id, fields: { [mainCol.colId]: yesNoValue(mainCol, false) } });
+          });
+        } else {
+          updates.push({ id: contactId, fields: { [mainCol.colId]: yesNoValue(mainCol, false) } });
+        }
+
+        $("status").textContent = "Enregistrement…";
+
+        try {
+          await grist.getTable().update(updates);
+
+          updates.forEach(u => orgState.mainOverride.set(u.id, flagState(u.fields[mainCol.colId]) === "yes"));
+
+          $("status").textContent = "Modification enregistrée.";
+          renderOrganisation(orgId);
+
+        } catch (err) {
+          console.error("Contact principal :", err);
+          const msg = err && err.message ? err.message : "";
+
+          $("status").textContent = /formula column/i.test(msg)
+            ? "Modification impossible : la colonne « Contact principal » est une colonne de formule."
+            : "Enregistrement impossible : " + (msg || "vérifiez les droits.");
+        }
       })
     );
 
@@ -3083,9 +3194,11 @@
 
       const plus = root.querySelector("[data-show-sector]");
       const input = root.querySelector("#sectorInput");
+      const hint = root.querySelector(".sector-hint");
 
       const closeInput = () => {
         input.hidden = true;
+        hint.hidden = true;
         plus.hidden = false;
         input.value = "";
       };
@@ -3093,6 +3206,7 @@
       plus.addEventListener("click", () => {
         plus.hidden = true;
         input.hidden = false;
+        hint.hidden = false;
         input.focus();
       });
 
@@ -3623,6 +3737,14 @@
         type: "Any",
         optional: true,
         description: "Colonne de la table Contacts qui pointe vers une organisation (type Référence), pas la formule du nom : ouvre la fiche, rattache les contacts, sert à la création"
+      },
+
+      {
+        name: "isMain",
+        title: "Contact principal (Oui/Non)",
+        type: "Any",
+        optional: true,
+        description: "Colonne Oui/Non de Contacts indiquant le contact principal de son organisation (détectée automatiquement si elle s'appelle « Contact principal »)"
       },
 
       {
