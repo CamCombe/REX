@@ -122,8 +122,18 @@
     }
     .innovation-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 7px #24344718; }
     .innovation-chip.selected { outline: 2px solid var(--accent); outline-offset: 1px; }
-    .tone-dmr { background: var(--blue); color: var(--blue-ink); border-color: #a7c5e2; }
+    /* DMR : quatre nuances de bleu, une par entité */
+    .tone-dmr-ent { background: #dceaf7; color: #244c70; border-color: #bfd5e9; }
+    .tone-dmr-pei { background: #b9d4ec; color: #244c70; border-color: #9fc1df; }
+    .tone-dmr-fca { background: #8fb9df; color: #183f62; border-color: #78a8d4; }
+    .tone-dmr-tr  { background: #6399c9; color: #102f4a; border-color: #4f86b8; }
+    .tone-dmr { background: #b7d2ed; color: #244c70; border-color: #a7c5e2; }
+
+    /* DTFFP : deux nuances de jaune, une par entité */
+    .tone-dtffp-sfc { background: #fff2cc; color: #705500; border-color: #f2dfa4; }
+    .tone-dtffp-sfg { background: #ffe08a; color: #705000; border-color: #e9c85f; }
     .tone-dtffp { background: var(--yellow); color: var(--yellow-ink); border-color: #f1d47c; }
+
     .tone-dg { background: var(--green); color: var(--green-ink); border-color: #94c276; }
     .tone-multi { background: var(--grey); color: var(--grey-ink); border-color: #c9c9c9; }
     .tone-neutral { background: #edf1f5; color: #526274; border-color: #e0e6ec; }
@@ -228,9 +238,13 @@
   </section>
 
   <div class="legend">
-    <span><i class="swatch" style="background:var(--blue)"></i> DMR</span>
-    <span><i class="swatch" style="background:var(--yellow)"></i> DTFFP</span>
-    <span><i class="swatch" style="background:var(--green)"></i> DG</span>
+    <span><i class="swatch" style="background:#dceaf7"></i> DMR/ENT</span>
+    <span><i class="swatch" style="background:#b9d4ec"></i> DMR/PEI</span>
+    <span><i class="swatch" style="background:#8fb9df"></i> DMR/FCA</span>
+    <span><i class="swatch" style="background:#6399c9"></i> DMR/TR</span>
+    <span><i class="swatch" style="background:#fff2cc"></i> DTFFP/SFC</span>
+    <span><i class="swatch" style="background:#ffe08a"></i> DTFFP/SFG</span>
+    <span><i class="swatch" style="background:var(--green)"></i> DG/TS</span>
     <span><i class="swatch" style="background:var(--grey)"></i> Plusieurs entités</span>
     <span><i class="swatch" style="background:#edf1f5"></i> Non renseignée / autre</span>
   </div>
@@ -346,14 +360,21 @@
 
   function toneClass(entities) {
     const family = familyOf(entities);
-    return ({
-      DMR: "tone-dmr",
-      DTFFP: "tone-dtffp",
-      DG: "tone-dg",
-      multi: "tone-multi",
-      none: "tone-neutral",
-      other: "tone-neutral"
-    })[family];
+    if (family === "multi") return "tone-multi";
+    if (family === "none" || family === "other") return "tone-neutral";
+    if (family === "DG") return "tone-dg";
+
+    // La nuance dépend du code précis de l'entité au sein de sa famille.
+    const entity = entities[0].toUpperCase().replace(/\\s+/g, "");
+    const entityTones = {
+      "DMR/ENT": "tone-dmr-ent",
+      "DMR/PEI": "tone-dmr-pei",
+      "DMR/FCA": "tone-dmr-fca",
+      "DMR/TR": "tone-dmr-tr",
+      "DTFFP/SFC": "tone-dtffp-sfc",
+      "DTFFP/SFG": "tone-dtffp-sfg"
+    };
+    return entityTones[entity] || (family === "DMR" ? "tone-dmr" : "tone-dtffp");
   }
 
   function objectiveSort(a, b) {
