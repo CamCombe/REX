@@ -434,6 +434,7 @@
     .meta-foot {
       display: flex;
       flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 4px 18px;
       padding: 11px 22px;
       border-top: 1px solid var(--line);
@@ -1103,6 +1104,30 @@
 
     .propulse .comments-editor { background: #fff; }
 
+    /* ACCUEIL : boutons de création */
+
+    .blank-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .blank-state .blank-actions .btn { margin-top: 0; }
+
+    .btn-ico {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-ico svg { width: 16px; height: 16px; flex: 0 0 16px; }
+
+    .btn-teal { background: #1F5F5B; color: #fff; }
+    .btn-teal:hover { filter: brightness(1.12); }
+    .btn-teal:disabled { opacity: .6; cursor: default; }
+
     /* SÉLECTEUR D'ORGANISATION (création de contact) */
 
     .organisation-create { margin-bottom: 22px; position: relative; }
@@ -1248,6 +1273,8 @@
     creating: false,
     pendingCursorId: null,
     view: "contact",
+    restoreStarted: false,
+    restoreDone: false,
 
     organisations: [],
     selectedOrganisationId: null,
@@ -1408,32 +1435,31 @@
   /* ÉTAT VIDE */
 
   function renderBlank(
-    title = "Rechercher un contact",
+    title = "Rechercher un contact ou une organisation",
     msg = "Saisissez un nom, un prénom ou une organisation dans la barre de recherche pour consulter une fiche.",
     canCreate = false
   ) {
     $("mainContent").innerHTML = `
       <div class="blank-state">
-        <div class="blank-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
-            stroke-linejoin="round">
-            <circle cx="9" cy="8" r="3.5"/>
-            <path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/>
-            <path d="M16 8h5M18.5 5.5v5"/>
-          </svg>
-        </div>
         <div class="blank-title">${escapeHtml(title)}</div>
         <p class="blank-text">${escapeHtml(msg)}</p>
         ${canCreate
-          ? `<button class="btn btn-primary" type="button" data-new-contact>
-              + Nouveau contact
-            </button>`
+          ? `<div class="blank-actions">
+              <button class="btn btn-primary btn-ico" type="button" data-new-contact>
+                ${PERSON_PLUS_ICON}<span>Nouveau contact</span>
+              </button>
+              <button class="btn btn-teal btn-ico" type="button" data-new-org>
+                ${BUILDING_PLUS_ICON}<span>Nouvelle organisation</span>
+              </button>
+            </div>`
           : ""}
       </div>`;
 
     const newBtn = $("mainContent").querySelector("[data-new-contact]");
     if (newBtn) newBtn.addEventListener("click", renderCreateForm);
+
+    const newOrgBtn = $("mainContent").querySelector("[data-new-org]");
+    if (newOrgBtn) newOrgBtn.addEventListener("click", renderCreateOrgForm);
   }
 
   /* Place le curseur de Grist sur la ligne du contact : les widgets liés à
@@ -2142,6 +2168,7 @@
   function renderProfile(rec) {
 
     state.currentRecord = rec;
+    rememberView({ view: "contact", id: rec.id });
 
     const c = contactData(rec);
 
@@ -2373,6 +2400,10 @@
     roles.contacts = find(/^contacts?\b/);
     roles.updated = find(/modifi|updated/);
     roles.created = find(/creation|cree|created/);
+
+    /* Colonnes d'affichage fournies : identifiants exacts prioritaires */
+    roles.created = cols.find(c => c.colId === "ORG_Creation_affichage_") || roles.created;
+    roles.updated = cols.find(c => c.colId === "ORG_Derniere_modification_affichage_") || roles.updated;
 
     /* Colonnes PROPULSE */
     roles.pEdition = findP(/edition/);
@@ -2693,7 +2724,10 @@
       : null;
 
     if (rec) renderProfile(rec);
-    else renderHome();
+    else {
+      rememberView(null);
+      renderHome();
+    }
   }
 
   function openContactFromOrg(id) {
@@ -2733,6 +2767,8 @@
 
     const nameCol = roles.name;
     const name = disp(nameCol);
+
+    rememberView({ view: "org", id: orgId, name });
 
     const type = disp(roles.type);
     const sectors = roles.sectors ? tagsOf(raw(roles.sectors)) : [];
@@ -3017,6 +3053,7 @@
 
     const createdTxt = disp(roles.created);
     const updatedTxt = disp(roles.updated);
+    const idTxt = disp(roles.id);
 
     $("mainContent").innerHTML = `
       <article class="profile org ${editing ? "editing" : ""}">
@@ -3037,8 +3074,6 @@
 
           <div class="org-title-line">${titleHtml}</div>
 
-          ${roles.id ? `<div class="tiny-id">${escapeHtml(disp(roles.id))}</div>` : ""}
-
           ${badgesHtml}
 
         </header>
@@ -3050,8 +3085,9 @@
           ${commentsHtml}
         </div>
 
-        ${createdTxt || updatedTxt
+        ${idTxt || createdTxt || updatedTxt
           ? `<footer class="meta-foot">
+              ${idTxt ? `<span>ID ${escapeHtml(idTxt)}</span>` : ""}
               ${createdTxt ? `<span>Créée le ${escapeHtml(createdTxt)}</span>` : ""}
               ${updatedTxt ? `<span>Modifiée le ${escapeHtml(updatedTxt)}</span>` : ""}
             </footer>`
@@ -3430,6 +3466,14 @@
     stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/>
     <path d="M5 20c.6-3.7 3.2-5.6 7-5.6s6.4 1.9 7 5.6"/></svg>`;
 
+  const PERSON_PLUS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/>
+    <path d="M3 20c.5-3.3 2.7-5 6-5s5.5 1.7 6 5"/><path d="M18 7v6M15 10h6"/></svg>`;
+
+  const BUILDING_PLUS_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3" width="12" height="18" rx="1.5"/>
+    <path d="M7.5 7h4M7.5 11h4M7.5 15h4"/><path d="M19 8v6M16 11h6"/></svg>`;
+
   const BUILDING_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
     stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.5"/>
     <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg>`;
@@ -3479,6 +3523,410 @@
       items[i].classList.add("active");
       items[i].scrollIntoView({ block: "nearest" });
     });
+  }
+
+  /* MÉMOIRE DE LA DERNIÈRE FICHE CONSULTÉE
+     Conservée dans le navigateur (propre à chaque utilisateur et à chaque document) :
+     en revenant d'une autre page de Grist, la dernière fiche se rouvre. */
+
+  let storageKeyPromise = null;
+
+  function storageKey() {
+    if (!storageKeyPromise) {
+      storageKeyPromise = Promise.resolve()
+        .then(() => grist.docApi.getDocName())
+        .then(name => "annuaire:derniere-fiche:" + name)
+        .catch(() => "annuaire:derniere-fiche");
+    }
+    return storageKeyPromise;
+  }
+
+  function rememberView(view) {
+    storageKey().then(key => {
+      try {
+        if (view) window.localStorage.setItem(key, JSON.stringify(view));
+        else window.localStorage.removeItem(key);
+      } catch (e) { /* stockage indisponible : la mémoire est simplement désactivée */ }
+    });
+  }
+
+  async function recallView() {
+    try {
+      const key = await storageKey();
+      const raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function loadedStatus() {
+    const n = state.contacts.length;
+    $("status").textContent = `${n} contact${n > 1 ? "s" : ""} chargé${n > 1 ? "s" : ""}.`;
+  }
+
+  function applyRecalledView(view) {
+
+    state.restoreDone = true;
+
+    if (view && view.view === "contact") {
+      const rec = state.contacts.find(r => r.id === view.id);
+
+      if (rec) {
+        state.selectedId = rec.id;
+        $("searchInput").value = fullName(contactData(rec));
+        $("clearSearch").style.display = "block";
+
+        renderProfile(rec);
+        focusInGrist(rec.id);
+        loadedStatus();
+        return;
+      }
+    }
+
+    if (view && view.view === "org" && view.id) {
+      state.selectedId = null;
+      $("searchInput").value = view.name || "";
+      $("clearSearch").style.display = view.name ? "block" : "none";
+
+      openOrganisation(Number(view.id), view.name || "");
+      return;
+    }
+
+    renderHome();
+    loadedStatus();
+  }
+
+  /* CRÉATION D'UNE ORGANISATION : les données vont dans la table « Organisation » */
+
+  const newOrg = { tags: [], confirmDuplicate: false };
+
+  async function renderCreateOrgForm() {
+
+    state.creating = true;
+    state.selectedId = null;
+    state.currentRecord = null;
+    state.view = "contact";
+
+    $("searchInput").value = "";
+    $("clearSearch").style.display = "none";
+    closeResults();
+
+    renderBlank("Chargement…", "Lecture de la table Organisation.");
+
+    try {
+      await loadOrganisations();
+    } catch (err) {
+      console.error("Création d'une organisation :", err);
+      state.creating = false;
+      orgMessage("Organisation indisponible", err && err.message ? err.message : "Lecture impossible.");
+      return;
+    }
+
+    const { roles } = orgState;
+    const nameCol = roles.name;
+
+    if (!nameCol || !canEditOrg(nameCol)) {
+      state.creating = false;
+      orgMessage("Création impossible", "La colonne du nom de l'organisation est introuvable ou en lecture seule.");
+      return;
+    }
+
+    newOrg.tags = [];
+    newOrg.confirmDuplicate = false;
+
+    const sectorsCol = roles.sectors && roles.sectors.type === "ChoiceList" ? roles.sectors : null;
+
+    const fieldHtml = (col) => {
+
+      if (!col || !canEditOrg(col)) return "";
+
+      const control = col.type === "Choice"
+        ? `<select class="editable-field" data-new-col="${escapeHtml(col.colId)}" data-new-type="Choice">
+            <option value=""></option>
+            ${col.choices.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("")}
+          </select>`
+        : `<input class="editable-field" type="text" data-new-col="${escapeHtml(col.colId)}"
+            data-new-type="${escapeHtml(col.type)}"
+            ${roles.type && roles.type.colId === col.colId ? 'list="orgTypes"' : ""}
+            placeholder="Ajouter…">`;
+
+      return `<div class="org-field">
+        <span class="contact-label">${escapeHtml(col.label)}</span>
+        <div class="contact-value-wrap">${control}</div>
+      </div>`;
+    };
+
+    const row1 = [roles.type, roles.website, roles.siret, !sectorsCol ? roles.sectors : null]
+      .map(fieldHtml).join("");
+    const row2 = [roles.city, roles.region, roles.country].map(fieldHtml).join("");
+
+    /* Suggestions de secteurs : choix de la colonne + valeurs déjà utilisées */
+    let sectorsHtml = "";
+
+    if (sectorsCol) {
+      const known = new Set(sectorsCol.choices);
+      orgState.rows[sectorsCol.colId].forEach(v =>
+        (Array.isArray(v) ? v.filter(x => x !== "L") : []).forEach(t => known.add(t))
+      );
+
+      sectorsHtml = `
+        <section class="org-section">
+          <h2 class="section-title">${escapeHtml(sectorsCol.label)}</h2>
+          <div class="tags" id="newOrgTags"></div>
+          <div class="sector-add">
+            <input id="newOrgSector" type="text" list="newOrgSectorChoices" autocomplete="off"
+              placeholder="Ajouter un secteur d'activité…">
+            <button class="btn btn-secondary" type="button" id="newOrgSectorAdd">Ajouter</button>
+          </div>
+          <p class="muted-note" style="margin-top:8px">↵ Appuyez sur Entrée pour ajouter le secteur.</p>
+          <datalist id="newOrgSectorChoices">
+            ${Array.from(known).sort((a, b) => normalize(a).localeCompare(normalize(b), "fr"))
+              .map(t => `<option value="${escapeHtml(t)}">`).join("")}
+          </datalist>
+        </section>`;
+    }
+
+    const commentsHtml = roles.comments && canEditOrg(roles.comments)
+      ? `<section class="org-section">
+          <h2 class="section-title">${escapeHtml(roles.comments.label)}</h2>
+          <textarea class="comments-editor" data-new-col="${escapeHtml(roles.comments.colId)}"
+            data-new-type="${escapeHtml(roles.comments.type)}" data-enter-saves
+            placeholder="Ajouter un commentaire…"></textarea>
+        </section>`
+      : "";
+
+    $("mainContent").innerHTML = `
+      <article class="profile org editing">
+
+        <header class="banner">
+          <div class="banner-meta"><span>Nouvelle organisation</span></div>
+
+          <div class="org-title-line">
+            <span class="autogrow" data-value="Nom de l'organisation">
+              <textarea class="editable-field" rows="1" data-singleline data-new-name
+                placeholder="Nom de l'organisation" aria-label="Nom de l'organisation"></textarea>
+            </span>
+          </div>
+        </header>
+
+        <div class="profile-body">
+
+          ${row1 || row2
+            ? `<section>
+                <h2 class="section-title">Informations</h2>
+                ${row1 ? `<div class="org-grid org-grid-2">${row1}</div>` : ""}
+                ${row2 ? `<div class="org-grid org-grid-3">${row2}</div>` : ""}
+              </section>`
+            : ""}
+
+          ${sectorsHtml}
+          ${commentsHtml}
+
+          <p class="form-note" id="newOrgWarn" style="color:#C0453F"></p>
+
+          <div class="form-actions">
+            <button class="btn btn-teal" type="button" data-create-org>Créer l'organisation</button>
+            <button class="btn btn-secondary" type="button" data-cancel-org>Annuler</button>
+          </div>
+
+          <p class="form-note">
+            Les informations PROPULSE se renseignent ensuite depuis la fiche, en mode modification.
+          </p>
+
+        </div>
+
+        <datalist id="orgTypes">
+          ${ORG_TYPES.map(t => `<option value="${escapeHtml(t)}">`).join("")}
+        </datalist>
+
+      </article>`;
+
+    $("status").textContent = "";
+    bindCreateOrgEvents(sectorsCol);
+  }
+
+  function bindCreateOrgEvents(sectorsCol) {
+
+    const root = $("mainContent");
+    const nameEl = root.querySelector("[data-new-name]");
+    const button = root.querySelector("[data-create-org]");
+    const fields = [nameEl, ...Array.from(root.querySelectorAll("[data-new-col]"))];
+
+    const drawTags = () => {
+      const box = $("newOrgTags");
+      if (!box) return;
+
+      box.innerHTML = newOrg.tags.length
+        ? newOrg.tags.map((t, i) => `<span class="tag">${escapeHtml(t)}<button class="tag-x"
+            type="button" data-drop-tag="${i}" aria-label="Retirer ${escapeHtml(t)}">×</button></span>`).join("")
+        : `<span class="muted-note">Aucun secteur ajouté.</span>`;
+
+      box.querySelectorAll("[data-drop-tag]").forEach(b =>
+        b.addEventListener("click", () => {
+          newOrg.tags.splice(Number(b.dataset.dropTag), 1);
+          drawTags();
+        })
+      );
+    };
+
+    nameEl.addEventListener("input", () => {
+      if (/[\r\n]/.test(nameEl.value)) nameEl.value = nameEl.value.replace(/\s*[\r\n]+\s*/g, " ");
+      nameEl.parentElement.dataset.value = nameEl.value || nameEl.placeholder;
+
+      newOrg.confirmDuplicate = false;
+      button.textContent = "Créer l'organisation";
+      $("newOrgWarn").textContent = "";
+    });
+
+    fields.forEach((field, i) => {
+      field.addEventListener("keydown", e => {
+        if (e.key !== "Enter" || e.isComposing) return;
+        if (field.tagName === "TEXTAREA" && field.hasAttribute("data-enter-saves") && e.shiftKey) return;
+
+        e.preventDefault();
+
+        if (fields[i + 1]) fields[i + 1].focus();
+        else submitNewOrg(sectorsCol);
+      });
+    });
+
+    if (sectorsCol) {
+      drawTags();
+
+      const input = $("newOrgSector");
+
+      const addTag = () => {
+        const t = input.value.trim();
+        if (!t) return;
+
+        const known = [...sectorsCol.choices, ...newOrg.tags];
+        const canonical = known.find(k => normalize(k) === normalize(t)) || t;
+
+        if (!newOrg.tags.some(x => normalize(x) === normalize(canonical))) newOrg.tags.push(canonical);
+
+        input.value = "";
+        drawTags();
+      };
+
+      $("newOrgSectorAdd").addEventListener("click", addTag);
+
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.isComposing) {
+          e.preventDefault();
+          addTag();
+        }
+      });
+    }
+
+    button.addEventListener("click", () => submitNewOrg(sectorsCol));
+
+    root.querySelector("[data-cancel-org]").addEventListener("click", () => {
+      state.creating = false;
+      $("status").textContent = "";
+      renderHome();
+    });
+
+    nameEl.focus();
+  }
+
+  async function submitNewOrg(sectorsCol) {
+
+    const root = $("mainContent");
+    const { roles, rows } = orgState;
+    const nameCol = roles.name;
+
+    const nameEl = root.querySelector("[data-new-name]");
+    const button = root.querySelector("[data-create-org]");
+    const warn = $("newOrgWarn");
+    const name = nameEl.value.trim();
+
+    if (!name) {
+      warn.textContent = "Renseignez le nom de l'organisation.";
+      nameEl.focus();
+      return;
+    }
+
+    /* Doublon : une seconde validation confirme la création */
+    const duplicate = rows.id.some((_, i) =>
+      normalize(orgDisplay(nameCol, rows[nameCol.colId][i])) === normalize(name)
+    );
+
+    if (duplicate && !newOrg.confirmDuplicate) {
+      newOrg.confirmDuplicate = true;
+      warn.textContent = `Une organisation nommée « ${name} » existe déjà. Cliquez à nouveau pour la créer quand même.`;
+      button.textContent = "Créer quand même";
+      return;
+    }
+
+    const fields = { [nameCol.colId]: name };
+    const siretId = roles.siret ? roles.siret.colId : null;
+
+    for (const el of root.querySelectorAll("[data-new-col]")) {
+
+      let v = el.value.trim();
+      if (v === "") continue;
+
+      const colId = el.dataset.newCol;
+      const type = el.dataset.newType;
+
+      if (colId === siretId) {
+        const digits = v.replace(/\s/g, "");
+        if (/^(\d{9}|\d{14})$/.test(digits)) v = digits;
+      }
+
+      if (type === "Int" || type === "Numeric") {
+        const n = Number(v.replace(/\s/g, "").replace(",", "."));
+
+        if (Number.isNaN(n)) {
+          warn.textContent = "Valeur numérique attendue dans un des champs.";
+          el.focus();
+          return;
+        }
+
+        v = n;
+      }
+
+      fields[colId] = v;
+    }
+
+    button.disabled = true;
+    $("status").textContent = "Création de l'organisation…";
+
+    try {
+
+      /* Secteurs : ajoutés d'abord à la liste des choix de la colonne (sinon affichés en rouge) */
+      if (sectorsCol && newOrg.tags.length) {
+        for (const t of newOrg.tags) {
+          if (!sectorsCol.choices.includes(t)) await addChoiceToColumn(sectorsCol, t);
+        }
+
+        fields[sectorsCol.colId] = ["L", ...newOrg.tags];
+      }
+
+      const res = await grist.getTable(orgState.tableId).create({ fields });
+
+      const created = Array.isArray(res) ? res[0] : res;
+      const newId = created && created.id != null ? created.id : null;
+
+      state.creating = false;
+      orgSearchLastLoad = 0;           // la recherche relira la liste des organisations
+
+      $("searchInput").value = name;
+      $("clearSearch").style.display = "block";
+      $("status").textContent = "Organisation créée.";
+
+      if (newId != null) openOrganisation(newId, name);
+      else renderHome();
+
+    } catch (err) {
+      console.error("Création de l'organisation :", err);
+
+      $("status").textContent =
+        "Création impossible : " + (err && err.message ? err.message : "vérifiez les droits.");
+
+      button.disabled = false;
+    }
   }
 
   /* CLASSEMENT DES CONTACTS */
@@ -3540,9 +3988,13 @@
         </div>
         <button class="result-item create-item" type="button" data-new-contact>
           + Créer un nouveau contact
+        </button>
+        <button class="result-item create-item" type="button" data-new-org>
+          + Créer une nouvelle organisation
         </button>`;
 
       box.querySelector("[data-new-contact]").addEventListener("click", renderCreateForm);
+      box.querySelector("[data-new-org]").addEventListener("click", renderCreateOrgForm);
 
     } else {
 
@@ -3671,6 +4123,7 @@
 
     if (!state.creating) {
       state.selectedId = null;
+      rememberView(null);               // retour volontaire à l'accueil : on oublie la dernière fiche
       if (state.mapped) renderHome();
     }
 
@@ -3844,6 +4297,16 @@
 
     state.mapped = true;
     state.contacts = records;
+
+    /* Premier chargement : on rouvre la dernière fiche consultée */
+    if (!state.restoreStarted) {
+      state.restoreStarted = true;
+      renderBlank("Chargement…", "Reprise de votre dernière fiche.");
+      recallView().then(applyRecalledView);
+      return;
+    }
+
+    if (!state.restoreDone) return;
 
     if (state.creating || state.view === "org") return;   // formulaire ou fiche organisation ouverts : on n'y touche pas
 
