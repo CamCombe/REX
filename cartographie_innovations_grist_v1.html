@@ -5,6 +5,772 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cartographie des innovations</title>
   <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    :root {
+      --ink: #243447;
+      --muted: #718096;
+      --line: #e5eaf0;
+      --surface: #ffffff;
+      --soft: #f5f7fa;
+      --blue: #b7d2ed;
+      --blue-ink: #244c70;
+      --yellow: #ffe699;
+      --yellow-ink: #705500;
+      --green: #a9d18e;
+      --green-ink: #315b28;
+      --grey: #d9d9d9;
+      --grey-ink: #454545;
+      --accent: #245b86;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 18px;
+      color: var(--ink); background: #f7f9fb;
+      font: 14px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1800px; margin: 0 auto; }
+    .topbar {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 16px;
+    }
+    h1 { margin: 0 0 4px; font-size: 23px; letter-spacing: -.4px; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+    .connection {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px;
+      background: white; color: var(--muted); font-size: 12px; white-space: nowrap;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #d69e2e; }
+    .dot.ok { background: #38a169; }
+    .dot.error { background: #e05252; }
+    .stats {
+      display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 10px; margin-bottom: 14px;
+    }
+    .stat {
+      padding: 13px 15px; background: white; border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+    .stat strong { display: block; font-size: 24px; line-height: 1.1; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 9px;
+      padding: 12px; margin-bottom: 12px; background: white;
+      border: 1px solid var(--line); border-radius: var(--radius);
+    }
+    .search-wrap { flex: 1 1 250px; position: relative; }
+    .search-wrap input {
+      width: 100%; padding: 9px 12px 9px 34px; border: 1px solid var(--line);
+      border-radius: 8px; outline: none; background: #fff;
+    }
+    .search-wrap input:focus, select:focus { border-color: #8ab1d2; box-shadow: 0 0 0 3px #dceaf5; }
+    .search-icon { position: absolute; left: 11px; top: 8px; color: #8291a2; }
+    select {
+      padding: 9px 30px 9px 10px; border: 1px solid var(--line);
+      border-radius: 8px; color: var(--ink); background: white;
+    }
+    .tabs { display: inline-flex; padding: 3px; background: #eef2f6; border-radius: 9px; }
+    .tab {
+      border: 0; border-radius: 7px; padding: 7px 11px; background: transparent;
+      color: #617184; font-size: 12px;
+    }
+    .tab.active { background: white; color: var(--ink); box-shadow: 0 1px 3px #1b2b3a18; }
+    .check-filter { display: inline-flex; align-items: center; gap: 6px; color: #526274; font-size: 12px; }
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 13px; margin: 0 2px 12px;
+      color: #5f6f80; font-size: 12px;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+    .layout.detail-open { grid-template-columns: minmax(0, 1fr) 340px; }
+    .detail-panel[hidden] { display: none; }
+    .main-panel, .detail-panel {
+      background: white; border: 1px solid var(--line); border-radius: var(--radius);
+      min-width: 0;
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 13px 15px; border-bottom: 1px solid var(--line);
+    }
+    .panel-head h2 { margin: 0; font-size: 14px; }
+    .panel-head small { color: var(--muted); font-size: 11px; }
+    .matrix-scroll { overflow: auto; }
+    table.matrix { width: 100%; min-width: 1100px; border-collapse: separate; border-spacing: 0; }
+    .matrix th {
+      position: sticky; top: 0; z-index: 1; background: #f5f7fa;
+      padding: 11px 9px; border-bottom: 1px solid var(--line);
+      color: #58697b; font-size: 11px; text-align: left; font-weight: 650;
+    }
+    .matrix th:first-child { left: 0; z-index: 2; min-width: 205px; }
+    .matrix td {
+      vertical-align: top; padding: 9px; border-bottom: 1px solid #edf0f3;
+      border-right: 1px solid #f0f2f5; min-width: 145px;
+    }
+    .matrix td:first-child {
+      position: sticky; left: 0; z-index: 1; background: #fbfcfd;
+      min-width: 205px; width: 205px;
+    }
+    .objective-code { font-size: 11px; font-weight: 750; color: var(--accent); margin-bottom: 3px; }
+    .objective-name { font-size: 12px; font-weight: 600; }
+    .cell-items { display: flex; flex-direction: column; gap: 6px; min-height: 28px; }
+    .innovation-chip {
+      position: relative; display: block; width: 100%; text-align: left; padding: 20px 8px 7px;
+      border: 1px solid transparent; border-radius: 7px; font-size: 11px;
+      line-height: 1.3; transition: transform .12s, box-shadow .12s;
+    }
+    .innovation-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 7px #24344718; }
+    .innovation-chip.selected { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .entity-code { position: absolute; top: 4px; left: 7px; font-size: 9px; line-height: 1; font-weight: 800; letter-spacing: .35px; opacity: .82; }
+    .simple-scroll { overflow: auto; }
+    .simple-canvas { position: relative; width: max-content; min-width: 100%; }
+    .simple-canvas table { position: relative; z-index: 2; width: 1050px; min-width: 1050px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+    .simple-canvas th, .simple-canvas td { width: 150px; min-width: 150px; max-width: 150px; height: 150px; }
+    .simple-canvas th { position: sticky; top: 0; z-index: 3; background: #f5f7fa; padding: 8px; border-bottom: 1px solid var(--line); color: #58697b; font-size: 11px; text-align: left; }
+    .simple-canvas th:first-child { left: 0; z-index: 4; }
+    .simple-canvas td { position: relative; vertical-align: middle; padding: 8px; border-bottom: 1px solid #edf0f3; border-right: 1px solid #f0f2f5; }
+    .simple-canvas td:first-child { position: sticky; left: 0; z-index: 3; background: #fbfcfd; }
+    .simple-dots { display: flex; flex-wrap: wrap; align-content: center; align-items: center; justify-content: flex-start; gap: 9px; width: 100%; height: 100%; min-height: 0; }
+    .simple-dot { position: relative; z-index: 4; display: inline-block; flex: 0 0 13px; width: 13px; height: 13px; padding: 0; border: 1px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1px #52627455; cursor: pointer; }
+    .simple-dot:hover, .simple-dot.selected { transform: scale(1.35); box-shadow: 0 0 0 2px var(--accent); }
+    .simple-lines { position: absolute; inset: 0 auto auto 0; z-index: 1; pointer-events: none; overflow: visible; }
+    .simple-lines .adjacent-link { stroke-width: 17; stroke-linecap: round; opacity: .25; }
+    .simple-lines .distant-link { stroke-width: 2.5; stroke-linecap: round; opacity: .8; }
+    .simple-legend-note { padding: 10px 14px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--line); }
+    /* DMR : quatre nuances de bleu, une par entité */
+    .tone-dmr-ent { background: #dceaf7; color: #244c70; border-color: #bfd5e9; }
+    .tone-dmr-pei { background: #b9d4ec; color: #244c70; border-color: #9fc1df; }
+    .tone-dmr-fca { background: #8fb9df; color: #183f62; border-color: #78a8d4; }
+    .tone-dmr-tr  { background: #6399c9; color: #102f4a; border-color: #4f86b8; }
+    .tone-dmr { background: #b7d2ed; color: #244c70; border-color: #a7c5e2; }
+
+    /* DTFFP : deux nuances de jaune, une par entité */
+    .tone-dtffp-sfc { background: #fff2cc; color: #705500; border-color: #f2dfa4; }
+    .tone-dtffp-sfg { background: #ffe08a; color: #705000; border-color: #e9c85f; }
+    .tone-dtffp { background: var(--yellow); color: var(--yellow-ink); border-color: #f1d47c; }
+
+    .tone-dg { background: var(--green); color: var(--green-ink); border-color: #94c276; }
+    .tone-multi { background: var(--grey); color: var(--grey-ink); border-color: #c9c9c9; }
+    .tone-neutral { background: #edf1f5; color: #526274; border-color: #e0e6ec; }
+    .empty-cell { color: #c0c8d1; font-size: 11px; }
+    .list-view { padding: 5px 14px 14px; }
+    .list-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 12px 2px; border-bottom: 1px solid #edf0f3;
+    }
+    .list-item:last-child { border-bottom: 0; }
+    .list-main { min-width: 0; }
+    .list-title { font-weight: 650; margin-bottom: 4px; }
+    .list-meta { color: var(--muted); font-size: 11px; }
+    .list-side { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .count-pill {
+      padding: 4px 7px; border-radius: 999px; background: #eef2f6;
+      color: #536477; font-size: 10px; white-space: nowrap;
+    }
+    .open-detail {
+      border: 1px solid var(--line); background: white; color: var(--accent);
+      border-radius: 7px; padding: 6px 9px; font-size: 11px;
+    }
+    .detail-panel { position: sticky; top: 10px; overflow: hidden; }
+    .detail-content { padding: 15px; }
+    .detail-placeholder { color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .detail-title { font-size: 18px; line-height: 1.25; margin: 0 0 8px; }
+    .detail-badges { display: flex; flex-wrap: wrap; gap: 5px; margin: 9px 0 15px; }
+    .entity-tag {
+      display: inline-block; padding: 4px 7px; border-radius: 6px;
+      font-size: 10px; font-weight: 650;
+    }
+    .detail-section { margin-top: 15px; }
+    .detail-section h3 {
+      margin: 0 0 8px; color: #667789; font-size: 10px;
+      text-transform: uppercase; letter-spacing: .55px;
+    }
+    .occurrence {
+      padding: 8px 9px; margin-bottom: 6px; border: 1px solid var(--line);
+      border-radius: 8px; background: #fbfcfd;
+    }
+    .occurrence strong { display: block; font-size: 11px; }
+    .occurrence span { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+    .transversal-note {
+      padding: 9px 10px; background: #f0f5f9; border-radius: 8px;
+      color: #42617b; font-size: 11px;
+    }
+    .empty-state { padding: 35px 15px; text-align: center; color: var(--muted); font-size: 12px; }
+    .error-box {
+      padding: 14px; margin: 10px 0; border: 1px solid #f0caca;
+      background: #fff6f6; color: #9b3434; border-radius: 9px; font-size: 12px;
+    }
+    .footer-note { color: #8a97a5; font-size: 10px; padding: 10px 2px 0; }
+    @media (max-width: 1050px) {
+      .layout, .layout.detail-open { grid-template-columns: 1fr; }
+      .detail-panel { position: static; }
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      h1 { font-size: 19px; }
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .stat { padding: 10px; }
+      .stat strong { font-size: 20px; }
+      .list-side { flex-direction: column; align-items: flex-end; }
+      .topbar { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <h1>Cartographie des innovations</h1>
+      <div class="subtitle">Explorer les propositions par objectif, couche et entité porteuse</div>
+    </div>
+    <div class="connection" id="connection"><i class="dot" id="connectionDot"></i><span id="connectionText">Connexion à Grist…</span></div>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><strong id="statInnovations">—</strong><span>Innovations distinctes</span></div>
+    <div class="stat"><strong id="statOccurrences">—</strong><span>Présences dans la matrice</span></div>
+    <div class="stat"><strong id="statTransversal">—</strong><span>Innovations transversales</span></div>
+  </section>
+
+  <section class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input id="search" type="search" placeholder="Rechercher une innovation, une entité, un objectif…">
+    </div>
+    <select id="familyFilter" aria-label="Filtrer par famille">
+      <option value="all">Toutes les familles</option>
+      <option value="DMR">DMR</option>
+      <option value="DTFFP">DTFFP</option>
+      <option value="DG">DG</option>
+      <option value="multi">Plusieurs entités</option>
+      <option value="none">Entité non renseignée</option>
+    </select>
+    <label class="check-filter"><input id="transversalOnly" type="checkbox"> Transversales uniquement</label>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-view="matrix" type="button">Cartographie</button>
+      <button class="tab" data-view="list" type="button">Liste des innovations</button>
+      <button class="tab" data-view="simple" type="button">Vue simplifiée</button>
+    </div>
+  </section>
+
+  <div class="legend">
+    <span><i class="swatch" style="background:#b7d2ed"></i> DMR</span>
+    <span><i class="swatch" style="background:#ffe699"></i> DTFFP</span>
+    <span><i class="swatch" style="background:#a9d18e"></i> DG</span>
+    <span><i class="swatch" style="background:#d9d9d9"></i> Plusieurs familles</span>
+    <span><i class="swatch" style="background:#edf1f5"></i> Non renseignée / autre</span>
+    <span><strong>Codes entités :</strong> ENT, PEI, FCA, TR · SFC, SFG · TS</span>
+  </div>
+
+  <div id="error"></div>
+  <div class="layout" id="layout">
+    <main class="main-panel">
+      <div class="panel-head">
+        <h2 id="mainHeading">Matrice des objectifs et des couches</h2>
+        <small id="resultCount">Chargement des données…</small>
+      </div>
+      <div id="mainContent">
+        <div class="empty-state">En attente des données de la table Grist…</div>
+      </div>
+    </main>
+
+    <aside class="detail-panel" id="detailPanel" hidden>
+      <div class="panel-head"><h2>Détail de l'innovation</h2><small id="detailCounter"></small></div>
+      <div class="detail-content" id="detailContent"></div>
+    </aside>
+  </div>
+  <div class="footer-note">Vue de consultation — les données sources dans Grist ne sont pas modifiées.</div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // Les identifiants ci-dessous sont les IDs de colonnes Grist, sans le "$".
+  // Dans les paramètres du widget Grist, sélectionner la table « Matrice Innovation ».
+  const CONFIG = {
+    tableLabel: "Matrice Innovation",
+    columns: {
+      objectifs: "Objectifs",
+      infrastructure: "Infrastructure",
+      services: "Services2",
+      numerique: "Numerique_services_et_donnees_",
+      personnes: "Personnes",
+      gouvernance: "Gouvernance",
+      regulation: "Regulation"
+    },
+    layers: [
+      { id: "infrastructure", label: "Infrastructure" },
+      { id: "services", label: "Services" },
+      { id: "numerique", label: "Numérique" },
+      { id: "personnes", label: "Personnes" },
+      { id: "gouvernance", label: "Gouvernance" },
+      { id: "regulation", label: "Régulation" }
+    ],
+    objectiveOrder: ["O1", "O2", "O3", "O4", "O5"]
+  };
+
+  const state = {
+    records: [],
+    innovations: new Map(),
+    objectives: [],
+    selected: null,
+    view: "matrix",
+    search: "",
+    family: "all",
+    transversalOnly: false,
+    dataReady: false
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function setConnection(status, message) {
+    $("connectionDot").className = "dot " + status;
+    $("connectionText").textContent = message;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[char]));
+  }
+
+  function asValues(value) {
+    if (value === null || value === undefined || value === "") return [];
+    if (Array.isArray(value)) return value.flat(Infinity).filter(v => v !== null && v !== undefined && String(v).trim() !== "").map(String);
+    if (typeof value === "string") return [value];
+    return [String(value)];
+  }
+
+  function cleanObjective(value) {
+    const values = asValues(value);
+    return values.length ? values[0].trim() : "Objectif non renseigné";
+  }
+
+  function parseProposal(raw) {
+    const text = String(raw ?? "").trim();
+    // Seule la parenthèse finale est considérée comme la liste des entités.
+    const match = text.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+    if (!match) {
+      return { title: text, entities: [], raw: text };
+    }
+    const title = match[1].trim();
+    const entities = match[2].split(";").map(x => x.trim()).filter(Boolean);
+    return { title: title || text, entities, raw: text };
+  }
+
+  function familyOf(entities) {
+    if (!entities.length) return "none";
+    const families = new Set(entities.map(entity => {
+      const code = String(entity).toUpperCase().trim();
+      if (code.startsWith("DMR/")) return "DMR";
+      if (code.startsWith("DTFFP/")) return "DTFFP";
+      if (code.startsWith("DG/")) return "DG";
+      return "other";
+    }));
+    return families.size > 1 ? "multi" : Array.from(families)[0];
+  }
+
+  function toneClass(entities) {
+    const family = familyOf(entities);
+    if (family === "multi") return "tone-multi";
+    if (family === "none" || family === "other") return "tone-neutral";
+    if (family === "DG") return "tone-dg";
+
+    // Plusieurs entités d'une même famille conservent la couleur de cette famille.
+    if (entities.length > 1) return family === "DMR" ? "tone-dmr" : family === "DTFFP" ? "tone-dtffp" : "tone-dg";
+    const entity = entities[0].toUpperCase().replace(/\\s+/g, "");
+    const entityTones = {
+      "DMR/ENT": "tone-dmr-ent",
+      "DMR/PEI": "tone-dmr-pei",
+      "DMR/FCA": "tone-dmr-fca",
+      "DMR/TR": "tone-dmr-tr",
+      "DTFFP/SFC": "tone-dtffp-sfc",
+      "DTFFP/SFG": "tone-dtffp-sfg"
+    };
+    return entityTones[entity] || (family === "DMR" ? "tone-dmr" : "tone-dtffp");
+  }
+
+  function shortEntityCodes(entities) {
+    return Array.from(new Set(entities.map(entity => {
+      const parts = String(entity).split("/");
+      return (parts.length > 1 ? parts[1] : parts[0]).trim();
+    }).filter(Boolean))).sort((a, b) => a.localeCompare(b, "fr"));
+  }
+
+  function objectiveSort(a, b) {
+    const codeA = (a.match(/^O\d+/i) || ["O99"])[0].toUpperCase();
+    const codeB = (b.match(/^O\d+/i) || ["O99"])[0].toUpperCase();
+    const ia = CONFIG.objectiveOrder.indexOf(codeA);
+    const ib = CONFIG.objectiveOrder.indexOf(codeB);
+    if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    return a.localeCompare(b, "fr");
+  }
+
+  function buildModel(records) {
+    const innovations = new Map();
+    const objectives = new Set();
+    let totalOccurrences = 0;
+
+    records.forEach(record => {
+      const objective = cleanObjective(record[CONFIG.columns.objectifs]);
+      objectives.add(objective);
+
+      CONFIG.layers.forEach(layer => {
+        const columnId = CONFIG.columns[layer.id];
+        asValues(record[columnId]).forEach(raw => {
+          const parsed = parseProposal(raw);
+          if (!parsed.title) return;
+
+          // La clé est le nom sans la parenthèse des entités :
+          // les différentes entités porteuses d'une même innovation sont regroupées.
+          const key = parsed.title.toLocaleLowerCase("fr-FR");
+          if (!innovations.has(key)) {
+            innovations.set(key, {
+              key,
+              title: parsed.title,
+              occurrences: [],
+              entities: new Set(),
+              families: new Set()
+            });
+          }
+          const item = innovations.get(key);
+          parsed.entities.forEach(entity => item.entities.add(entity));
+          const family = familyOf(parsed.entities);
+          if (family !== "none") item.families.add(family);
+
+          item.occurrences.push({
+            objective,
+            layer: layer.label,
+            layerId: layer.id,
+            entities: parsed.entities,
+            raw: parsed.raw,
+            rowId: record.id
+          });
+          totalOccurrences += 1;
+        });
+      });
+    });
+
+    state.innovations = innovations;
+    state.objectives = Array.from(objectives).sort(objectiveSort);
+    $("statInnovations").textContent = innovations.size;
+    $("statOccurrences").textContent = totalOccurrences;
+    $("statTransversal").textContent = Array.from(innovations.values()).filter(isTransversal).length;
+  }
+
+  function isTransversal(item) {
+    const objectives = new Set(item.occurrences.map(o => o.objective));
+    const layers = new Set(item.occurrences.map(o => o.layerId));
+    return objectives.size > 1 || layers.size > 1;
+  }
+
+  function matchesFilters(item) {
+    const q = state.search.trim().toLocaleLowerCase("fr-FR");
+    const entities = Array.from(item.entities);
+    const family = familyOf(entities.length === 1 ? entities : (entities.length > 1 ? entities : []));
+    if (state.family !== "all") {
+      if (state.family === "multi") {
+        if (!item.occurrences.some(o => o.entities.length > 1)) return false;
+      } else if (state.family === "none") {
+        if (entities.length || !item.occurrences.some(o => !o.entities.length)) return false;
+      } else {
+        if (!item.occurrences.some(o => o.entities.some(e => e.toUpperCase().startsWith(state.family + (state.family === "DG" ? "/" : "/"))))) return false;
+      }
+    }
+    if (state.transversalOnly && !isTransversal(item)) return false;
+    if (q) {
+      const haystack = [
+        item.title, ...entities,
+        ...item.occurrences.flatMap(o => [o.objective, o.layer, o.raw])
+      ].join(" ").toLocaleLowerCase("fr-FR");
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  }
+
+  function visibleInnovations() {
+    return Array.from(state.innovations.values())
+      .filter(matchesFilters)
+      .sort((a, b) => a.title.localeCompare(b.title, "fr"));
+  }
+
+  function occurrenceTone(occurrence) {
+    return toneClass(occurrence.entities);
+  }
+
+  function renderMatrix(items) {
+    const visibleKeys = new Set(items.map(item => item.key));
+    const headers = CONFIG.layers.map(layer => `<th>${escapeHtml(layer.label)}</th>`).join("");
+    let rows = "";
+    state.objectives.forEach(objective => {
+      const cells = CONFIG.layers.map(layer => {
+        const chips = [];
+        state.innovations.forEach(item => {
+          if (!visibleKeys.has(item.key)) return;
+          const occurrences = item.occurrences.filter(o => o.objective === objective && o.layerId === layer.id);
+          if (!occurrences.length) return;
+          const entities = Array.from(new Set(occurrences.flatMap(o => o.entities)));
+          const selected = state.selected === item.key ? " selected" : "";
+          const codes = shortEntityCodes(entities);
+          const title = entities.length ? entities.join(" ; ") : "Entité non renseignée";
+          chips.push(`<button type="button" class="innovation-chip ${toneClass(entities)}${selected}" data-key="${encodeURIComponent(item.key)}" title="${escapeHtml(title)}"><span class="entity-code">${escapeHtml(codes.join(" · ") || "—")}</span>${escapeHtml(item.title)}</button>`);
+        });
+        return `<td><div class="cell-items">${chips.length ? chips.join("") : '<span class="empty-cell">—</span>'}</div></td>`;
+      }).join("");
+      const code = (objective.match(/^O\d+/i) || [""])[0];
+      const name = objective.replace(/^O\d+\s*:\s*/i, "");
+      rows += `<tr><td><div class="objective-code">${escapeHtml(code)}</div><div class="objective-name">${escapeHtml(name)}</div></td>${cells}</tr>`;
+    });
+    $("mainContent").innerHTML = `<div class="matrix-scroll"><table class="matrix"><thead><tr><th>Objectifs / Couches</th>${headers}</tr></thead><tbody>${rows || '<tr><td colspan="7"><div class="empty-state">Aucun objectif ou aucune proposition à afficher.</div></td></tr>'}</tbody></table></div>`;
+    $("mainHeading").textContent = "Matrice des objectifs et des couches";
+  }
+
+  function renderList(items) {
+    if (!items.length) {
+      $("mainContent").innerHTML = '<div class="empty-state">Aucune innovation ne correspond aux filtres sélectionnés.</div>';
+      $("mainHeading").textContent = "Liste des innovations";
+      return;
+    }
+    const html = items.map(item => {
+      const objectives = Array.from(new Set(item.occurrences.map(o => o.objective))).sort(objectiveSort);
+      const layers = Array.from(new Set(item.occurrences.map(o => o.layer)));
+      const entities = Array.from(item.entities);
+      const representative = item.occurrences.find(o => o.entities.length) || item.occurrences[0];
+      const selected = state.selected === item.key ? " selected" : "";
+      const transversal = isTransversal(item);
+      return `
+        <div class="list-item">
+          <div class="list-main">
+            <button type="button" class="innovation-chip ${toneClass(entities)}${selected}" data-key="${encodeURIComponent(item.key)}" style="width:auto;max-width:100%;font-weight:650"><span class="entity-code">${escapeHtml(shortEntityCodes(entities).join(" · ") || "—")}</span>${escapeHtml(item.title)}</button>
+            <div class="list-meta">${escapeHtml(entities.length ? entities.join(" · ") : "Entité non renseignée")}<br>${objectives.length} objectif(s) · ${layers.length} couche(s)</div>
+          </div>
+          <div class="list-side">
+            ${transversal ? '<span class="count-pill">Transversale</span>' : ""}
+            <span class="count-pill">${item.occurrences.length} présence(s)</span>
+            <button type="button" class="open-detail" data-key="${encodeURIComponent(item.key)}">Détails</button>
+          </div>
+        </div>`;
+    }).join("");
+    $("mainContent").innerHTML = `<div class="list-view">${html}</div>`;
+    $("mainHeading").textContent = "Liste des innovations";
+  }
+
+  function renderSimple(items) {
+    const visibleKeys = new Set(items.map(item => item.key));
+    const headers = CONFIG.layers.map(layer => `<th>${escapeHtml(layer.label)}</th>`).join("");
+    let rows = "";
+    state.objectives.forEach((objective, rowIndex) => {
+      const cells = CONFIG.layers.map((layer, colIndex) => {
+        const dots = [];
+        state.innovations.forEach(item => {
+          if (!visibleKeys.has(item.key)) return;
+          const occurrences = item.occurrences.filter(o => o.objective === objective && o.layerId === layer.id);
+          if (!occurrences.length) return;
+          const entities = Array.from(new Set(occurrences.flatMap(o => o.entities)));
+          const entityText = entities.length ? entities.join(" ; ") : "Entité non renseignée";
+          const selected = state.selected === item.key ? " selected" : "";
+          dots.push(`<button type="button" class="simple-dot ${toneClass(entities)}${selected}" data-key="${encodeURIComponent(item.key)}" data-row="${rowIndex}" data-col="${colIndex}" title="${escapeHtml(item.title)} — ${escapeHtml(entityText)}" aria-label="${escapeHtml(item.title)}"></button>`);
+        });
+        return `<td><div class="simple-dots">${dots.join("") || '<span class="empty-cell">—</span>'}</div></td>`;
+      }).join("");
+      const code = (objective.match(/^O\d+/i) || [""])[0];
+      const name = objective.replace(/^O\d+\s*:\s*/i, "");
+      rows += `<tr><td><div class="objective-code">${escapeHtml(code)}</div><div class="objective-name">${escapeHtml(name)}</div></td>${cells}</tr>`;
+    });
+    $("mainContent").innerHTML = `<div class="simple-scroll"><div class="simple-canvas"><svg class="simple-lines" aria-hidden="true"></svg><table><thead><tr><th>Objectifs / Couches</th>${headers}</tr></thead><tbody>${rows || '<tr><td colspan="7"><div class="empty-state">Aucun objectif ou aucune proposition à afficher.</div></td></tr>'}</tbody></table></div></div><div class="simple-legend-note">Chaque point représente une innovation dans une case. Survolez-le pour afficher son intitulé. Les occurrences d'une même innovation sont reliées : capsule arrondie entre cases voisines, trait coloré entre cases éloignées.</div>`;
+    $("mainHeading").textContent = "Vue simplifiée — répartition des innovations";
+    requestAnimationFrame(drawTransversalLines);
+  }
+
+  function drawTransversalLines() {
+    const canvas = $("mainContent").querySelector(".simple-canvas");
+    if (!canvas) return;
+    const svg = canvas.querySelector(".simple-lines");
+    const width = canvas.scrollWidth;
+    const height = canvas.scrollHeight;
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.innerHTML = "";
+
+    const byInnovation = new Map();
+    const canvasRect = canvas.getBoundingClientRect();
+    canvas.querySelectorAll(".simple-dot").forEach(dot => {
+      const key = decodeURIComponent(dot.dataset.key);
+      if (!byInnovation.has(key)) byInnovation.set(key, []);
+      const rect = dot.getBoundingClientRect();
+      byInnovation.get(key).push({
+        x: rect.left - canvasRect.left + rect.width / 2,
+        y: rect.top - canvasRect.top + rect.height / 2,
+        row: Number(dot.dataset.row),
+        col: Number(dot.dataset.col)
+      });
+    });
+
+    const ns = "http://www.w3.org/2000/svg";
+    const colors = { DMR: "#6399c9", DTFFP: "#e0b72e", DG: "#75a95b", multi: "#929292", none: "#aeb8c2", other: "#aeb8c2" };
+
+    byInnovation.forEach((points, key) => {
+      const item = state.innovations.get(key);
+      if (!item || !isTransversal(item) || points.length < 2) return;
+      points.sort((a, b) => a.row - b.row || a.col - b.col);
+      const color = colors[familyOf(Array.from(item.entities))] || colors.other;
+
+      // Relier les occurrences successives : capsule large si les cases se touchent,
+      // trait fin si elles sont séparées dans la matrice.
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i];
+        const adjacent = Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
+        const line = document.createElementNS(ns, "line");
+        line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+        line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
+        line.setAttribute("stroke", color);
+        line.setAttribute("class", adjacent ? "adjacent-link" : "distant-link");
+        svg.appendChild(line);
+      }
+    });
+  }
+
+  function renderDetail() {
+    const item = state.innovations.get(state.selected);
+    if (!item) {
+      $("detailCounter").textContent = "";
+      $("detailPanel").hidden = true;
+      $("layout").classList.remove("detail-open");
+      $("detailContent").innerHTML = "";
+      return;
+    }
+    $("detailPanel").hidden = false;
+    $("layout").classList.add("detail-open");
+    const entities = Array.from(item.entities).sort((a, b) => a.localeCompare(b, "fr"));
+    const objectives = new Set(item.occurrences.map(o => o.objective));
+    const layers = new Set(item.occurrences.map(o => o.layer));
+    const transversal = isTransversal(item);
+    const tags = entities.length
+      ? entities.map(entity => {
+          const family = familyOf([entity]);
+          return `<span class="entity-tag ${toneClass([entity])}">${escapeHtml(entity)}</span>`;
+        }).join("")
+      : '<span class="entity-tag tone-neutral">Entité non renseignée</span>';
+
+    const occurrences = item.occurrences.slice().sort((a, b) =>
+      objectiveSort(a.objective, b.objective) || a.layer.localeCompare(b.layer, "fr")
+    ).map(o => `
+      <div class="occurrence">
+        <strong>${escapeHtml(o.objective)}</strong>
+        <span>${escapeHtml(o.layer)}${o.entities.length ? " · " + escapeHtml(o.entities.join(" ; ")) : ""}</span>
+      </div>`).join("");
+
+    $("detailCounter").textContent = `${item.occurrences.length} présence(s)`;
+    $("detailContent").innerHTML = `
+      <h2 class="detail-title">${escapeHtml(item.title)}</h2>
+      <div class="detail-badges">${tags}</div>
+      ${transversal ? `<div class="transversal-note">Cette innovation est transversale : elle apparaît dans ${objectives.size} objectif(s) et ${layers.size} couche(s).</div>` : ""}
+      <div class="detail-section">
+        <h3>Synthèse</h3>
+        <div class="list-meta">${objectives.size} objectif(s) concerné(s) · ${layers.size} couche(s) concernée(s)</div>
+      </div>
+      <div class="detail-section">
+        <h3>Toutes les occurrences</h3>
+        ${occurrences}
+      </div>`;
+  }
+
+  function render() {
+    const items = visibleInnovations();
+    $("resultCount").textContent = `${items.length} innovation(s) affichée(s)`;
+    if (state.view === "matrix") renderMatrix(items);
+    else if (state.view === "simple") renderSimple(items);
+    else renderList(items);
+    renderDetail();
+  }
+
+  function updateFromRecords(records) {
+    state.records = Array.isArray(records) ? records : [];
+    state.dataReady = true;
+    buildModel(state.records);
+    setConnection("ok", `${state.records.length} ligne(s) reçue(s)`);
+    $("error").innerHTML = "";
+    render();
+  }
+
+  function showError(message) {
+    setConnection("error", "Données non reçues");
+    $("error").innerHTML = `<div class="error-box">${escapeHtml(message)}</div>`;
+  }
+
+  // Interactions : délégation d'événements pour conserver les clics après actualisation.
+  $("mainContent").addEventListener("click", event => {
+    const button = event.target.closest("[data-key]");
+    if (!button) return;
+    state.selected = decodeURIComponent(button.dataset.key);
+    render();
+  });
+  $("mainContent").addEventListener("scroll", () => {
+    if (state.view === "simple") drawTransversalLines();
+  }, true);
+  window.addEventListener("resize", () => {
+    if (state.view === "simple") drawTransversalLines();
+  });
+
+  $("search").addEventListener("input", event => {
+    state.search = event.target.value;
+    const cursor = event.target.selectionStart;
+    render();
+    $("search").focus();
+    $("search").setSelectionRange(cursor, cursor);
+  });
+
+  $("familyFilter").addEventListener("change", event => {
+    state.family = event.target.value;
+    render();
+  });
+
+  $("transversalOnly").addEventListener("change", event => {
+    state.transversalOnly = event.target.checked;
+    render();
+  });
+
+  document.querySelectorAll(".tab").forEach(button => {
+    button.addEventListener("click", () => {
+      state.view = button.dataset.view;
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab === button));
+      render();
+    });
+  });
+
+  try {
+    if (!window.grist) {
+      showError("L'API Grist n'a pas été chargée. Vérifie que le widget est ouvert depuis Grist.");
+      return;
+    }
+    grist.ready({ requiredAccess: "read table" });
+    grist.onRecords(records => {
+      // La table « Matrice Innovation » doit être sélectionnée comme source de données du widget.
+      updateFromRecords(records);
+    });
+    grist.on("message", message => {
+      if (message && message.tableId) {
+        // Le widget reçoit les enregistrements de la table sélectionnée dans ses paramètres.
+      }
+    });
+  } catch (error) {
+    showError("Impossible d'initialiser le widget : " + error.message);
+  }
+})();
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartographie des innovations</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
 
   <style>
     :root {
