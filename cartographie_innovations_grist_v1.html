@@ -133,12 +133,18 @@
     .simple-canvas th:first-child { left: 0; z-index: 4; }
     .simple-canvas td { position: relative; vertical-align: middle; padding: 8px; border-bottom: 1px solid #edf0f3; border-right: 1px solid #f0f2f5; }
     .simple-canvas td:first-child { position: sticky; left: 0; z-index: 3; background: #fbfcfd; }
-    .simple-dots { display: flex; flex-wrap: wrap; align-content: center; align-items: center; justify-content: flex-start; gap: 9px; width: 100%; height: 100%; min-height: 0; }
+    .simple-dots { display: flex; flex-wrap: wrap; align-content: center; align-items: center; justify-content: center; gap: 9px; width: 100%; height: 100%; min-height: 0; }
     .simple-dot { position: relative; z-index: 4; display: inline-block; flex: 0 0 13px; width: 13px; height: 13px; padding: 0; border: 1px solid #ffffff; border-radius: 50%; box-shadow: 0 0 0 1px #52627455; cursor: pointer; }
     .simple-dot:hover, .simple-dot.selected { transform: scale(1.35); box-shadow: 0 0 0 2px var(--accent); }
     .simple-lines { position: absolute; inset: 0 auto auto 0; z-index: 1; pointer-events: none; overflow: visible; }
-    .simple-lines .adjacent-link { stroke-width: 17; stroke-linecap: round; opacity: .25; }
-    .simple-lines .distant-link { stroke-width: 2.5; stroke-linecap: round; opacity: .8; }
+    .simple-lines .metro-link {
+      fill: none;
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .84;
+    }
+    .simple-lines .metro-link.adjacent-link { stroke-width: 8; opacity: .28; }
     .simple-legend-note { padding: 10px 14px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--line); }
     /* DMR : quatre nuances de bleu, une par entité */
     .tone-dmr-ent { background: #dceaf7; color: #244c70; border-color: #bfd5e9; }
@@ -581,7 +587,7 @@
       const name = objective.replace(/^O\d+\s*:\s*/i, "");
       rows += `<tr><td><div class="objective-code">${escapeHtml(code)}</div><div class="objective-name">${escapeHtml(name)}</div></td>${cells}</tr>`;
     });
-    $("mainContent").innerHTML = `<div class="simple-scroll"><div class="simple-canvas"><svg class="simple-lines" aria-hidden="true"></svg><table><thead><tr><th>Objectifs / Couches</th>${headers}</tr></thead><tbody>${rows || '<tr><td colspan="7"><div class="empty-state">Aucun objectif ou aucune proposition à afficher.</div></td></tr>'}</tbody></table></div></div><div class="simple-legend-note">Chaque point représente une innovation dans une case. Survolez-le pour afficher son intitulé. Les occurrences d'une même innovation sont reliées : capsule arrondie entre cases voisines, trait coloré entre cases éloignées.</div>`;
+    $("mainContent").innerHTML = `<div class="simple-scroll"><div class="simple-canvas"><svg class="simple-lines" aria-hidden="true"></svg><table><thead><tr><th>Objectifs / Couches</th>${headers}</tr></thead><tbody>${rows || '<tr><td colspan="7"><div class="empty-state">Aucun objectif ou aucune proposition à afficher.</div></td></tr>'}</tbody></table></div></div><div class="simple-legend-note">Chaque point représente une innovation dans une case. Survolez-le pour afficher son intitulé. Les occurrences d'une même innovation sont reliées par des tracés arrondis de type métro, privilégiant les alignements horizontaux et verticaux.</div>`;
     $("mainHeading").textContent = "Vue simplifiée — répartition des innovations";
     requestAnimationFrame(drawTransversalLines);
   }
@@ -599,6 +605,7 @@
 
     const byInnovation = new Map();
     const canvasRect = canvas.getBoundingClientRect();
+
     canvas.querySelectorAll(".simple-dot").forEach(dot => {
       const key = decodeURIComponent(dot.dataset.key);
       if (!byInnovation.has(key)) byInnovation.set(key, []);
@@ -612,25 +619,90 @@
     });
 
     const ns = "http://www.w3.org/2000/svg";
-    const colors = { DMR: "#6399c9", DTFFP: "#e0b72e", DG: "#75a95b", multi: "#929292", none: "#aeb8c2", other: "#aeb8c2" };
+    const colors = {
+      DMR: "#6399c9", DTFFP: "#e0b72e", DG: "#75a95b",
+      multi: "#929292", none: "#aeb8c2", other: "#aeb8c2"
+    };
+
+    // Construit un tracé orthogonal dont les angles sont arrondis.
+    function metroPath(points, radius = 14) {
+      if (points.length < 2) return "";
+      let d = `M ${points[0][0]} ${points[0][1]}`;
+
+      for (let i = 1; i < points.length - 1; i++) {
+        const prev = points[i - 1];
+        const cur = points[i];
+        const next = points[i + 1];
+        const inLength = Math.hypot(cur[0] - prev[0], cur[1] - prev[1]);
+        const outLength = Math.hypot(next[0] - cur[0], next[1] - cur[1]);
+        const r = Math.min(radius, inLength / 2, outLength / 2);
+
+        const before = [
+          cur[0] - (cur[0] - prev[0]) / (inLength || 1) * r,
+          cur[1] - (cur[1] - prev[1]) / (inLength || 1) * r
+        ];
+        const after = [
+          cur[0] + (next[0] - cur[0]) / (outLength || 1) * r,
+          cur[1] + (next[1] - cur[1]) / (outLength || 1) * r
+        ];
+
+        d += ` L ${before[0]} ${before[1]} Q ${cur[0]} ${cur[1]} ${after[0]} ${after[1]}`;
+      }
+
+      const last = points[points.length - 1];
+      return d + ` L ${last[0]} ${last[1]}`;
+    }
+
+    function routeFor(a, b, index) {
+      const separation = 22 + (index % 4) * 10;
+
+      // Même colonne : détour vers la droite.
+      if (a.col === b.col) {
+        const laneX = Math.max(a.x, b.x) + separation;
+        return metroPath([
+          [a.x, a.y], [laneX, a.y], [laneX, b.y], [b.x, b.y]
+        ]);
+      }
+
+      // Même ligne : détour vers le haut.
+      if (a.row === b.row) {
+        const laneY = Math.min(a.y, b.y) - separation;
+        return metroPath([
+          [a.x, a.y], [a.x, laneY], [b.x, laneY], [b.x, b.y]
+        ]);
+      }
+
+      // Pour les autres cas, privilégie un parcours orthogonal.
+      const horizontalFirst = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y);
+      if (horizontalFirst) {
+        const laneX = (a.x + b.x) / 2 + (index % 2 ? separation : -separation);
+        return metroPath([
+          [a.x, a.y], [laneX, a.y], [laneX, b.y], [b.x, b.y]
+        ]);
+      }
+
+      const laneY = (a.y + b.y) / 2 - separation;
+      return metroPath([
+        [a.x, a.y], [a.x, laneY], [b.x, laneY], [b.x, b.y]
+      ]);
+    }
 
     byInnovation.forEach((points, key) => {
       const item = state.innovations.get(key);
       if (!item || !isTransversal(item) || points.length < 2) return;
+
       points.sort((a, b) => a.row - b.row || a.col - b.col);
       const color = colors[familyOf(Array.from(item.entities))] || colors.other;
 
-      // Relier les occurrences successives : capsule large si les cases se touchent,
-      // trait fin si elles sont séparées dans la matrice.
       for (let i = 1; i < points.length; i++) {
-        const a = points[i - 1], b = points[i];
+        const a = points[i - 1];
+        const b = points[i];
         const adjacent = Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
-        const line = document.createElementNS(ns, "line");
-        line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
-        line.setAttribute("x2", b.x); line.setAttribute("y2", b.y);
-        line.setAttribute("stroke", color);
-        line.setAttribute("class", adjacent ? "adjacent-link" : "distant-link");
-        svg.appendChild(line);
+        const path = document.createElementNS(ns, "path");
+        path.setAttribute("d", routeFor(a, b, i));
+        path.setAttribute("stroke", color);
+        path.setAttribute("class", `metro-link${adjacent ? " adjacent-link" : ""}`);
+        svg.appendChild(path);
       }
     });
   }
